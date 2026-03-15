@@ -293,8 +293,8 @@ function initSchema(db) {
 
     CREATE TABLE IF NOT EXISTS backups (
       id TEXT PRIMARY KEY,
-      vm_id TEXT NOT NULL,
-      server_id TEXT NOT NULL,
+      vm_id TEXT,
+      server_id TEXT,
       name TEXT DEFAULT '',
       type TEXT DEFAULT 'full',
       size INTEGER DEFAULT 0,

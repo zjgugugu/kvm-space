@@ -192,10 +192,7 @@ const roles = ref([
   { name: 'user', description: '普通用户', permissions: ['查看分配的VM', '远程连接'], user_count: 0 }
 ])
 // Backups
-const backups = ref([
-  { name: 'backup_2024-01-15_auto', created_at: '2024-01-15 02:00:00', size: '156 MB', type: '自动备份' },
-  { name: 'backup_2024-01-10_manual', created_at: '2024-01-10 14:30:00', size: '143 MB', type: '手动备份' }
-])
+const backups = ref([])
 
 async function load() {
   loading.value = true
@@ -203,6 +200,31 @@ async function load() {
     configs.value = (await api.get('/system/config')).data || []
     info.value = await api.get('/info')
     admins.value = (await api.get('/users')).data || []
+    // 加载策略配置
+    try {
+      const pp = (await api.get('/system/password-policy')).data || {}
+      if (pp.min_length) passwordPolicy.min_length = Number(pp.min_length)
+      if (pp.complexity) passwordPolicy.complexity = typeof pp.complexity === 'string' ? JSON.parse(pp.complexity) : pp.complexity
+      if (pp.expire_days) passwordPolicy.expire_days = Number(pp.expire_days)
+      if (pp.max_failures) passwordPolicy.max_failures = Number(pp.max_failures)
+    } catch(e) {}
+    try {
+      const ap = (await api.get('/system/access-policy')).data || {}
+      if (ap.session_timeout) accessPolicy.session_timeout = Number(ap.session_timeout)
+      if (ap.multi_login !== undefined) accessPolicy.multi_login = ap.multi_login === 'true'
+      if (ap.ip_whitelist) accessPolicy.ip_whitelist = ap.ip_whitelist
+    } catch(e) {}
+    try {
+      const sm = (await api.get('/system/smtp')).data || {}
+      if (sm.host) smtpConfig.host = sm.host
+      if (sm.port) smtpConfig.port = Number(sm.port)
+      if (sm.encryption) smtpConfig.encryption = sm.encryption
+      if (sm.from) smtpConfig.from = sm.from
+      if (sm.username) smtpConfig.username = sm.username
+    } catch(e) {}
+    try {
+      backups.value = (await api.get('/backups')).data || []
+    } catch(e) {}
   } catch(e) {} finally { loading.value = false }
 }
 
@@ -236,17 +258,37 @@ async function deleteUser(user) {
   await api.delete(`/users/${user.id}`); ElMessage.success('已删除'); load()
 }
 
-function savePasswordPolicy() { ElMessage.success('密码策略已保存') }
-function saveAccessPolicy() { ElMessage.success('访问策略已保存') }
-function saveSmtp() { ElMessage.success('邮件配置已保存') }
-function testSmtp() { ElMessage.info('测试邮件已发送') }
-function createBackup() {
-  const name = `backup_${new Date().toISOString().slice(0,10)}_manual`
-  backups.value.unshift({ name, created_at: new Date().toLocaleString(), size: '-- MB', type: '手动备份' })
-  ElMessage.success('备份已创建')
+async function savePasswordPolicy() {
+  await api.put('/system/password-policy', { ...passwordPolicy })
+  ElMessage.success('密码策略已保存')
 }
-function restoreBackup(b) { ElMessageBox.confirm(`确认从 ${b.name} 恢复?`, '恢复备份', { type: 'warning' }).then(() => ElMessage.success('恢复完成')) }
-function deleteBackup(b) { ElMessageBox.confirm(`确认删除备份 ${b.name}?`, '删除', { type: 'warning' }).then(() => { backups.value = backups.value.filter(x => x !== b); ElMessage.success('已删除') }) }
+async function saveAccessPolicy() {
+  await api.put('/system/access-policy', { ...accessPolicy })
+  ElMessage.success('访问策略已保存')
+}
+async function saveSmtp() {
+  await api.put('/system/smtp', { ...smtpConfig })
+  ElMessage.success('邮件配置已保存')
+}
+async function testSmtp() {
+  const res = await api.post('/system/smtp/test')
+  ElMessage.info(res.message || '测试邮件已发送')
+}
+async function createBackup() {
+  const name = `backup_${new Date().toISOString().slice(0,10)}_manual`
+  await api.post('/backups', { name, type: 'full', vm_id: '', server_id: '' })
+  ElMessage.success('备份已创建'); load()
+}
+async function restoreBackup(b) {
+  await ElMessageBox.confirm(`确认从 ${b.name} 恢复?`, '恢复备份', { type: 'warning' })
+  await api.post(`/backups/${b.id}/restore`)
+  ElMessage.success('恢复完成'); load()
+}
+async function deleteBackup(b) {
+  await ElMessageBox.confirm(`确认删除备份 ${b.name}?`, '删除', { type: 'warning' })
+  await api.delete(`/backups/${b.id}`)
+  ElMessage.success('已删除'); load()
+}
 
 onMounted(load)
 </script>

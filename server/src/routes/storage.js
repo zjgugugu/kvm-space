@@ -76,4 +76,24 @@ router.get('/volumes', async (req, res) => {
   }
 });
 
+// 创建卷
+router.post('/volumes', async (req, res) => {
+  try {
+    const vol = await req.app.locals.driver.createVolume(req.body);
+    res.status(201).json(vol);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 删除卷
+router.delete('/volumes/:id', async (req, res) => {
+  try {
+    const result = await req.app.locals.driver.deleteVolume(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 module.exports = router;

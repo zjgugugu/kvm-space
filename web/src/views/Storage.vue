@@ -188,10 +188,15 @@ function showVolDialog(v) {
   volDialogVisible.value = true
 }
 
-function saveVol() { ElMessage.success('卷已保存'); volDialogVisible.value = false; load() }
+async function saveVol() {
+  const pool = pools.value.find(p => p.name === volForm.pool_name)
+  await api.post('/storage/volumes', { name: volForm.name, pool_id: pool?.id || '', size: volForm.size, format: volForm.format })
+  ElMessage.success('卷已创建'); volDialogVisible.value = false; load()
+}
 
 async function delVol(v) {
   await ElMessageBox.confirm(`确认删除卷 ${v.name}?`, '警告', { type: 'warning' })
+  await api.delete(`/storage/volumes/${v.id}`)
   ElMessage.success('已删除'); load()
 }
 

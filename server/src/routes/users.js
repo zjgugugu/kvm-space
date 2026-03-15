@@ -137,11 +137,44 @@ router.post('/groups', (req, res) => {
   res.json(db.prepare('SELECT * FROM user_groups WHERE id = ?').get(id));
 });
 
+router.put('/groups/:id', async (req, res) => {
+  if (req.user.role !== 'sysadmin') return res.status(403).json({ error: '无权限' });
+  try {
+    const result = await req.app.locals.driver.updateUserGroup(req.params.id, req.body);
+    res.json(result);
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
 router.delete('/groups/:id', (req, res) => {
   if (req.user.role !== 'sysadmin') return res.status(403).json({ error: '无权限' });
   const db = req.app.locals.db;
   db.prepare('DELETE FROM user_groups WHERE id = ?').run(req.params.id);
   res.json({ message: '已删除' });
+});
+
+// ===== LDAP 配置 =====
+router.get('/ldap', async (req, res) => {
+  try {
+    const data = await req.app.locals.driver.getSettingGroup('ldap');
+    res.json({ data });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+router.put('/ldap', async (req, res) => {
+  try {
+    const result = await req.app.locals.driver.saveSettingGroup('ldap', req.body);
+    res.json({ data: result });
+  } catch (err) { res.status(400).json({ error: err.message }); }
+});
+
+router.post('/ldap/test', async (req, res) => {
+  // 模拟 LDAP 连接测试
+  res.json({ success: true, message: 'LDAP连接测试成功（模拟）' });
+});
+
+router.post('/ldap/sync', async (req, res) => {
+  // 模拟 LDAP 同步
+  res.json({ success: true, message: 'LDAP用户同步完成（模拟）', synced: 0, added: 0, updated: 0 });
 });
 
 module.exports = router;

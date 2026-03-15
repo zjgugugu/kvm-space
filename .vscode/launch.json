@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "后端调试 (Node.js)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/server/src/app.js",
+      "cwd": "${workspaceFolder}/server",
+      "console": "integratedTerminal",
+      "env": {
+        "KVM_MODE": "mock",
+        "PORT": "3000"
+      },
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "前端调试 (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/web/src",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "全栈调试",
+      "configurations": ["后端调试 (Node.js)", "前端调试 (Chrome)"]
+    }
+  ]
+}

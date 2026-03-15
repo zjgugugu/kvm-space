@@ -205,17 +205,34 @@ function showGroupDialog(g) {
 }
 
 async function saveGroup() {
+  if (editingGroup.value) {
+    await api.put(`/users/groups/${editingGroup.value.id}`, groupForm)
+  } else {
+    await api.post('/users/groups', groupForm)
+  }
   ElMessage.success('用户组已保存'); groupDialogVisible.value = false; load()
 }
 
 async function deleteGroup(g) {
   await ElMessageBox.confirm(`确认删除用户组 ${g.name}?`, '警告', { type: 'warning' })
+  await api.delete(`/users/groups/${g.id}`)
   ElMessage.success('已删除'); load()
 }
 
-function saveLdap() { ElMessage.success('LDAP配置已保存') }
-function testLdap() { ElMessage.info('正在测试LDAP连接...'); setTimeout(() => ElMessage.success('连接成功'), 1000) }
-function syncLdap() { ElMessage.info('正在同步LDAP用户...'); setTimeout(() => ElMessage.success('同步完成'), 1500) }
+async function saveLdap() {
+  await api.put('/users/ldap', ldapConfig)
+  ElMessage.success('LDAP配置已保存')
+}
+async function testLdap() {
+  ElMessage.info('正在测试LDAP连接...')
+  const res = await api.post('/users/ldap/test')
+  ElMessage.success(res.message || '连接成功')
+}
+async function syncLdap() {
+  ElMessage.info('正在同步LDAP用户...')
+  const res = await api.post('/users/ldap/sync')
+  ElMessage.success(res.message || '同步完成')
+}
 
 onMounted(load)
 </script>

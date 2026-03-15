@@ -25,10 +25,28 @@ router.get('/settings', async (req, res) => {
   }
 });
 
+router.post('/settings', async (req, res) => {
+  try {
+    const setting = await req.app.locals.driver.createAlertSetting(req.body);
+    res.status(201).json(setting);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.put('/settings/:id', async (req, res) => {
   try {
     const setting = await req.app.locals.driver.updateAlertSetting(req.params.id, req.body);
     res.json(setting);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.delete('/settings/:id', async (req, res) => {
+  try {
+    const result = await req.app.locals.driver.deleteAlertSetting(req.params.id);
+    res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -31,6 +31,15 @@ router.post('/security-groups', async (req, res) => {
   }
 });
 
+router.put('/security-groups/:id', async (req, res) => {
+  try {
+    const sg = await req.app.locals.driver.updateSecurityGroup(req.params.id, req.body);
+    res.json(sg);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 router.post('/security-groups/:id/rules', async (req, res) => {
   try {
     const rule = await req.app.locals.driver.addSecurityRule(req.params.id, req.body);
@@ -72,6 +81,24 @@ router.post('/mac-pools', async (req, res) => {
   try {
     const pool = await req.app.locals.driver.createMacPool(req.body);
     res.status(201).json(pool);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.put('/mac-pools/:id', async (req, res) => {
+  try {
+    const pool = await req.app.locals.driver.updateMacPool(req.params.id, req.body);
+    res.json(pool);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.delete('/mac-pools/:id', async (req, res) => {
+  try {
+    const result = await req.app.locals.driver.deleteMacPool(req.params.id);
+    res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

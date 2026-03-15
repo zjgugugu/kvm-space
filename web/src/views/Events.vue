@@ -112,7 +112,8 @@ async function load() {
   finally { loading.value = false }
 }
 
-function acknowledgeAlert(row) {
+async function acknowledgeAlert(row) {
+  await api.post(`/alerts/${row.id}/acknowledge`)
   row.acknowledged = true
   ElMessage.success('告警已确认')
 }

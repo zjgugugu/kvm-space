@@ -149,6 +149,13 @@ async function load() {
     alerts.value = (await api.get('/alerts')).data || []
     settings.value = (await api.get('/alerts/settings')).data || []
     history.value = alerts.value.filter(a => a.status !== 'active')
+    try {
+      const nc = (await api.get('/system/notify-config')).data || {}
+      if (nc.email !== undefined) notifyConfig.email = nc.email === 'true'
+      if (nc.email_to) notifyConfig.email_to = nc.email_to
+      if (nc.internal !== undefined) notifyConfig.internal = nc.internal !== 'false'
+      if (nc.interval) notifyConfig.interval = nc.interval
+    } catch(e) {}
   } catch(e) { alerts.value = []; settings.value = [] } finally { loading.value = false }
 }
 
@@ -171,9 +178,23 @@ function showSettingDialog(s) {
   else Object.assign(settingForm, { name: '', type: 'cpu', threshold: 80, level: 'warning', notify_method: 'internal', description: '' })
   settingDialogVisible.value = true
 }
-function saveSetting() { ElMessage.success('告警规则已保存'); settingDialogVisible.value = false; load() }
-async function delSetting(s) { await ElMessageBox.confirm(`确认删除规则 ${s.name}?`); ElMessage.success('已删除'); load() }
-function saveNotify() { ElMessage.success('通知配置已保存') }
+async function saveSetting() {
+  if (editingSetting.value) {
+    await api.put(`/alerts/settings/${editingSetting.value.id}`, settingForm)
+  } else {
+    await api.post('/alerts/settings', settingForm)
+  }
+  ElMessage.success('告警规则已保存'); settingDialogVisible.value = false; load()
+}
+async function delSetting(s) {
+  await ElMessageBox.confirm(`确认删除规则 ${s.name}?`)
+  await api.delete(`/alerts/settings/${s.id}`)
+  ElMessage.success('已删除'); load()
+}
+async function saveNotify() {
+  await api.put('/system/notify-config', { ...notifyConfig })
+  ElMessage.success('通知配置已保存')
+}
 
 onMounted(load)
 </script>

@@ -961,6 +961,17 @@ class MockDriver extends VirtDriver {
     return { success: true };
   }
 
+  async updateSecurityGroup(id, updates) {
+    const fields = [], values = [];
+    for (const key of ['name', 'description']) {
+      if (updates[key] !== undefined) { fields.push(`${key} = ?`); values.push(updates[key]); }
+    }
+    if (fields.length === 0) throw new Error('无可更新字段');
+    values.push(id);
+    this.db.prepare(`UPDATE security_groups SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+    return this.getSecurityGroup(id);
+  }
+
   // ===========================
   //  备份管理
   // ===========================
@@ -1002,17 +1013,23 @@ class MockDriver extends VirtDriver {
   }
 
   async createBackup(config) {
-    const vm = this.db.prepare('SELECT * FROM vms WHERE id = ?').get(config.vm_id);
-    if (!vm) throw new Error('虚拟机不存在');
-    const server = this.db.prepare('SELECT * FROM backup_servers WHERE id = ?').get(config.server_id);
-    if (!server) throw new Error('备份服务器不存在');
+    let vmName = '系统';
+    let diskSize = 100;
+    if (config.vm_id) {
+      const vm = this.db.prepare('SELECT * FROM vms WHERE id = ?').get(config.vm_id);
+      if (!vm) throw new Error('虚拟机不存在');
+      vmName = vm.name;
+      diskSize = vm.disk || 100;
+    }
     const id = uuidv4();
-    const size = Math.floor(vm.disk * 0.6 + Math.random() * vm.disk * 0.3);
+    const size = Math.floor(diskSize * 0.6 + Math.random() * diskSize * 0.3);
     this.db.prepare(`INSERT INTO backups (id,vm_id,server_id,name,type,size,status,read_speed_limit,write_speed_limit,started_at,finished_at) VALUES (?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now','+15 minutes'))`)
-      .run(id, config.vm_id, config.server_id, config.name || `${vm.name}-备份-${new Date().toISOString().slice(0, 10)}`, config.type || 'full', size, 'completed', config.read_speed_limit || 0, config.write_speed_limit || 0);
-    this.db.prepare('UPDATE backup_servers SET used_space = used_space + ? WHERE id = ?').run(size, config.server_id);
-    this._addTask('backup_vm', 'backup', id, `${vm.name} 备份`, 100, 'completed', `${vm.name} 备份完成`);
-    this._addEvent('backup', id, `${vm.name}-备份`, '', 'info', 'backup_create', '创建备份', `为 ${vm.name} 创建备份`, 'admin');
+      .run(id, config.vm_id || null, config.server_id || null, config.name || `${vmName}-备份-${new Date().toISOString().slice(0, 10)}`, config.type || 'full', size, 'completed', config.read_speed_limit || 0, config.write_speed_limit || 0);
+    if (config.server_id) {
+      this.db.prepare('UPDATE backup_servers SET used_space = used_space + ? WHERE id = ?').run(size, config.server_id);
+    }
+    this._addTask('backup', 'backup', id, `${vmName} 备份`, 100, 'completed', `${vmName} 备份完成`);
+    this._addEvent('backup', id, `${vmName}-备份`, '', 'info', 'backup_create', '创建备份', `为 ${vmName} 创建备份`, 'admin');
     return this.db.prepare('SELECT * FROM backups WHERE id = ?').get(id);
   }
 
@@ -1056,19 +1073,34 @@ class MockDriver extends VirtDriver {
   }
 
   async listAlertSettings() {
-    return this.db.prepare('SELECT * FROM alert_settings ORDER BY target_type, metric').all();
+    return this.db.prepare('SELECT *, metric as name, target_type as type FROM alert_settings ORDER BY target_type, metric').all();
   }
 
   async updateAlertSetting(id, updates) {
     const fields = [];
     const values = [];
+    // 映射前端字段名到数据库字段名
+    if (updates.name !== undefined) { fields.push('metric = ?'); values.push(updates.name); }
+    if (updates.type !== undefined) { fields.push('target_type = ?'); values.push(updates.type); }
     for (const key of ['threshold', 'duration', 'level', 'enabled', 'notify_email']) {
       if (updates[key] !== undefined) { fields.push(`${key} = ?`); values.push(updates[key]); }
     }
     if (fields.length === 0) throw new Error('无可更新字段');
     values.push(id);
     this.db.prepare(`UPDATE alert_settings SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-    return this.db.prepare('SELECT * FROM alert_settings WHERE id = ?').get(id);
+    return this.db.prepare('SELECT *, metric as name, target_type as type FROM alert_settings WHERE id = ?').get(id);
+  }
+
+  async createAlertSetting(config) {
+    const id = uuidv4();
+    this.db.prepare(`INSERT INTO alert_settings (id,target_type,metric,threshold,duration,level,enabled,notify_email) VALUES (?,?,?,?,?,?,?,?)`)
+      .run(id, config.type || config.target_type || 'vm', config.name || config.metric || 'cpu_usage', config.threshold || 80, config.duration || 300, config.level || 'warning', config.enabled !== undefined ? (config.enabled ? 1 : 0) : 1, config.notify_email ? 1 : 0);
+    return this.db.prepare('SELECT *, metric as name, target_type as type FROM alert_settings WHERE id = ?').get(id);
+  }
+
+  async deleteAlertSetting(id) {
+    this.db.prepare('DELETE FROM alert_settings WHERE id = ?').run(id);
+    return { success: true };
   }
 
   // ===========================
@@ -1166,6 +1198,84 @@ class MockDriver extends VirtDriver {
     const id = uuidv4();
     this.db.prepare(`INSERT INTO mac_pools (id,name,prefix,range_start,range_end,total_count) VALUES (?,?,?,?,?,?)`).run(id, config.name, config.prefix || '52:54:00', config.range_start || '', config.range_end || '', config.total_count || 0);
     return this.db.prepare('SELECT * FROM mac_pools WHERE id = ?').get(id);
+  }
+
+  async updateMacPool(id, updates) {
+    const fields = [], values = [];
+    for (const key of ['name', 'prefix', 'range_start', 'range_end', 'total_count']) {
+      if (updates[key] !== undefined) { fields.push(`${key} = ?`); values.push(updates[key]); }
+    }
+    if (fields.length === 0) throw new Error('无可更新字段');
+    values.push(id);
+    this.db.prepare(`UPDATE mac_pools SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+    return this.db.prepare('SELECT * FROM mac_pools WHERE id = ?').get(id);
+  }
+
+  async deleteMacPool(id) {
+    this.db.prepare('DELETE FROM mac_pools WHERE id = ?').run(id);
+    return { success: true };
+  }
+
+  // ===========================
+  //  卷管理
+  // ===========================
+  async createVolume(config) {
+    const id = uuidv4();
+    const poolId = config.pool_id || null;
+    this.db.prepare(`INSERT INTO volumes (id,name,pool_id,size,format,status) VALUES (?,?,?,?,?,?)`)
+      .run(id, config.name, poolId, config.size || 50, config.format || 'qcow2', 'active');
+    if (poolId) {
+      this.db.prepare('UPDATE storage_pools SET used = used + ? WHERE id = ?').run(config.size || 50, poolId);
+    }
+    this._addEvent('storage', id, config.name, '', 'info', 'volume_create', '创建卷', `创建卷 ${config.name}`, 'admin');
+    return this.db.prepare('SELECT * FROM volumes WHERE id = ?').get(id);
+  }
+
+  async deleteVolume(id) {
+    const vol = this.db.prepare('SELECT * FROM volumes WHERE id = ?').get(id);
+    if (!vol) throw new Error('卷不存在');
+    if (vol.vm_id) throw new Error('卷正在被虚拟机使用');
+    if (vol.pool_id) {
+      this.db.prepare('UPDATE storage_pools SET used = MAX(0, used - ?) WHERE id = ?').run(vol.size, vol.pool_id);
+    }
+    this.db.prepare('DELETE FROM volumes WHERE id = ?').run(id);
+    this._addEvent('storage', id, vol.name, '', 'info', 'volume_delete', '删除卷', `删除卷 ${vol.name}`, 'admin');
+    return { success: true };
+  }
+
+  // ===========================
+  //  系统策略与配置（通过 sys_config 存储）
+  // ===========================
+  async getSettingGroup(prefix) {
+    const rows = this.db.prepare("SELECT * FROM sys_config WHERE key LIKE ? ORDER BY key").all(prefix + '.%');
+    const result = {};
+    for (const r of rows) result[r.key.replace(prefix + '.', '')] = r.value;
+    return result;
+  }
+
+  async saveSettingGroup(prefix, data) {
+    for (const [k, v] of Object.entries(data)) {
+      const fullKey = `${prefix}.${k}`;
+      const val = typeof v === 'object' ? JSON.stringify(v) : String(v);
+      const existing = this.db.prepare('SELECT key FROM sys_config WHERE key = ?').get(fullKey);
+      if (existing) {
+        this.db.prepare("UPDATE sys_config SET value = ?, updated_at = datetime('now') WHERE key = ?").run(val, fullKey);
+      } else {
+        this.db.prepare("INSERT INTO sys_config (key, value, description, updated_at) VALUES (?, ?, ?, datetime('now'))").run(fullKey, val, '');
+      }
+    }
+    return this.getSettingGroup(prefix);
+  }
+
+  async updateUserGroup(id, updates) {
+    const fields = [], values = [];
+    for (const key of ['name', 'parent_id', 'description']) {
+      if (updates[key] !== undefined) { fields.push(`${key} = ?`); values.push(updates[key]); }
+    }
+    if (fields.length === 0) throw new Error('无可更新字段');
+    values.push(id);
+    this.db.prepare(`UPDATE user_groups SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+    return this.db.prepare('SELECT * FROM user_groups WHERE id = ?').get(id);
   }
 
   // ===========================

@@ -224,24 +224,51 @@ async function del(n) {
 
 // 安全组
 function showSgDialog(sg) { editingSg.value = sg || null; Object.assign(sgForm, sg ? { name: sg.name, description: sg.description || '' } : { name: '', description: '' }); sgDialogVisible.value = true }
-function saveSg() { ElMessage.success('安全组已保存'); sgDialogVisible.value = false; load() }
-async function deleteSg(sg) { await ElMessageBox.confirm(`确认删除安全组 ${sg.name}?`); ElMessage.success('已删除'); load() }
-function selectSg(sg) {
+async function saveSg() {
+  if (editingSg.value) {
+    await api.put(`/networks/security-groups/${editingSg.value.id}`, sgForm)
+  } else {
+    await api.post('/networks/security-groups', sgForm)
+  }
+  ElMessage.success('安全组已保存'); sgDialogVisible.value = false; load()
+}
+async function deleteSg(sg) {
+  await ElMessageBox.confirm(`确认删除安全组 ${sg.name}?`)
+  await api.delete(`/networks/security-groups/${sg.id}`)
+  ElMessage.success('已删除'); load()
+}
+async function selectSg(sg) {
   selectedSg.value = sg
-  sgRules.value = [
-    { id: 1, direction: 'in', protocol: 'tcp', port_range: '22', source: '0.0.0.0/0', action: 'allow' },
-    { id: 2, direction: 'in', protocol: 'tcp', port_range: '80,443', source: '0.0.0.0/0', action: 'allow' },
-    { id: 3, direction: 'out', protocol: 'all', port_range: '-', source: '0.0.0.0/0', action: 'allow' },
-  ]
+  try {
+    const detail = await api.get(`/networks/security-groups/${sg.id}`)
+    sgRules.value = detail.rules || []
+  } catch(e) { sgRules.value = [] }
 }
 function showRuleDialog() { Object.assign(ruleForm, { direction: 'in', protocol: 'tcp', port_range: '', source: '0.0.0.0/0', action: 'allow' }); ruleDialogVisible.value = true }
-function saveRule() { sgRules.value.push({ id: Date.now(), ...ruleForm }); ElMessage.success('规则已添加'); ruleDialogVisible.value = false }
-function deleteRule(r) { sgRules.value = sgRules.value.filter(x => x.id !== r.id); ElMessage.success('规则已删除') }
+async function saveRule() {
+  await api.post(`/networks/security-groups/${selectedSg.value.id}/rules`, ruleForm)
+  ElMessage.success('规则已添加'); ruleDialogVisible.value = false; selectSg(selectedSg.value)
+}
+async function deleteRule(r) {
+  await api.delete(`/networks/security-groups/rules/${r.id}`)
+  ElMessage.success('规则已删除'); selectSg(selectedSg.value)
+}
 
 // MAC地址池
 function showMacDialog(m) { editingMac.value = m || null; Object.assign(macForm, m ? { name: m.name, range_start: m.range_start, range_end: m.range_end } : { name: '', range_start: '', range_end: '' }); macDialogVisible.value = true }
-function saveMac() { ElMessage.success('MAC地址池已保存'); macDialogVisible.value = false; load() }
-async function deleteMac(m) { await ElMessageBox.confirm(`确认删除MAC地址池 ${m.name}?`); ElMessage.success('已删除'); load() }
+async function saveMac() {
+  if (editingMac.value) {
+    await api.put(`/networks/mac-pools/${editingMac.value.id}`, macForm)
+  } else {
+    await api.post('/networks/mac-pools', macForm)
+  }
+  ElMessage.success('MAC地址池已保存'); macDialogVisible.value = false; load()
+}
+async function deleteMac(m) {
+  await ElMessageBox.confirm(`确认删除MAC地址池 ${m.name}?`)
+  await api.delete(`/networks/mac-pools/${m.id}`)
+  ElMessage.success('已删除'); load()
+}
 
 onMounted(load)
 </script>
