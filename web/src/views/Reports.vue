@@ -127,7 +127,7 @@ async function loadData() {
       api.get('/vms'),
       api.get('/hosts'),
       api.get('/users'),
-      api.get('/storage-pools')
+      api.get('/storage/pools')
     ])
 
     const vms = vmRes.data || []

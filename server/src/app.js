@@ -19,6 +19,7 @@ const backupRoutes = require('./routes/backups');
 const alertRoutes = require('./routes/alerts');
 const systemRoutes = require('./routes/system');
 const snapshotPolicyRoutes = require('./routes/snapshot-policies');
+const statsRoutes = require('./routes/stats');
 
 const MODE = process.env.KVM_MODE || 'mock';
 const PORT = parseInt(process.env.PORT) || 3000;
@@ -72,10 +73,11 @@ async function main() {
   app.use('/api/alerts', authMiddleware, alertRoutes);
   app.use('/api/system', authMiddleware, systemRoutes);
   app.use('/api/snapshot-policies', authMiddleware, snapshotPolicyRoutes);
+  app.use('/api/stats', authMiddleware, statsRoutes);
 
   // 模式信息（无需认证）
   app.get('/api/info', (req, res) => {
-    res.json({ mode: MODE, version: '0.1.0', name: 'KVM Cloud 虚拟化管理平台' });
+    res.json({ mode: MODE, version: '0.2.2', name: 'KVM Cloud 虚拟化管理平台' });
   });
 
   // SPA 回退

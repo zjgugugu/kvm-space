@@ -176,7 +176,7 @@ async function save() {
 
 async function toggleStatus(u) {
   const ns = u.status === 'active' ? 'disabled' : 'active'
-  await api.put(`/users/${u.id}`, { status: ns }); ElMessage.success('操作成功'); load()
+  await api.put(`/users/${u.id}/status`, { status: ns }); ElMessage.success('操作成功'); load()
 }
 
 async function resetPwd(u) {

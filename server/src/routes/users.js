@@ -77,6 +77,20 @@ router.put('/:id/password', (req, res) => {
   res.json({ message: '密码已重置' });
 });
 
+// 重置密码（POST 方式，供前端 reset-password 按钮调用）
+router.post('/:id/reset-password', (req, res) => {
+  if (req.user.role !== 'sysadmin') {
+    return res.status(403).json({ error: '无权限' });
+  }
+  const db = req.app.locals.db;
+  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: '用户不存在' });
+  const defaultPassword = 'Abc@1234';
+  const hash = bcrypt.hashSync(defaultPassword, 10);
+  db.prepare('UPDATE users SET password_hash = ?, login_fail_count = 0 WHERE id = ?').run(hash, req.params.id);
+  res.json({ message: '密码已重置为默认密码' });
+});
+
 // 删除用户
 router.delete('/:id', (req, res) => {
   if (req.user.role !== 'sysadmin') {

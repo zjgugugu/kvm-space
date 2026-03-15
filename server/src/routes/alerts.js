@@ -15,6 +15,25 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ===== 告警设置（放在 /:id 之前避免路由冲突） =====
+router.get('/settings', async (req, res) => {
+  try {
+    const settings = await req.app.locals.driver.listAlertSettings();
+    res.json({ data: settings, total: settings.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/settings/:id', async (req, res) => {
+  try {
+    const setting = await req.app.locals.driver.updateAlertSetting(req.params.id, req.body);
+    res.json(setting);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // 确认告警
 router.post('/:id/acknowledge', async (req, res) => {
   try {
@@ -30,25 +49,6 @@ router.post('/:id/resolve', async (req, res) => {
   try {
     const result = await req.app.locals.driver.resolveAlert(req.params.id);
     res.json(result);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// ===== 告警设置 =====
-router.get('/settings', async (req, res) => {
-  try {
-    const settings = await req.app.locals.driver.listAlertSettings();
-    res.json({ data: settings, total: settings.length });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-router.put('/settings/:id', async (req, res) => {
-  try {
-    const setting = await req.app.locals.driver.updateAlertSetting(req.params.id, req.body);
-    res.json(setting);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

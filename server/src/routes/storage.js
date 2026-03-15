@@ -45,6 +45,16 @@ router.post('/pools/:id/expand', async (req, res) => {
   }
 });
 
+// 编辑存储池
+router.put('/pools/:id', async (req, res) => {
+  try {
+    const pool = await req.app.locals.driver.editStoragePool(req.params.id, req.body);
+    res.json(pool);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // 删除存储池
 router.delete('/pools/:id', async (req, res) => {
   try {

@@ -34,6 +34,7 @@ class VirtDriver {
   // ===== 存储 =====
   async listStoragePools() { throw new Error('Not implemented'); }
   async getStoragePool(name) { throw new Error('Not implemented'); }
+  async editStoragePool(id, updates) { throw new Error('Not implemented'); }
   async listVolumes(pool) { throw new Error('Not implemented'); }
 
   // ===== 网络 =====

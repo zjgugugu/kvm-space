@@ -839,6 +839,20 @@ class MockDriver extends VirtDriver {
     return this.getStoragePool(id);
   }
 
+  async editStoragePool(id, updates) {
+    const pool = this.db.prepare('SELECT * FROM storage_pools WHERE id = ?').get(id);
+    if (!pool) throw new Error('存储池不存在');
+    const fields = [];
+    const values = [];
+    for (const key of ['name', 'description', 'status', 'path', 'replica_count', 'cache_disk']) {
+      if (updates[key] !== undefined) { fields.push(`${key} = ?`); values.push(updates[key]); }
+    }
+    if (fields.length === 0) throw new Error('无可更新字段');
+    values.push(id);
+    this.db.prepare(`UPDATE storage_pools SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+    return this.getStoragePool(id);
+  }
+
   async expandStoragePool(id, additionalSize) {
     const pool = this.db.prepare('SELECT * FROM storage_pools WHERE id = ?').get(id);
     if (!pool) throw new Error('存储池不存在');
@@ -884,7 +898,7 @@ class MockDriver extends VirtDriver {
   async editNetwork(id, updates) {
     const net = this.db.prepare('SELECT * FROM networks WHERE id = ?').get(id);
     if (!net) throw new Error('网络不存在');
-    const allowed = ['name', 'subnet', 'gateway', 'dns', 'dhcp_enabled', 'dhcp_start', 'dhcp_end', 'description'];
+    const allowed = ['name', 'status', 'subnet', 'gateway', 'dns', 'dhcp_enabled', 'dhcp_start', 'dhcp_end', 'description'];
     const fields = [];
     const values = [];
     for (const key of allowed) {
