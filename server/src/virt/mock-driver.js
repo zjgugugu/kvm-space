@@ -777,6 +777,14 @@ class MockDriver extends VirtDriver {
     `).all();
   }
 
+  async getPublishRule(id) {
+    return this.db.prepare(`
+      SELECT r.*, t.title as template_name, s.name as spec_name
+      FROM publish_rules r LEFT JOIN templates t ON r.template_id = t.id LEFT JOIN desktop_specs s ON r.spec_id = s.id
+      WHERE r.id = ?
+    `).get(id);
+  }
+
   async createPublishRule(config) {
     const id = uuidv4();
     this.db.prepare(`INSERT INTO publish_rules (id,name,template_id,spec_id,target_type,target_name,desktop_type,ip_restriction,time_restriction,snapshot_enabled,max_snapshots,auto_start,auto_shutdown,status)
@@ -788,6 +796,28 @@ class MockDriver extends VirtDriver {
   async deletePublishRule(id) {
     this.db.prepare('DELETE FROM publish_rules WHERE id = ?').run(id);
     return { success: true };
+  }
+
+  async updatePublishRule(id, updates) {
+    const rule = this.db.prepare('SELECT * FROM publish_rules WHERE id = ?').get(id);
+    if (!rule) throw new Error('发布规则不存在');
+    const allowed = ['name', 'template_id', 'spec_id', 'target_type', 'target_name', 'desktop_type', 'ip_restriction', 'time_restriction', 'snapshot_enabled', 'max_snapshots', 'auto_start', 'auto_shutdown'];
+    const fields = [];
+    const values = [];
+    for (const key of allowed) {
+      if (updates[key] !== undefined) { fields.push(`${key} = ?`); values.push(updates[key]); }
+    }
+    if (fields.length === 0) throw new Error('无可更新字段');
+    values.push(id);
+    this.db.prepare(`UPDATE publish_rules SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+    return this.getPublishRule(id);
+  }
+
+  async togglePublishRule(id, status) {
+    const rule = this.db.prepare('SELECT * FROM publish_rules WHERE id = ?').get(id);
+    if (!rule) throw new Error('发布规则不存在');
+    this.db.prepare('UPDATE publish_rules SET status = ? WHERE id = ?').run(status || (rule.status === 'active' ? 'disabled' : 'active'), id);
+    return this.getPublishRule(id);
   }
 
   // ===========================

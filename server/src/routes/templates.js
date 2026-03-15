@@ -73,6 +73,18 @@ router.post('/:id/clone', async (req, res) => {
   }
 });
 
+// 从虚拟机提取模板
+router.post('/extract-from-vm', async (req, res) => {
+  try {
+    const { vm_id, name } = req.body;
+    if (!vm_id || !name) return res.status(400).json({ error: '请提供虚拟机ID和模板名称' });
+    const tpl = await req.app.locals.driver.createTemplateFromVM(vm_id, name);
+    res.status(201).json(tpl);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // 删除
 router.delete('/:id', async (req, res) => {
   try {
