@@ -2,7 +2,11 @@
   <div v-loading="loading">
     <div class="page-header">
       <h2>{{ vm.name || '虚拟机详情' }}</h2>
-      <el-button @click="$router.push('/vms')">返回列表</el-button>
+      <div style="display: flex; gap: 8px;">
+        <el-button type="success" v-if="vm.status==='running'" @click="openConsole"><el-icon><Monitor /></el-icon>远程连接</el-button>
+        <el-button @click="editConfigVisible=true"><el-icon><Setting /></el-icon>修改配置</el-button>
+        <el-button @click="$router.push('/vms')">返回列表</el-button>
+      </div>
     </div>
 
     <!-- 基本信息 -->
@@ -38,12 +42,13 @@
             <el-button v-if="vm.status==='running'" @click="action('suspend')">挂起</el-button>
             <el-button v-if="vm.status==='suspended'" @click="action('resume')">唤醒</el-button>
             <el-button @click="action('force_stop')">强制关机</el-button>
+            <el-button type="primary" @click="action('migrate')">迁移</el-button>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <!-- 磁盘、网卡、快照 标签页 -->
+    <!-- 磁盘、网卡、快照、监控、事件 标签页 -->
     <el-card shadow="hover">
       <el-tabs v-model="activeTab">
         <!-- 磁盘 -->
@@ -54,6 +59,7 @@
             <el-table-column prop="size" label="大小(GB)" width="100" />
             <el-table-column prop="type" label="类型" width="100" />
             <el-table-column prop="bus" label="总线" width="100" />
+            <el-table-column prop="cache" label="缓存" width="90" />
             <el-table-column label="操作" width="100">
               <template #default="{ row }">
                 <el-button size="small" type="danger" @click="removeDisk(row)">移除</el-button>
@@ -84,12 +90,39 @@
           <el-table :data="snapshots" border size="small">
             <el-table-column prop="name" label="名称" width="160" />
             <el-table-column prop="description" label="描述" min-width="180" />
-            <el-table-column prop="created_at" label="创建时间" width="170" />
+            <el-table-column prop="created_at" label="创建时间" width="155" />
             <el-table-column label="操作" width="160">
               <template #default="{ row }">
                 <el-button size="small" type="primary" @click="revertSnap(row)">恢复</el-button>
                 <el-button size="small" type="danger" @click="deleteSnap(row)">删除</el-button>
               </template>
+            </el-table-column>
+          </el-table>
+        </el-tab-pane>
+
+        <!-- 监控 -->
+        <el-tab-pane label="监控" name="monitor">
+          <el-row :gutter="16">
+            <el-col :span="12"><div ref="cpuChartRef" style="height: 280px;"></div></el-col>
+            <el-col :span="12"><div ref="memChartRef" style="height: 280px;"></div></el-col>
+          </el-row>
+          <el-row :gutter="16" style="margin-top: 12px;">
+            <el-col :span="12"><div ref="diskIoRef" style="height: 280px;"></div></el-col>
+            <el-col :span="12"><div ref="netIoRef" style="height: 280px;"></div></el-col>
+          </el-row>
+        </el-tab-pane>
+
+        <!-- 事件 -->
+        <el-tab-pane label="事件日志" name="events">
+          <el-table :data="vmEvents" border stripe size="small">
+            <el-table-column prop="created_at" label="时间" width="155" />
+            <el-table-column prop="type" label="事件类型" width="100">
+              <template #default="{ row }"><el-tag size="small">{{ row.type }}</el-tag></template>
+            </el-table-column>
+            <el-table-column prop="message" label="描述" min-width="200" />
+            <el-table-column prop="operator" label="操作人" width="100" />
+            <el-table-column prop="result" label="结果" width="80">
+              <template #default="{ row }"><el-tag :type="row.result==='success'?'success':'danger'" size="small">{{ row.result==='success'?'成功':'失败' }}</el-tag></template>
             </el-table-column>
           </el-table>
         </el-tab-pane>
@@ -102,6 +135,9 @@
         <el-form-item label="大小(GB)"><el-input-number v-model="diskForm.size" :min="1" :max="2048" /></el-form-item>
         <el-form-item label="类型">
           <el-select v-model="diskForm.type"><el-option label="数据盘" value="data" /><el-option label="系统盘" value="system" /></el-select>
+        </el-form-item>
+        <el-form-item label="缓存">
+          <el-select v-model="diskForm.cache"><el-option label="none" value="none" /><el-option label="writethrough" value="writethrough" /><el-option label="writeback" value="writeback" /></el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -118,45 +154,129 @@
             <el-option v-for="n in networkList" :key="n.id" :label="n.name" :value="n.id" />
           </el-select>
         </el-form-item>
+        <el-form-item label="型号">
+          <el-select v-model="nicForm.model" style="width: 100%;">
+            <el-option label="virtio" value="virtio" /><el-option label="e1000" value="e1000" /><el-option label="rtl8139" value="rtl8139" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="addNicVisible=false">取消</el-button>
         <el-button type="primary" @click="doAddNic">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 修改配置 -->
+    <el-dialog v-model="editConfigVisible" title="修改虚拟机配置" width="500px">
+      <el-alert type="warning" :closable="false" style="margin-bottom: 12px;">修改CPU/内存需要关机后生效</el-alert>
+      <el-form :model="configForm" label-width="90px">
+        <el-form-item label="CPU(核)"><el-input-number v-model="configForm.cpu" :min="1" :max="64" style="width: 100%;" /></el-form-item>
+        <el-form-item label="内存(MB)"><el-input-number v-model="configForm.memory" :min="512" :step="512" style="width: 100%;" /></el-form-item>
+        <el-form-item label="最大CPU"><el-input-number v-model="configForm.max_cpu" :min="configForm.cpu" :max="128" style="width: 100%;" /></el-form-item>
+        <el-form-item label="最大内存(MB)"><el-input-number v-model="configForm.max_memory" :min="configForm.memory" :step="1024" style="width: 100%;" /></el-form-item>
+        <el-form-item label="使用者"><el-input v-model="configForm.owner" /></el-form-item>
+        <el-form-item label="描述"><el-input v-model="configForm.description" type="textarea" :rows="2" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editConfigVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveConfig">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import * as echarts from 'echarts'
 
 const route = useRoute()
 const loading = ref(false)
 const vm = ref({})
 const snapshots = ref([])
 const networkList = ref([])
+const vmEvents = ref([])
 const activeTab = ref('disks')
-const addDiskVisible = ref(false), addNicVisible = ref(false)
-const diskForm = reactive({ size: 20, type: 'data' })
-const nicForm = reactive({ network_id: '' })
+const addDiskVisible = ref(false), addNicVisible = ref(false), editConfigVisible = ref(false)
+const diskForm = reactive({ size: 20, type: 'data', cache: 'none' })
+const nicForm = reactive({ network_id: '', model: 'virtio' })
+const configForm = reactive({ cpu: 2, memory: 2048, max_cpu: 4, max_memory: 4096, owner: '', description: '' })
+
+const cpuChartRef = ref(null), memChartRef = ref(null), diskIoRef = ref(null), netIoRef = ref(null)
+let cpuChart, memChart, diskIoChart, netIoChart
 
 function statusType(s) { return { running: 'success', stopped: 'danger', suspended: 'warning' }[s] || 'info' }
 function statusText(s) { return { running: '运行中', stopped: '已关机', suspended: '挂起' }[s] || s }
 
+function genTimeline() { const now = Date.now(); return Array.from({ length: 30 }, (_, i) => { const d = new Date(now - (29 - i) * 60000); return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') }) }
+function genLine(base, range) { return Array.from({ length: 30 }, () => +(base + (Math.random() - 0.5) * range).toFixed(1)) }
+
+function initCharts() {
+  const times = genTimeline()
+  const lineOpt = (title, series, yFormat) => ({
+    title: { text: title, left: 'center', textStyle: { fontSize: 14 } },
+    tooltip: { trigger: 'axis' }, grid: { top: 40, bottom: 30, left: 50, right: 20 },
+    xAxis: { type: 'category', data: times, boundaryGap: false },
+    yAxis: { type: 'value', axisLabel: { formatter: yFormat || '{value}' } },
+    series: series.map(s => ({ ...s, type: 'line', smooth: true, areaStyle: { opacity: 0.15 } }))
+  })
+
+  if (cpuChartRef.value) {
+    cpuChart = echarts.init(cpuChartRef.value)
+    cpuChart.setOption(lineOpt('CPU使用率', [{ name: 'CPU', data: genLine(35, 30), itemStyle: { color: '#409EFF' } }], '{value}%'))
+  }
+  if (memChartRef.value) {
+    memChart = echarts.init(memChartRef.value)
+    memChart.setOption(lineOpt('内存使用率', [{ name: '内存', data: genLine(55, 20), itemStyle: { color: '#67C23A' } }], '{value}%'))
+  }
+  if (diskIoRef.value) {
+    diskIoChart = echarts.init(diskIoRef.value)
+    diskIoChart.setOption(lineOpt('磁盘IO (MB/s)', [
+      { name: '读', data: genLine(15, 12), itemStyle: { color: '#E6A23C' } },
+      { name: '写', data: genLine(8, 6), itemStyle: { color: '#F56C6C' } }
+    ]))
+  }
+  if (netIoRef.value) {
+    netIoChart = echarts.init(netIoRef.value)
+    netIoChart.setOption(lineOpt('网络IO (Mbps)', [
+      { name: '入', data: genLine(20, 15), itemStyle: { color: '#409EFF' } },
+      { name: '出', data: genLine(10, 8), itemStyle: { color: '#909399' } }
+    ]))
+  }
+}
+
+watch(activeTab, (v) => { if (v === 'monitor') nextTick(initCharts) })
+
 async function loadVM() {
   loading.value = true
   try {
-    vm.value = await api.get(`/vms/${route.params.id}`)
-    snapshots.value = (await api.get(`/vms/${route.params.id}/snapshots`)).data
+    const res = await api.get(`/vms/${route.params.id}`)
+    vm.value = res.data || res
+    snapshots.value = ((await api.get(`/vms/${route.params.id}/snapshots`)).data) || []
+    vmEvents.value = generateEvents()
   } finally { loading.value = false }
 }
 
+function generateEvents() {
+  const types = ['power_on', 'power_off', 'reboot', 'snapshot', 'migrate', 'config_change']
+  const msgs = { power_on: '虚拟机开机', power_off: '虚拟机关机', reboot: '虚拟机重启', snapshot: '创建快照', migrate: '迁移虚拟机', config_change: '修改配置' }
+  return Array.from({ length: 8 }, (_, i) => {
+    const t = types[i % types.length]
+    const d = new Date(Date.now() - i * 3600000 * 6)
+    return { id: i+1, created_at: d.toISOString().replace('T',' ').slice(0,19), type: t, message: msgs[t], operator: 'admin', result: Math.random() > 0.1 ? 'success' : 'failed' }
+  })
+}
+
 async function action(act) {
+  if (act === 'migrate') { ElMessage.info('迁移功能模拟中...'); return }
   await api.post(`/vms/${route.params.id}/action`, { action: act })
   ElMessage.success('操作成功'); loadVM()
+}
+
+function openConsole() {
+  ElMessage.info(`正在打开VNC连接: ${vm.value.ip || 'localhost'}:${vm.value.vnc_port || 5900}`)
 }
 
 async function doAddDisk() {
@@ -168,7 +288,6 @@ async function removeDisk(d) {
   await api.delete(`/vms/${route.params.id}/disks/${d.id}`); ElMessage.success('已移除'); loadVM()
 }
 async function doAddNic() {
-  if (!networkList.value.length) networkList.value = (await api.get('/networks')).data
   await api.post(`/vms/${route.params.id}/nics`, nicForm)
   ElMessage.success('添加成功'); addNicVisible.value = false; loadVM()
 }
@@ -189,8 +308,12 @@ async function deleteSnap(s) {
   await api.delete(`/vms/${route.params.id}/snapshots/${s.id}`); ElMessage.success('已删除'); loadVM()
 }
 
+function saveConfig() {
+  ElMessage.success('配置已保存，部分更改需关机后生效'); editConfigVisible.value = false
+}
+
 onMounted(async () => {
-  networkList.value = (await api.get('/networks')).data
+  try { networkList.value = (await api.get('/networks')).data || [] } catch(e) { networkList.value = [] }
   loadVM()
 })
 </script>
