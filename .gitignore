@@ -12,3 +12,8 @@ data/*.db-shm
 *.log
 .DS_Store
 Thumbs.db
+
+# 测试/运维脚本
+test-*.sh
+clean-*.sh
+server/test-*.sh

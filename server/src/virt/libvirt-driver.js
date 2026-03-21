@@ -34,7 +34,11 @@ class LibvirtDriver extends MockDriver {
 
   _ensureDirs() {
     for (const dir of [VM_IMAGES_DIR, TEMPLATE_IMAGES_DIR]) {
-      try { fs.mkdirSync(dir, { recursive: true }); } catch (e) { /* ignore */ }
+      try {
+        fs.mkdirSync(dir, { recursive: true, mode: 0o775 });
+        // 确保 libvirt-qemu 可以访问
+        require('child_process').execFileSync('chown', ['libvirt-qemu:kvm', dir]);
+      } catch (e) { /* ignore */ }
     }
   }
 
@@ -214,13 +218,14 @@ class LibvirtDriver extends MockDriver {
     // 1. 先在DB创建记录（复用MockDriver逻辑）
     const vm = await super.createVM(config);
 
-    // 2. 创建实际磁盘文件
+    // 2. 创建实际磁盘文件并设置权限
     const diskPath = path.join(VM_IMAGES_DIR, `${vm.id}-sys.qcow2`);
     try {
       await this._exec('qemu-img', ['create', '-f', 'qcow2', diskPath, `${config.disk || 40}G`]);
+      await this._exec('chown', ['libvirt-qemu:kvm', diskPath]);
+      await this._exec('chmod', ['660', diskPath]);
     } catch (err) {
       console.error('[LibvirtDriver] 创建磁盘失败:', err.message);
-      // 不终止，磁盘可以后续补挂
     }
 
     // 3. 生成并定义 libvirt XML
@@ -616,6 +621,8 @@ class LibvirtDriver extends MockDriver {
     const diskPath = path.join(VM_IMAGES_DIR, `${vmId}-${disk.id}.qcow2`);
     try {
       await this._exec('qemu-img', ['create', '-f', 'qcow2', diskPath, `${config.size || 20}G`]);
+      await this._exec('chown', ['libvirt-qemu:kvm', diskPath]);
+      await this._exec('chmod', ['660', diskPath]);
 
       // 如果VM运行中，热挂载
       if (vm.status === 'running') {
