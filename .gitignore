@@ -1,5 +1,6 @@
 node_modules/
 dist/
+!web/dist/
 data/*.db
 data/*.db-wal
 data/*.db-shm
@@ -16,4 +17,6 @@ Thumbs.db
 # 测试/运维脚本
 test-*.sh
 clean-*.sh
+check-*.sh
 server/test-*.sh
+*.tar.gz

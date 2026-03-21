@@ -48,8 +48,8 @@
         <el-card shadow="hover" style="height: 100%;">
           <template #header><span style="font-weight: 600;">集群资源使用情况</span></template>
           <div style="display: flex; justify-content: space-around;">
-            <div v-for="r in resources" :key="r.label" style="text-align: center; flex: 1;">
-              <div ref="resourcePieRefs" style="height: 160px;"></div>
+            <div v-for="(r, i) in resources" :key="r.label" style="text-align: center; flex: 1;">
+              <div :ref="el => { if (i === 0) cpuGaugeRef = el; else if (i === 1) memGaugeRef = el; else storageGaugeRef = el }" style="height: 160px;"></div>
               <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">{{ r.label }}</div>
               <div style="font-size: 12px; color: #909399;">{{ r.used }}/{{ r.total }}{{ r.unit }}</div>
             </div>
@@ -134,13 +134,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import api from '../api'
 
 const overview = ref({})
 const vmPieRef = ref(null)
-const resourcePieRefs = ref([])
+const cpuGaugeRef = ref(null)
+const memGaugeRef = ref(null)
+const storageGaugeRef = ref(null)
+const chartInstances = []
 
 const statCards = computed(() => {
   const o = overview.value
@@ -167,6 +170,7 @@ function initCharts() {
   // VM状态饼图
   if (vmPieRef.value) {
     const chart = echarts.init(vmPieRef.value)
+    chartInstances.push(chart)
     const vms = overview.value.vms || {}
     chart.setOption({
       tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
@@ -185,10 +189,11 @@ function initCharts() {
 
   // 资源使用率环形图
   const colors = ['#409eff', '#67c23a', '#e6a23c']
-  const els = document.querySelectorAll('[style*="height: 160px"]')
+  const gaugeRefs = [cpuGaugeRef.value, memGaugeRef.value, storageGaugeRef.value]
   resources.value.forEach((r, i) => {
-    if (els[i]) {
-      const chart = echarts.init(els[i])
+    if (gaugeRefs[i]) {
+      const chart = echarts.init(gaugeRefs[i])
+      chartInstances.push(chart)
       chart.setOption({
         series: [{
           type: 'gauge', startAngle: 90, endAngle: -270, radius: '90%', center: ['50%', '50%'],
@@ -210,8 +215,21 @@ function initCharts() {
 }
 
 onMounted(async () => {
-  overview.value = await api.get('/dashboard/overview')
+  try {
+    overview.value = await api.get('/dashboard/overview')
+  } catch(e) { console.error(e) }
   await nextTick()
   initCharts()
+  window.addEventListener('resize', handleResize)
+})
+
+function handleResize() {
+  chartInstances.forEach(c => c.resize())
+}
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  chartInstances.forEach(c => c.dispose())
+  chartInstances.length = 0
 })
 </script>

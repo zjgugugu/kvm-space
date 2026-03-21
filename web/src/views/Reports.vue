@@ -99,9 +99,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import api from '../api'
+
+const chartInstances = []
 
 const activeTab = ref('vm')
 const dateRange = ref([])
@@ -164,7 +166,7 @@ async function loadData() {
     userLoginStats.value = users.map(u => ({
       ...u,
       vm_count: vms.filter(v => v.owner === u.username).length,
-      login_count: Math.floor(Math.random() * 50) + 1
+      login_count: u.login_count || 0
     }))
 
     // Storage
@@ -180,9 +182,12 @@ async function loadData() {
 }
 
 function renderCharts(vms, hosts, pools, stats) {
+  chartInstances.forEach(c => c.dispose())
+  chartInstances.length = 0
   // VM Pie
   if (vmPieRef.value) {
     const chart = echarts.init(vmPieRef.value)
+    chartInstances.push(chart)
     const statusMap = {}
     vms.forEach(v => { statusMap[v.status] = (statusMap[v.status] || 0) + 1 })
     chart.setOption({
@@ -197,6 +202,7 @@ function renderCharts(vms, hosts, pools, stats) {
   // VM Trend (simulated)
   if (vmTrendRef.value) {
     const chart = echarts.init(vmTrendRef.value)
+    chartInstances.push(chart)
     const days = ['周一','周二','周三','周四','周五','周六','周日']
     chart.setOption({
       tooltip: { trigger: 'axis' },
@@ -214,6 +220,7 @@ function renderCharts(vms, hosts, pools, stats) {
   // Host Pie
   if (hostPieRef.value) {
     const chart = echarts.init(hostPieRef.value)
+    chartInstances.push(chart)
     const online = hosts.filter(h => h.status === 'online').length
     chart.setOption({
       tooltip: { trigger: 'item' },
@@ -227,6 +234,7 @@ function renderCharts(vms, hosts, pools, stats) {
   // Host Bar
   if (hostBarRef.value) {
     const chart = echarts.init(hostBarRef.value)
+    chartInstances.push(chart)
     chart.setOption({
       tooltip: { trigger: 'axis' },
       grid: { top: 10, right: 20, bottom: 30, left: 50 },
@@ -242,6 +250,7 @@ function renderCharts(vms, hosts, pools, stats) {
   // Storage Pie
   if (storagePieRef.value) {
     const chart = echarts.init(storagePieRef.value)
+    chartInstances.push(chart)
     chart.setOption({
       tooltip: { trigger: 'item', formatter: '{b}: {c} GB' },
       series: [{ type: 'pie', radius: ['40%', '70%'], data: pools.map(p => ({
@@ -269,7 +278,20 @@ function exportCSV() {
   a.click()
 }
 
-onMounted(loadData)
+function handleResize() {
+  chartInstances.forEach(c => c.resize())
+}
+
+onMounted(() => {
+  loadData()
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  chartInstances.forEach(c => c.dispose())
+  chartInstances.length = 0
+})
 </script>
 
 <style scoped>
