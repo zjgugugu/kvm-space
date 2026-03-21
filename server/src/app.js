@@ -4,6 +4,7 @@ const path = require('path');
 const { openDatabase } = require('./db/sqlite-wrapper');
 const { initSchema, initDefaultData } = require('./db/schema');
 const MockDriver = require('./virt/mock-driver');
+const LibvirtDriver = require('./virt/libvirt-driver');
 const { router: authRoutes, authMiddleware } = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
 const vmRoutes = require('./routes/vms');
@@ -34,7 +35,11 @@ async function main() {
 
   // 初始化虚拟化驱动
   let driver;
-  if (MODE === 'mock') {
+  if (MODE === 'libvirt') {
+    driver = new LibvirtDriver(db);
+    await driver.init();
+    console.log('[启动] 模式: libvirt (真实 KVM/libvirt)');
+  } else if (MODE === 'mock') {
     driver = new MockDriver(db);
     driver.init();
     console.log('[启动] 模式: mock (模拟数据)');
