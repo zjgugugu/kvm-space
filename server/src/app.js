@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const zlib = require('zlib');
 const { openDatabase } = require('./db/sqlite-wrapper');
 const { initSchema, initDefaultData } = require('./db/schema');
 const MockDriver = require('./virt/mock-driver');
@@ -59,8 +60,38 @@ async function main() {
   app.locals.driver = driver;
   app.locals.mode = MODE;
 
+  // Gzip 压缩 - 为静态资源提供压缩传输
+  const distDir = path.join(__dirname, '..', '..', 'web', 'dist');
+  const gzCache = {};
+  app.use((req, res, next) => {
+    if (!req.path.match(/\.(js|css|html)$/) || req.path.includes('..')) return next();
+    const ae = req.headers['accept-encoding'] || '';
+    if (!ae.includes('gzip')) return next();
+    const filePath = path.resolve(distDir, '.' + req.path);
+    if (!filePath.startsWith(path.resolve(distDir))) return next();
+    const fs = require('fs');
+    if (!fs.existsSync(filePath)) return next();
+    if (gzCache[filePath]) {
+      const types = { '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8' };
+      res.setHeader('Content-Type', types[path.extname(req.path)] || 'application/octet-stream');
+      res.setHeader('Content-Encoding', 'gzip');
+      res.setHeader('Vary', 'Accept-Encoding');
+      return res.end(gzCache[filePath]);
+    }
+    const raw = fs.readFileSync(filePath);
+    zlib.gzip(raw, (err, compressed) => {
+      if (err) return next();
+      gzCache[filePath] = compressed;
+      const types = { '.js': 'application/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8' };
+      res.setHeader('Content-Type', types[path.extname(req.path)] || 'application/octet-stream');
+      res.setHeader('Content-Encoding', 'gzip');
+      res.setHeader('Vary', 'Accept-Encoding');
+      res.end(compressed);
+    });
+  });
+
   // 静态文件（前端构建输出）
-  app.use(express.static(path.join(__dirname, '..', '..', 'web', 'dist')));
+  app.use(express.static(distDir));
 
   // API 路由
   app.use('/api/auth', authRoutes);
@@ -87,7 +118,7 @@ async function main() {
 
   // SPA 回退
   app.get('*', (req, res) => {
-    const indexPath = path.join(__dirname, '..', '..', 'web', 'dist', 'index.html');
+    const indexPath = path.join(distDir, 'index.html');
     const fs = require('fs');
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);

@@ -2,6 +2,42 @@
 const express = require('express');
 const router = express.Router();
 
+// ===== 集群管理 (must be before /:id) =====
+router.get('/clusters/list', (req, res) => {
+  const db = req.app.locals.db;
+  const clusters = db.prepare('SELECT * FROM clusters ORDER BY created_at DESC').all();
+  res.json({ data: clusters, total: clusters.length });
+});
+
+router.post('/clusters', (req, res) => {
+  const db = req.app.locals.db;
+  const { v4: uuidv4 } = require('uuid');
+  const id = uuidv4();
+  const { name, description } = req.body;
+  if (!name) return res.status(400).json({ error: '集群名称不能为空' });
+  db.prepare('INSERT INTO clusters (id, name, description) VALUES (?,?,?)').run(id, name, description || '');
+  res.status(201).json(db.prepare('SELECT * FROM clusters WHERE id = ?').get(id));
+});
+
+router.put('/clusters/:id', (req, res) => {
+  const db = req.app.locals.db;
+  const cluster = db.prepare('SELECT * FROM clusters WHERE id = ?').get(req.params.id);
+  if (!cluster) return res.status(404).json({ error: '集群不存在' });
+  const { name, description } = req.body;
+  if (name) db.prepare('UPDATE clusters SET name = ?, description = ? WHERE id = ?').run(name, description || cluster.description, req.params.id);
+  res.json(db.prepare('SELECT * FROM clusters WHERE id = ?').get(req.params.id));
+});
+
+router.delete('/clusters/:id', (req, res) => {
+  const db = req.app.locals.db;
+  const cluster = db.prepare('SELECT * FROM clusters WHERE id = ?').get(req.params.id);
+  if (!cluster) return res.status(404).json({ error: '集群不存在' });
+  db.prepare('DELETE FROM clusters WHERE id = ?').run(req.params.id);
+  db.prepare('UPDATE hosts SET cluster_id = NULL WHERE cluster_id = ?').run(req.params.id);
+  res.json({ success: true });
+});
+
+// ===== 主机管理 =====
 // 主机列表
 router.get('/', async (req, res) => {
   try {

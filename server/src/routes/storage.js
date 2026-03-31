@@ -96,4 +96,34 @@ router.delete('/volumes/:id', async (req, res) => {
   }
 });
 
+// 卷磁盘角色
+router.put('/volumes/:id/role', async (req, res) => {
+  try {
+    const vol = await req.app.locals.driver.updateVolumeRole(req.params.id, req.body.role);
+    res.json(vol);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// 存储告警
+router.get('/alerts', async (req, res) => {
+  try {
+    const alerts = await req.app.locals.driver.listStorageAlerts();
+    res.json({ data: alerts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 存储健康检查
+router.post('/health-check', async (req, res) => {
+  try {
+    const result = await req.app.locals.driver.checkStorageHealth();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

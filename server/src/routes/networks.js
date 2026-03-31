@@ -104,6 +104,43 @@ router.delete('/mac-pools/:id', async (req, res) => {
   }
 });
 
+// ===== 子网管理 =====
+router.get('/subnets', async (req, res) => {
+  try {
+    const subnets = await req.app.locals.driver.listSubnets(req.query.network_id);
+    res.json({ data: subnets, total: subnets.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/subnets', async (req, res) => {
+  try {
+    const subnet = await req.app.locals.driver.createSubnet(req.body);
+    res.status(201).json(subnet);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.put('/subnets/:id', async (req, res) => {
+  try {
+    const subnet = await req.app.locals.driver.editSubnet(req.params.id, req.body);
+    res.json(subnet);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.delete('/subnets/:id', async (req, res) => {
+  try {
+    const result = await req.app.locals.driver.deleteSubnet(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // ===== 网络/虚拟交换机 =====
 router.get('/', async (req, res) => {
   try {

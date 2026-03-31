@@ -95,6 +95,36 @@
           </el-table-column>
         </el-table>
       </el-tab-pane>
+      <el-tab-pane label="子网管理" name="subnets">
+        <div style="margin-bottom: 10px; display: flex; gap: 8px; align-items: center;">
+          <el-button type="primary" size="small" @click="showSubnetDialog()"><el-icon><Plus /></el-icon>创建子网</el-button>
+          <el-select v-model="subnetNetFilter" placeholder="筛选网络" clearable size="small" style="width: 160px;" @change="loadSubnets">
+            <el-option v-for="n in networks" :key="n.id" :label="n.name" :value="n.id" />
+          </el-select>
+        </div>
+        <el-table :data="subnets" border stripe size="small" v-loading="subnetsLoading">
+          <el-table-column prop="name" label="子网名称" width="140" />
+          <el-table-column prop="network_name" label="所属网络" width="130" />
+          <el-table-column prop="cidr" label="CIDR" width="160" />
+          <el-table-column prop="gateway" label="网关" width="140" />
+          <el-table-column label="DNS" width="200">
+            <template #default="{ row }">{{ [row.dns1, row.dns2].filter(Boolean).join(' / ') || '-' }}</template>
+          </el-table-column>
+          <el-table-column label="DHCP" width="200">
+            <template #default="{ row }">
+              <template v-if="row.dhcp_enabled">{{ row.dhcp_start }} ~ {{ row.dhcp_end }}</template>
+              <el-tag v-else size="small" type="info">禁用</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="vlan_id" label="VLAN" width="70" />
+          <el-table-column label="操作" width="140" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" @click="showSubnetDialog(row)">编辑</el-button>
+              <el-button size="small" type="danger" @click="deleteSubnet(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
     </el-tabs>
 
     <!-- 网络编辑对话框 -->
@@ -166,6 +196,34 @@
         <el-button type="primary" @click="saveMac">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 子网对话框 -->
+    <el-dialog v-model="subnetDialogVisible" :title="editingSubnet ? '编辑子网' : '创建子网'" width="520px">
+      <el-form :model="subnetForm" label-width="90px">
+        <el-form-item label="子网名称" required><el-input v-model="subnetForm.name" /></el-form-item>
+        <el-form-item label="所属网络" required>
+          <el-select v-model="subnetForm.network_id" style="width: 100%;">
+            <el-option v-for="n in networks" :key="n.id" :label="n.name" :value="n.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="CIDR" required><el-input v-model="subnetForm.cidr" placeholder="192.168.100.0/24" /></el-form-item>
+        <el-form-item label="网关"><el-input v-model="subnetForm.gateway" placeholder="192.168.100.1" /></el-form-item>
+        <el-row :gutter="12">
+          <el-col :span="12"><el-form-item label="DNS1"><el-input v-model="subnetForm.dns1" placeholder="8.8.8.8" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="DNS2"><el-input v-model="subnetForm.dns2" placeholder="8.8.4.4" /></el-form-item></el-col>
+        </el-row>
+        <el-form-item label="VLAN ID"><el-input-number v-model="subnetForm.vlan_id" :min="0" :max="4094" /></el-form-item>
+        <el-form-item label="启用DHCP"><el-switch v-model="subnetForm.dhcp_enabled" :active-value="1" :inactive-value="0" /></el-form-item>
+        <template v-if="subnetForm.dhcp_enabled">
+          <el-form-item label="DHCP起始"><el-input v-model="subnetForm.dhcp_start" placeholder="192.168.100.100" /></el-form-item>
+          <el-form-item label="DHCP结束"><el-input v-model="subnetForm.dhcp_end" placeholder="192.168.100.200" /></el-form-item>
+        </template>
+      </el-form>
+      <template #footer>
+        <el-button @click="subnetDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveSubnet">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -178,6 +236,9 @@ const loading = ref(false), dialogVisible = ref(false), editing = ref(null)
 const sgDialogVisible = ref(false), editingSg = ref(null), sgForm = reactive({ name: '', description: '' })
 const ruleDialogVisible = ref(false), ruleForm = reactive({ direction: 'in', protocol: 'tcp', port_range: '', source: '0.0.0.0/0', action: 'allow' })
 const macDialogVisible = ref(false), editingMac = ref(null), macForm = reactive({ name: '', range_start: '', range_end: '' })
+const subnetDialogVisible = ref(false), editingSubnet = ref(null)
+const subnetForm = reactive({ name: '', network_id: '', cidr: '', gateway: '', dns1: '', dns2: '', dhcp_enabled: 0, dhcp_start: '', dhcp_end: '', vlan_id: 0 })
+const subnets = ref([]), subnetsLoading = ref(false), subnetNetFilter = ref('')
 const selectedSg = ref(null), sgRules = ref([])
 const tab = ref('networks'), search = ref(''), typeFilter = ref('')
 const networks = ref([]), secGroups = ref([]), macPools = ref([])
@@ -270,5 +331,33 @@ async function deleteMac(m) {
   ElMessage.success('已删除'); load()
 }
 
-onMounted(load)
+// 子网管理
+async function loadSubnets() {
+  subnetsLoading.value = true
+  try {
+    const params = subnetNetFilter.value ? { network_id: subnetNetFilter.value } : {}
+    subnets.value = (await api.get('/networks/subnets', { params })).data || []
+  } catch(e) { subnets.value = [] } finally { subnetsLoading.value = false }
+}
+
+function showSubnetDialog(sub) {
+  editingSubnet.value = sub || null
+  if (sub) Object.assign(subnetForm, { name: sub.name, network_id: sub.network_id, cidr: sub.cidr, gateway: sub.gateway || '', dns1: sub.dns1 || '', dns2: sub.dns2 || '', dhcp_enabled: sub.dhcp_enabled ? 1 : 0, dhcp_start: sub.dhcp_start || '', dhcp_end: sub.dhcp_end || '', vlan_id: sub.vlan_id || 0 })
+  else Object.assign(subnetForm, { name: '', network_id: networks.value[0]?.id || '', cidr: '', gateway: '', dns1: '', dns2: '', dhcp_enabled: 0, dhcp_start: '', dhcp_end: '', vlan_id: 0 })
+  subnetDialogVisible.value = true
+}
+
+async function saveSubnet() {
+  if (editingSubnet.value) await api.put(`/networks/subnets/${editingSubnet.value.id}`, subnetForm)
+  else await api.post('/networks/subnets', subnetForm)
+  ElMessage.success('子网已保存'); subnetDialogVisible.value = false; loadSubnets()
+}
+
+async function deleteSubnet(sub) {
+  await ElMessageBox.confirm(`确认删除子网 ${sub.name}?`, '警告', { type: 'warning' })
+  await api.delete(`/networks/subnets/${sub.id}`)
+  ElMessage.success('已删除'); loadSubnets()
+}
+
+onMounted(() => { load(); loadSubnets() })
 </script>

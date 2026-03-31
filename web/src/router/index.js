@@ -32,6 +32,9 @@ const routes = [
       // 日志告警
       { path: 'events', name: 'Events', component: () => import('../views/Events.vue'), meta: { title: '日志', parent: '日志告警' } },
       { path: 'alerts', name: 'Alerts', component: () => import('../views/Alerts.vue'), meta: { title: '告警事件', parent: '日志告警' } },
+      // 任务/审批
+      { path: 'tasks', name: 'TaskCenter', component: () => import('../views/TaskCenter.vue'), meta: { title: '任务中心' } },
+      { path: 'approvals', name: 'ApprovalCenter', component: () => import('../views/ApprovalCenter.vue'), meta: { title: '审批中心' } },
       // 统计报表
       { path: 'reports', name: 'Reports', component: () => import('../views/Reports.vue'), meta: { title: '统计报表' } },
       // 系统管理

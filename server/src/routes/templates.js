@@ -95,4 +95,41 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// ===== 版本管理 =====
+router.get('/:id/versions', async (req, res) => {
+  try {
+    const versions = await req.app.locals.driver.listTemplateVersions(req.params.id);
+    res.json({ data: versions });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/:id/versions', async (req, res) => {
+  try {
+    const ver = await req.app.locals.driver.createTemplateVersion(req.params.id, req.body.description);
+    res.status(201).json(ver);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/:id/versions/:vid/rollback', async (req, res) => {
+  try {
+    const tpl = await req.app.locals.driver.rollbackTemplateVersion(req.params.id, req.params.vid);
+    res.json(tpl);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+router.delete('/:id/versions/:vid', async (req, res) => {
+  try {
+    const result = await req.app.locals.driver.deleteTemplateVersion(req.params.id, req.params.vid);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 module.exports = router;

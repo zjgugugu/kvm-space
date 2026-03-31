@@ -246,21 +246,50 @@ class LibvirtDriver extends MockDriver {
 
   _generateVMXml(vm, diskPath) {
     const mac = vm.mac || '52:54:00:' + Array.from({ length: 3 }, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join(':');
+    const cpuMode = vm.cpu_mode || 'host-passthrough';
+    const biosType = vm.bios_type || 'seabios';
+    const videoType = vm.video_type || 'qxl';
+    const videoRam = vm.video_ram || 32;
+    const diskCache = vm.disk_cache || 'writeback';
+    const bootOrder = (vm.boot_order || 'hd').split(',').map(b => b.trim());
+
+    // UEFI loader
+    const osBlock = biosType === 'uefi'
+      ? `  <os>
+    <type arch='x86_64' machine='pc-q35-6.2'>hvm</type>
+    <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
+    <nvram>/var/lib/libvirt/qemu/nvram/${vm.name}_VARS.fd</nvram>
+${bootOrder.map(b => `    <boot dev='${b}'/>`).join('\n')}
+  </os>`
+      : `  <os>
+    <type arch='x86_64' machine='pc-q35-6.2'>hvm</type>
+${bootOrder.map(b => `    <boot dev='${b}'/>`).join('\n')}
+  </os>`;
+
+    // CPU block
+    const cpuBlock = `  <cpu mode='${cpuMode}' check='none'/>`;
+
+    // Hugepages
+    const hugepagesBlock = vm.hugepages ? `  <memoryBacking>\n    <hugepages/>\n  </memoryBacking>` : '';
+
+    // Video
+    const videoBlock = videoType === 'qxl'
+      ? `    <video>\n      <model type='qxl' ram='${videoRam * 1024}' vram='${videoRam * 1024}' vgamem='16384' heads='1' primary='yes'/>\n    </video>`
+      : `    <video>\n      <model type='${videoType}' heads='1' primary='yes'/>\n    </video>`;
+
     return `<domain type='kvm'>
   <name>${vm.name}</name>
   <uuid>${vm.id}</uuid>
   <memory unit='MiB'>${vm.max_memory || vm.memory}</memory>
   <currentMemory unit='MiB'>${vm.memory}</currentMemory>
   <vcpu placement='static' current='${vm.cpu}'>${vm.max_cpu || vm.cpu}</vcpu>
-  <os>
-    <type arch='x86_64' machine='pc-q35-6.2'>hvm</type>
-    <boot dev='hd'/>
-  </os>
+${osBlock}
   <features>
     <acpi/>
     <apic/>
   </features>
-  <cpu mode='host-passthrough' check='none'/>
+${cpuBlock}
+${hugepagesBlock}
   <clock offset='utc'>
     <timer name='rtc' tickpolicy='catchup'/>
     <timer name='pit' tickpolicy='delay'/>
@@ -272,7 +301,7 @@ class LibvirtDriver extends MockDriver {
   <devices>
     <emulator>/usr/bin/qemu-system-x86_64</emulator>
     <disk type='file' device='disk'>
-      <driver name='qemu' type='qcow2' cache='writeback'/>
+      <driver name='qemu' type='qcow2' cache='${diskCache}'/>
       <source file='${diskPath}'/>
       <target dev='vda' bus='virtio'/>
     </disk>
@@ -284,9 +313,7 @@ class LibvirtDriver extends MockDriver {
     <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'>
       <listen type='address' address='0.0.0.0'/>
     </graphics>
-    <video>
-      <model type='virtio' heads='1' primary='yes'/>
-    </video>
+${videoBlock}
     <channel type='unix'>
       <target type='virtio' name='org.qemu.guest_agent.0'/>
     </channel>

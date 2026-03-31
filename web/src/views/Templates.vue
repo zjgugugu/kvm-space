@@ -14,39 +14,70 @@
       </div>
     </div>
 
-    <el-table :data="filteredTpls" v-loading="loading" border stripe>
-      <el-table-column prop="name" label="镜像名称" width="180" show-overflow-tooltip />
-      <el-table-column prop="title" label="显示名称" width="140" show-overflow-tooltip />
-      <el-table-column prop="os_type" label="系统类型" width="90">
-        <template #default="{ row }">
-          <el-tag size="small" :type="row.os_type === 'windows' ? '' : 'success'">{{ row.os_type === 'windows' ? 'Windows' : 'Linux' }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="os_version" label="系统版本" width="140" show-overflow-tooltip />
-      <el-table-column prop="arch" label="架构" width="80" />
-      <el-table-column label="配置" width="140">
-        <template #default="{ row }">{{ row.cpu }}核 / {{ (row.memory / 1024).toFixed(0) }}GB / {{ row.disk }}GB</template>
-      </el-table-column>
-      <el-table-column prop="version" label="版本" width="70">
-        <template #default="{ row }">v{{ row.version || 1 }}</template>
-      </el-table-column>
-      <el-table-column prop="status" label="状态" width="90">
-        <template #default="{ row }">
-          <el-tag :type="statusType(row.status)" size="small">{{ statusText(row.status) }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="run_mode" label="运行模式" width="80" />
-      <el-table-column prop="vm_count" label="关联VM" width="70" />
-      <el-table-column prop="created_at" label="创建时间" width="155" />
-      <el-table-column label="操作" width="260" fixed="right">
-        <template #default="{ row }">
-          <el-button size="small" @click="showDialog(row)">编辑</el-button>
-          <el-button size="small" type="success" v-if="row.status === 'draft' || row.status === 'maintaining'" @click="publishTpl(row)">发布</el-button>
-          <el-button size="small" type="warning" v-if="row.status === 'published'" @click="maintainTpl(row)">维护</el-button>
-          <el-button size="small" type="danger" @click="deleteTpl(row)">删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <el-tabs v-model="mainTab">
+      <el-tab-pane label="镜像列表" name="list">
+        <el-table :data="filteredTpls" v-loading="loading" border stripe>
+          <el-table-column prop="name" label="镜像名称" width="180" show-overflow-tooltip />
+          <el-table-column prop="title" label="显示名称" width="140" show-overflow-tooltip />
+          <el-table-column prop="os_type" label="系统类型" width="90">
+            <template #default="{ row }">
+              <el-tag size="small" :type="row.os_type === 'windows' ? '' : 'success'">{{ row.os_type === 'windows' ? 'Windows' : 'Linux' }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="os_version" label="系统版本" width="140" show-overflow-tooltip />
+          <el-table-column prop="arch" label="架构" width="80" />
+          <el-table-column label="配置" width="140">
+            <template #default="{ row }">{{ row.cpu }}核 / {{ (row.memory / 1024).toFixed(0) }}GB / {{ row.disk }}GB</template>
+          </el-table-column>
+          <el-table-column prop="version" label="版本" width="70">
+            <template #default="{ row }">v{{ row.version || 1 }}</template>
+          </el-table-column>
+          <el-table-column prop="status" label="状态" width="90">
+            <template #default="{ row }">
+              <el-tag :type="statusType(row.status)" size="small">{{ statusText(row.status) }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="run_mode" label="运行模式" width="80" />
+          <el-table-column prop="vm_count" label="关联VM" width="70" />
+          <el-table-column prop="created_at" label="创建时间" width="155" />
+          <el-table-column label="操作" width="300" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" @click="showDialog(row)">编辑</el-button>
+              <el-button size="small" type="info" @click="showVersions(row)">版本</el-button>
+              <el-button size="small" type="success" v-if="row.status === 'draft' || row.status === 'maintaining'" @click="publishTpl(row)">发布</el-button>
+              <el-button size="small" type="warning" v-if="row.status === 'published'" @click="maintainTpl(row)">维护</el-button>
+              <el-button size="small" type="danger" @click="deleteTpl(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+
+      <el-tab-pane label="版本历史" name="versions">
+        <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div v-if="selectedTpl">
+            <el-tag type="primary" size="large">{{ selectedTpl.title || selectedTpl.name }}</el-tag>
+            <span style="margin-left: 10px; color: #909399;">当前版本: v{{ selectedTpl.version || 1 }}</span>
+          </div>
+          <div v-else><span style="color: #909399;">请在镜像列表中点击"版本"按钮查看</span></div>
+          <el-button type="primary" size="small" @click="showCreateVersion" :disabled="!selectedTpl"><el-icon><Plus /></el-icon>创建版本快照</el-button>
+        </div>
+        <el-table :data="versions" v-loading="versionsLoading" border stripe size="small" empty-text="暂无版本记录">
+          <el-table-column prop="version" label="版本号" width="90">
+            <template #default="{ row }"><el-tag>v{{ row.version }}</el-tag></template>
+          </el-table-column>
+          <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="snapshot_name" label="快照名称" width="200" show-overflow-tooltip />
+          <el-table-column prop="created_by" label="创建人" width="100" />
+          <el-table-column prop="created_at" label="创建时间" width="170" />
+          <el-table-column label="操作" width="160" fixed="right">
+            <template #default="{ row }">
+              <el-button size="small" type="warning" @click="rollbackVersion(row)">回滚</el-button>
+              <el-button size="small" type="danger" @click="deleteVersion(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+    </el-tabs>
 
     <!-- 创建/编辑镜像对话框 -->
     <el-dialog v-model="dialogVisible" :title="editing ? '编辑镜像' : '创建黄金镜像'" width="620px">
@@ -123,6 +154,9 @@ const vmList = ref([])
 const templates = ref([])
 const search = ref(''), statusFilter = ref('')
 const wizardStep = ref(0)
+const mainTab = ref('list')
+const selectedTpl = ref(null), versions = ref([]), versionsLoading = ref(false)
+const versionDesc = ref('')
 const form = reactive({ name: '', title: '', os_type: 'linux', os_version: '', arch: 'x86_64', cpu: 2, memory: 2048, disk: 40, run_mode: 'VDI', description: '' })
 
 function statusType(s) { return { draft: 'info', published: 'success', maintaining: 'warning' }[s] || 'info' }
@@ -172,6 +206,45 @@ async function maintainTpl(tpl) { await api.post(`/templates/${tpl.id}/maintain`
 async function deleteTpl(tpl) {
   await ElMessageBox.confirm(`确认删除镜像 ${tpl.name}?`, '警告', { type: 'warning' })
   await api.delete(`/templates/${tpl.id}`); ElMessage.success('已删除'); load()
+}
+
+// 版本管理
+async function showVersions(tpl) {
+  selectedTpl.value = tpl
+  mainTab.value = 'versions'
+  await loadVersions()
+}
+
+async function loadVersions() {
+  if (!selectedTpl.value) return
+  versionsLoading.value = true
+  try {
+    versions.value = (await api.get(`/templates/${selectedTpl.value.id}/versions`)).data || []
+  } finally { versionsLoading.value = false }
+}
+
+async function showCreateVersion() {
+  const { value } = await ElMessageBox.prompt('请输入版本描述', '创建版本快照', { inputPlaceholder: '例如：修复桌面配置问题' })
+  await api.post(`/templates/${selectedTpl.value.id}/versions`, { description: value })
+  ElMessage.success('版本快照已创建')
+  await loadVersions()
+  load()
+}
+
+async function rollbackVersion(ver) {
+  await ElMessageBox.confirm(`确认回滚到版本 v${ver.version}?`, '版本回滚', { type: 'warning' })
+  await api.post(`/templates/${selectedTpl.value.id}/versions/${ver.id}/rollback`)
+  ElMessage.success(`已回滚到 v${ver.version}`)
+  const tpl = await api.get(`/templates/${selectedTpl.value.id}`)
+  selectedTpl.value = tpl
+  load()
+}
+
+async function deleteVersion(ver) {
+  await ElMessageBox.confirm(`确认删除版本 v${ver.version}?`, '警告', { type: 'warning' })
+  await api.delete(`/templates/${selectedTpl.value.id}/versions/${ver.id}`)
+  ElMessage.success('版本已删除')
+  await loadVersions()
 }
 
 onMounted(load)

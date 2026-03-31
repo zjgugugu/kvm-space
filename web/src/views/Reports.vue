@@ -94,12 +94,84 @@
           </el-col>
         </el-row>
       </el-tab-pane>
+
+      <!-- 用户登录历史 -->
+      <el-tab-pane label="用户登录" name="login">
+        <div style="margin-bottom: 12px; display: flex; gap: 8px; align-items: center;">
+          <el-input v-model="loginFilter.user" placeholder="用户名" clearable size="small" style="width: 140px;" />
+          <el-date-picker v-model="loginDateRange" type="daterange" start-placeholder="开始" end-placeholder="结束" value-format="YYYY-MM-DD" size="small" style="width: 260px;" />
+          <el-button type="primary" size="small" @click="loadLoginHistory">查询</el-button>
+        </div>
+        <el-table :data="loginHistory" size="small" border stripe max-height="500">
+          <el-table-column type="index" label="#" width="50" />
+          <el-table-column prop="user" label="用户" width="120" />
+          <el-table-column prop="message" label="事件" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="ip" label="IP地址" width="130" />
+          <el-table-column prop="created_at" label="时间" width="170" />
+        </el-table>
+        <div style="text-align: right; margin-top: 8px; color: #909399; font-size: 12px;">共 {{ loginHistory.length }} 条记录</div>
+      </el-tab-pane>
+
+      <!-- 操作审计 -->
+      <el-tab-pane label="操作审计" name="audit">
+        <div style="margin-bottom: 12px; display: flex; gap: 8px; align-items: center;">
+          <el-input v-model="auditFilter.user" placeholder="用户名" clearable size="small" style="width: 140px;" />
+          <el-input v-model="auditFilter.action" placeholder="操作类型" clearable size="small" style="width: 140px;" />
+          <el-date-picker v-model="auditDateRange" type="daterange" start-placeholder="开始" end-placeholder="结束" value-format="YYYY-MM-DD" size="small" style="width: 260px;" />
+          <el-button type="primary" size="small" @click="loadAuditLogs">查询</el-button>
+        </div>
+        <el-table :data="auditLogs" size="small" border stripe max-height="500">
+          <el-table-column type="index" label="#" width="50" />
+          <el-table-column prop="user" label="操作者" width="100" />
+          <el-table-column prop="type" label="操作类型" width="100" />
+          <el-table-column prop="message" label="详情" min-width="260" show-overflow-tooltip />
+          <el-table-column prop="resource_name" label="资源" width="140" />
+          <el-table-column prop="level" label="结果" width="80">
+            <template #default="{ row }">
+              <el-tag :type="row.level === 'error' ? 'danger' : 'success'" size="small">{{ row.level === 'error' ? '失败' : '成功' }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="created_at" label="时间" width="170" />
+        </el-table>
+        <div style="text-align: right; margin-top: 8px; color: #909399; font-size: 12px;">共 {{ auditLogs.length }} 条记录</div>
+      </el-tab-pane>
+
+      <!-- 使用时长 -->
+      <el-tab-pane label="使用时长" name="usage">
+        <el-table :data="usageTimeList" size="small" border stripe>
+          <el-table-column type="index" label="排名" width="70" />
+          <el-table-column prop="username" label="用户" width="120" />
+          <el-table-column prop="display_name" label="姓名" width="120" />
+          <el-table-column prop="login_count" label="登录次数" width="100" />
+          <el-table-column prop="total_hours" label="总时长(小时)" width="120" :formatter="(r) => r.total_hours?.toFixed(2)" />
+          <el-table-column label="时长占比" min-width="200">
+            <template #default="{ row }">
+              <el-progress :percentage="maxUsageHours > 0 ? Math.round(row.total_hours / maxUsageHours * 100) : 0" :stroke-width="14" />
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+
+      <!-- 告警统计 -->
+      <el-tab-pane label="告警统计" name="alerts">
+        <el-row :gutter="16" style="margin-bottom: 16px;">
+          <el-col :span="8">
+            <el-card shadow="never"><template #header>按级别</template><div ref="alertLevelRef" style="height: 260px;"></div></el-card>
+          </el-col>
+          <el-col :span="8">
+            <el-card shadow="never"><template #header>按类型</template><div ref="alertTypeRef" style="height: 260px;"></div></el-card>
+          </el-col>
+          <el-col :span="8">
+            <el-card shadow="never"><template #header>近期趋势</template><div ref="alertTrendRef" style="height: 260px;"></div></el-card>
+          </el-col>
+        </el-row>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import api from '../api'
 
@@ -115,11 +187,27 @@ const userSummary = ref([])
 const userLoginStats = ref([])
 const storagePools = ref([])
 
+// New tab data
+const loginHistory = ref([])
+const auditLogs = ref([])
+const usageTimeList = ref([])
+const alertStats = ref({})
+
+const loginFilter = reactive({ user: '' })
+const loginDateRange = ref([])
+const auditFilter = reactive({ user: '', action: '' })
+const auditDateRange = ref([])
+
+const maxUsageHours = computed(() => Math.max(...usageTimeList.value.map(u => u.total_hours || 0), 1))
+
 const vmPieRef = ref(null)
 const vmTrendRef = ref(null)
 const hostPieRef = ref(null)
 const hostBarRef = ref(null)
 const storagePieRef = ref(null)
+const alertLevelRef = ref(null)
+const alertTypeRef = ref(null)
+const alertTrendRef = ref(null)
 
 async function loadData() {
   try {
@@ -260,21 +348,106 @@ function renderCharts(vms, hosts, pools, stats) {
   }
 }
 
-function onTabChange() { nextTick(() => loadData()) }
+function onTabChange() {
+  nextTick(() => {
+    if (activeTab.value === 'login') loadLoginHistory()
+    else if (activeTab.value === 'audit') loadAuditLogs()
+    else if (activeTab.value === 'usage') loadUsageTime()
+    else if (activeTab.value === 'alerts') loadAlertStats()
+    else loadData()
+  })
+}
+
+async function loadLoginHistory() {
+  try {
+    const params = {}
+    if (loginFilter.user) params.user = loginFilter.user
+    if (loginDateRange.value?.length === 2) { params.start = loginDateRange.value[0]; params.end = loginDateRange.value[1] }
+    loginHistory.value = await api.get('/stats/user-login', { params })
+  } catch(e) { loginHistory.value = [] }
+}
+
+async function loadAuditLogs() {
+  try {
+    const params = {}
+    if (auditFilter.user) params.user = auditFilter.user
+    if (auditFilter.action) params.action = auditFilter.action
+    if (auditDateRange.value?.length === 2) { params.start = auditDateRange.value[0]; params.end = auditDateRange.value[1] }
+    auditLogs.value = await api.get('/stats/audit', { params })
+  } catch(e) { auditLogs.value = [] }
+}
+
+async function loadUsageTime() {
+  try {
+    usageTimeList.value = await api.get('/stats/usage-time')
+  } catch(e) { usageTimeList.value = [] }
+}
+
+async function loadAlertStats() {
+  try {
+    alertStats.value = await api.get('/stats/alert-stats')
+    await nextTick()
+    renderAlertCharts()
+  } catch(e) { alertStats.value = {} }
+}
+
+function renderAlertCharts() {
+  const as = alertStats.value
+  // By level pie
+  if (alertLevelRef.value && as.byLevel) {
+    const chart = echarts.init(alertLevelRef.value)
+    chartInstances.push(chart)
+    const colors = { critical: '#f56c6c', warning: '#e6a23c', info: '#409eff' }
+    chart.setOption({
+      tooltip: { trigger: 'item' },
+      series: [{ type: 'pie', radius: ['35%', '65%'], data: as.byLevel.map(l => ({ name: l.level, value: l.count, itemStyle: { color: colors[l.level] || '#909399' } })) }]
+    })
+  }
+  // By type pie
+  if (alertTypeRef.value && as.byType) {
+    const chart = echarts.init(alertTypeRef.value)
+    chartInstances.push(chart)
+    chart.setOption({
+      tooltip: { trigger: 'item' },
+      series: [{ type: 'pie', radius: ['35%', '65%'], data: as.byType.map(t => ({ name: t.type, value: t.count })), label: { formatter: '{b}: {c}' } }]
+    })
+  }
+  // Recent trend bar
+  if (alertTrendRef.value && as.recent) {
+    const chart = echarts.init(alertTrendRef.value)
+    chartInstances.push(chart)
+    chart.setOption({
+      tooltip: { trigger: 'axis' },
+      grid: { top: 10, right: 10, bottom: 30, left: 40 },
+      xAxis: { type: 'category', data: as.recent.map(r => r.date) },
+      yAxis: { type: 'value', minInterval: 1 },
+      series: [{ type: 'bar', data: as.recent.map(r => r.count), itemStyle: { color: '#f56c6c' } }]
+    })
+  }
+}
 
 function exportCSV() {
-  let csv = ''
+  let csv = '', filename = `report_${activeTab.value}_${new Date().toISOString().slice(0,10)}.csv`
   if (activeTab.value === 'user') {
     csv = 'username,display_name,role,vm_count,login_count\n'
     userLoginStats.value.forEach(u => { csv += `${u.username},${u.display_name || ''},${u.role},${u.vm_count},${u.login_count}\n` })
   } else if (activeTab.value === 'storage') {
     csv = 'name,type,used_gb,total_gb\n'
     storagePools.value.forEach(s => { csv += `${s.name},${s.type},${s.used_gb},${s.total_gb}\n` })
+  } else if (activeTab.value === 'login') {
+    csv = 'user,message,ip,created_at\n'
+    loginHistory.value.forEach(r => { csv += `${r.user || ''},${(r.message||'').replace(/,/g, ';')},${r.ip||''},${r.created_at}\n` })
+  } else if (activeTab.value === 'audit') {
+    csv = 'user,type,message,resource_name,level,created_at\n'
+    auditLogs.value.forEach(r => { csv += `${r.user||''},${r.type||''},${(r.message||'').replace(/,/g, ';')},${r.resource_name||''},${r.level||''},${r.created_at}\n` })
+  } else if (activeTab.value === 'usage') {
+    csv = 'username,display_name,login_count,total_hours\n'
+    usageTimeList.value.forEach(r => { csv += `${r.username},${r.display_name||''},${r.login_count},${r.total_hours?.toFixed(2)}\n` })
   } else return
   const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `report_${activeTab.value}_${new Date().toISOString().slice(0,10)}.csv`
+  a.download = filename
   a.click()
 }
 

@@ -4,7 +4,7 @@
       <h2>{{ vm.name || '虚拟机详情' }}</h2>
       <div style="display: flex; gap: 8px;">
         <el-button type="success" v-if="vm.status==='running'" @click="openConsole"><el-icon><Monitor /></el-icon>远程连接</el-button>
-        <el-button @click="editConfigVisible=true"><el-icon><Setting /></el-icon>修改配置</el-button>
+        <el-button @click="openEditConfig"><el-icon><Setting /></el-icon>修改配置</el-button>
         <el-button @click="$router.push('/vms')">返回列表</el-button>
       </div>
     </div>
@@ -29,6 +29,14 @@
             <el-descriptions-item label="所在主机">{{ vm.host_name }}</el-descriptions-item>
             <el-descriptions-item label="使用者">{{ vm.owner }}</el-descriptions-item>
             <el-descriptions-item label="创建时间">{{ vm.created_at }}</el-descriptions-item>
+            <el-descriptions-item label="CPU模式">{{ vm.cpu_mode || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="BIOS">{{ vm.bios_type || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="显卡">{{ vm.video_type || '-' }} ({{ vm.video_ram || 0 }}MB)</el-descriptions-item>
+            <el-descriptions-item label="启动顺序">{{ vm.boot_order || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="HA高可用">
+              <el-tag :type="vm.ha_enabled ? 'success' : 'info'" size="small">{{ vm.ha_enabled ? '已启用' : '未启用' }}</el-tag>
+            </el-descriptions-item>
+            <el-descriptions-item label="磁盘缓存">{{ vm.disk_cache || '-' }}</el-descriptions-item>
           </el-descriptions>
         </el-card>
       </el-col>
@@ -167,15 +175,62 @@
     </el-dialog>
 
     <!-- 修改配置 -->
-    <el-dialog v-model="editConfigVisible" title="修改虚拟机配置" width="500px">
+    <el-dialog v-model="editConfigVisible" title="修改虚拟机配置" width="600px">
       <el-alert type="warning" :closable="false" style="margin-bottom: 12px;">修改CPU/内存需要关机后生效</el-alert>
-      <el-form :model="configForm" label-width="90px">
-        <el-form-item label="CPU(核)"><el-input-number v-model="configForm.cpu" :min="1" :max="64" style="width: 100%;" /></el-form-item>
-        <el-form-item label="内存(MB)"><el-input-number v-model="configForm.memory" :min="512" :step="512" style="width: 100%;" /></el-form-item>
-        <el-form-item label="最大CPU"><el-input-number v-model="configForm.max_cpu" :min="configForm.cpu" :max="128" style="width: 100%;" /></el-form-item>
-        <el-form-item label="最大内存(MB)"><el-input-number v-model="configForm.max_memory" :min="configForm.memory" :step="1024" style="width: 100%;" /></el-form-item>
+      <el-form :model="configForm" label-width="110px">
+        <el-row :gutter="16">
+          <el-col :span="12"><el-form-item label="CPU(核)"><el-input-number v-model="configForm.cpu" :min="1" :max="64" style="width: 100%;" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="内存(MB)"><el-input-number v-model="configForm.memory" :min="512" :step="512" style="width: 100%;" /></el-form-item></el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12"><el-form-item label="最大CPU"><el-input-number v-model="configForm.max_cpu" :min="configForm.cpu" :max="128" style="width: 100%;" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="最大内存(MB)"><el-input-number v-model="configForm.max_memory" :min="configForm.memory" :step="1024" style="width: 100%;" /></el-form-item></el-col>
+        </el-row>
         <el-form-item label="使用者"><el-input v-model="configForm.owner" /></el-form-item>
         <el-form-item label="描述"><el-input v-model="configForm.description" type="textarea" :rows="2" /></el-form-item>
+        <el-divider content-position="left">高级配置</el-divider>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="CPU模式">
+              <el-select v-model="configForm.cpu_mode" style="width: 100%;">
+                <el-option label="host-passthrough" value="host-passthrough" />
+                <el-option label="host-model" value="host-model" />
+                <el-option label="custom" value="custom" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="BIOS类型">
+              <el-select v-model="configForm.bios_type" style="width: 100%;">
+                <el-option label="SeaBIOS" value="seabios" /><el-option label="UEFI" value="uefi" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="显卡类型">
+              <el-select v-model="configForm.video_type" style="width: 100%;">
+                <el-option label="QXL" value="qxl" /><el-option label="VGA" value="vga" /><el-option label="Virtio" value="virtio" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12"><el-form-item label="显存(MB)"><el-input-number v-model="configForm.video_ram" :min="8" :max="256" style="width: 100%;" /></el-form-item></el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="8"><el-form-item label="CPU热添加"><el-switch v-model="configForm.cpu_hotplug" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="内存热添加"><el-switch v-model="configForm.mem_hotplug" /></el-form-item></el-col>
+          <el-col :span="8"><el-form-item label="大页内存"><el-switch v-model="configForm.hugepages" /></el-form-item></el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="8"><el-form-item label="HA高可用"><el-switch v-model="configForm.ha_enabled" /></el-form-item></el-col>
+          <el-col :span="16"><el-form-item label="启动顺序"><el-input v-model="configForm.boot_order" placeholder="hd,cdrom,network" /></el-form-item></el-col>
+        </el-row>
+        <el-form-item label="磁盘缓存">
+          <el-select v-model="configForm.disk_cache" style="width: 100%;">
+            <el-option label="none" value="none" /><el-option label="writethrough" value="writethrough" /><el-option label="writeback" value="writeback" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="editConfigVisible = false">取消</el-button>
@@ -202,7 +257,12 @@ const activeTab = ref('disks')
 const addDiskVisible = ref(false), addNicVisible = ref(false), editConfigVisible = ref(false)
 const diskForm = reactive({ size: 20, type: 'data', cache: 'none' })
 const nicForm = reactive({ network_id: '', model: 'virtio' })
-const configForm = reactive({ cpu: 2, memory: 2048, max_cpu: 4, max_memory: 4096, owner: '', description: '' })
+const configForm = reactive({
+  cpu: 2, memory: 2048, max_cpu: 4, max_memory: 4096, owner: '', description: '',
+  cpu_mode: 'host-passthrough', bios_type: 'seabios', video_type: 'qxl', video_ram: 32,
+  cpu_hotplug: false, mem_hotplug: false, hugepages: false, ha_enabled: false,
+  boot_order: 'hd,cdrom,network', disk_cache: 'none'
+})
 
 const cpuChartRef = ref(null), memChartRef = ref(null), diskIoRef = ref(null), netIoRef = ref(null)
 let cpuChart, memChart, diskIoChart, netIoChart
@@ -308,8 +368,23 @@ async function deleteSnap(s) {
   await api.delete(`/vms/${route.params.id}/snapshots/${s.id}`); ElMessage.success('已删除'); loadVM()
 }
 
-function saveConfig() {
-  ElMessage.success('配置已保存，部分更改需关机后生效'); editConfigVisible.value = false
+function openEditConfig() {
+  const v = vm.value
+  Object.assign(configForm, {
+    cpu: v.cpu || 2, memory: v.memory || 2048, max_cpu: v.max_cpu || 4, max_memory: v.max_memory || 4096,
+    owner: v.owner || '', description: v.description || '',
+    cpu_mode: v.cpu_mode || 'host-passthrough', bios_type: v.bios_type || 'seabios',
+    video_type: v.video_type || 'qxl', video_ram: v.video_ram || 32,
+    cpu_hotplug: !!v.cpu_hotplug, mem_hotplug: !!v.mem_hotplug, hugepages: !!v.hugepages,
+    ha_enabled: !!v.ha_enabled, boot_order: v.boot_order || 'hd,cdrom,network',
+    disk_cache: v.disk_cache || 'none'
+  })
+  editConfigVisible.value = true
+}
+
+async function saveConfig() {
+  await api.put(`/vms/${route.params.id}`, { ...configForm })
+  ElMessage.success('配置已保存，部分更改需关机后生效'); editConfigVisible.value = false; loadVM()
 }
 
 onMounted(async () => {

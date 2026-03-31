@@ -123,6 +123,54 @@
             <el-option label="UDAP" value="UDAP" /><el-option label="SPICE" value="SPICE" /><el-option label="VNC" value="VNC" />
           </el-select>
         </el-form-item>
+        <el-divider content-position="left">高级配置</el-divider>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="CPU模式">
+              <el-select v-model="form.cpu_mode" style="width: 100%;">
+                <el-option label="host-passthrough" value="host-passthrough" />
+                <el-option label="host-model" value="host-model" />
+                <el-option label="custom" value="custom" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="BIOS类型">
+              <el-select v-model="form.bios_type" style="width: 100%;">
+                <el-option label="SeaBIOS" value="seabios" />
+                <el-option label="UEFI (OVMF)" value="uefi" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="显卡类型">
+              <el-select v-model="form.video_type" style="width: 100%;">
+                <el-option label="QXL" value="qxl" />
+                <el-option label="VGA" value="vga" />
+                <el-option label="Virtio" value="virtio" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="显存(MB)"><el-input-number v-model="form.video_ram" :min="8" :max="256" style="width: 100%;" /></el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12"><el-form-item label="CPU 热添加"><el-switch v-model="form.cpu_hotplug" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="内存热添加"><el-switch v-model="form.mem_hotplug" /></el-form-item></el-col>
+        </el-row>
+        <el-row :gutter="16">
+          <el-col :span="12"><el-form-item label="大页内存"><el-switch v-model="form.hugepages" /></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="HA 高可用"><el-switch v-model="form.ha_enabled" /></el-form-item></el-col>
+        </el-row>
+        <el-form-item label="启动顺序"><el-input v-model="form.boot_order" placeholder="hd,cdrom,network" /></el-form-item>
+        <el-form-item label="磁盘缓存">
+          <el-select v-model="form.disk_cache" style="width: 100%;">
+            <el-option label="none" value="none" /><el-option label="writethrough" value="writethrough" /><el-option label="writeback" value="writeback" /><el-option label="unsafe" value="unsafe" />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="createVisible = false">取消</el-button>
@@ -163,7 +211,12 @@ const createVisible = ref(false), migrateVisible = ref(false)
 const migrateTarget = ref(''), migrateVM = ref(null)
 const selected = ref([])
 const tab = ref('list')
-const form = reactive({ name: '', template_id: '', cpu: 2, memory: 2048, disk: 40, owner: '', protocol: 'UDAP' })
+const form = reactive({
+  name: '', template_id: '', cpu: 2, memory: 2048, disk: 40, owner: '', protocol: 'UDAP',
+  cpu_mode: 'host-passthrough', bios_type: 'seabios', video_type: 'qxl', video_ram: 32,
+  cpu_hotplug: false, mem_hotplug: false, hugepages: false, ha_enabled: false,
+  boot_order: 'hd,cdrom,network', disk_cache: 'none'
+})
 
 function vmStatusType(s) { return { running: 'success', stopped: 'danger', suspended: 'warning', migrating: '', creating: 'info' }[s] || 'info' }
 function vmStatusText(s) { return { running: '运行中', stopped: '已关机', suspended: '挂起', migrating: '迁移中', creating: '创建中' }[s] || s }

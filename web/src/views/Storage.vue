@@ -57,6 +57,11 @@
           <el-table-column prop="format" label="格式" width="80">
             <template #default="{ row }"><el-tag size="small" type="info">{{ row.format }}</el-tag></template>
           </el-table-column>
+          <el-table-column prop="disk_role" label="磁盘角色" width="100">
+            <template #default="{ row }">
+              <el-tag :type="roleType(row.disk_role)" size="small">{{ roleText(row.disk_role) }}</el-tag>
+            </template>
+          </el-table-column>
           <el-table-column prop="vm_name" label="挂载VM" width="130">
             <template #default="{ row }"><span :style="{ color: row.vm_name ? '#409EFF' : '#C0C4CC' }">{{ row.vm_name || '未挂载' }}</span></template>
           </el-table-column>
@@ -64,9 +69,19 @@
             <template #default="{ row }"><el-tag :type="row.status==='in-use' ? 'success' : 'info'" size="small">{{ row.status==='in-use' ? '使用中' : '空闲' }}</el-tag></template>
           </el-table-column>
           <el-table-column prop="created_at" label="创建时间" width="155" />
-          <el-table-column label="操作" width="120">
+          <el-table-column label="操作" width="180">
             <template #default="{ row }">
               <el-button size="small" @click="showVolDialog(row)">编辑</el-button>
+              <el-dropdown trigger="click" @command="(cmd) => changeRole(row, cmd)" style="margin: 0 4px;">
+                <el-button size="small">角色</el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="data">数据盘</el-dropdown-item>
+                    <el-dropdown-item command="cache">缓存盘</el-dropdown-item>
+                    <el-dropdown-item command="spare">热备盘</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
               <el-button size="small" type="danger" @click="delVol(row)" :disabled="row.status==='in-use'">删除</el-button>
             </template>
           </el-table-column>
@@ -76,6 +91,23 @@
         <el-empty description="暂未配置分布式存储集群">
           <el-button type="primary" @click="ElMessage.info('分布式存储配置向导开发中')">配置Ceph集群</el-button>
         </el-empty>
+      </el-tab-pane>
+      <el-tab-pane label="存储告警" name="alerts">
+        <div style="margin-bottom: 10px;">
+          <el-button type="primary" size="small" @click="runHealthCheck"><el-icon><Refresh /></el-icon>立即检查</el-button>
+          <span style="margin-left: 12px; color: #909399; font-size: 13px;">自动检查存储池使用率，超过80%触发告警</span>
+        </div>
+        <el-table :data="storageAlerts" border stripe size="small" v-loading="alertsLoading" empty-text="暂无存储告警">
+          <el-table-column prop="level" label="级别" width="80">
+            <template #default="{ row }">
+              <el-tag :type="row.level === 'critical' ? 'danger' : 'warning'" size="small">{{ row.level === 'critical' ? '紧急' : '警告' }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="resource_name" label="存储池" width="140" />
+          <el-table-column prop="message" label="告警内容" min-width="250" show-overflow-tooltip />
+          <el-table-column prop="detail" label="详情" width="200" show-overflow-tooltip />
+          <el-table-column prop="created_at" label="时间" width="170" />
+        </el-table>
       </el-tab-pane>
     </el-tabs>
 
@@ -133,8 +165,12 @@ const loading = ref(false), poolDialogVisible = ref(false), editingPool = ref(nu
 const volDialogVisible = ref(false), editingVol = ref(null)
 const tab = ref('pools'), search = ref(''), volPoolFilter = ref('')
 const pools = ref([]), volumes = ref([])
+const storageAlerts = ref([]), alertsLoading = ref(false)
 const poolForm = reactive({ name: '', type: 'local', path: '', total: 500, description: '' })
 const volForm = reactive({ name: '', pool_name: '', size: 50, format: 'qcow2' })
+
+function roleType(r) { return { data: '', cache: 'warning', spare: 'info' }[r] || '' }
+function roleText(r) { return { data: '数据盘', cache: '缓存盘', spare: '热备盘' }[r] || '数据盘' }
 
 const totalCapacity = computed(() => pools.value.reduce((s, p) => s + (p.total || 0), 0))
 const totalUsed = computed(() => pools.value.reduce((s, p) => s + (p.used || 0), 0))
@@ -200,5 +236,22 @@ async function delVol(v) {
   ElMessage.success('已删除'); load()
 }
 
-onMounted(load)
+async function changeRole(vol, role) {
+  await api.put(`/storage/volumes/${vol.id}/role`, { role })
+  ElMessage.success(`已设置为${roleText(role)}`); load()
+}
+
+async function loadAlerts() {
+  alertsLoading.value = true
+  try { storageAlerts.value = (await api.get('/storage/alerts')).data || [] }
+  catch(e) { storageAlerts.value = [] } finally { alertsLoading.value = false }
+}
+
+async function runHealthCheck() {
+  const result = await api.post('/storage/health-check')
+  ElMessage.success(`已检查 ${result.checked} 个存储池，发现 ${result.alerts.length} 个告警`)
+  loadAlerts()
+}
+
+onMounted(() => { load(); loadAlerts() })
 </script>

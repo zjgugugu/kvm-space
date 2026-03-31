@@ -297,9 +297,16 @@ class MockDriver extends VirtDriver {
     const mac = randomMAC();
     const vnc_port = 5900 + Math.floor(Math.random() * 100);
 
-    this.db.prepare(`INSERT INTO vms (id,name,host_id,template_id,spec_id,cpu,max_cpu,memory,max_memory,disk,status,ip,mac,os_type,os_version,owner,vnc_port,created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))`)
-      .run(id, config.name, config.host_id, config.template_id || '', config.spec_id || '', config.cpu || 2, config.max_cpu || config.cpu || 4, config.memory || 2048, config.max_memory || config.memory || 4096, config.disk || 40, 'stopped', ip, mac, config.os_type || 'linux', config.os_version || '', config.owner || 'admin', vnc_port);
+    this.db.prepare(`INSERT INTO vms (id,name,host_id,template_id,spec_id,cpu,max_cpu,memory,max_memory,disk,status,ip,mac,os_type,os_version,owner,vnc_port,
+      cpu_mode,bios_type,video_type,video_ram,boot_order,cpu_hotplug,mem_hotplug,hugepages,ha_enabled,disk_cache,
+      created_at,updated_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))`)
+      .run(id, config.name, config.host_id, config.template_id || '', config.spec_id || '',
+        config.cpu || 2, config.max_cpu || config.cpu || 4, config.memory || 2048, config.max_memory || config.memory || 4096, config.disk || 40,
+        'stopped', ip, mac, config.os_type || 'linux', config.os_version || '', config.owner || 'admin', vnc_port,
+        config.cpu_mode || 'host-passthrough', config.bios_type || 'seabios', config.video_type || 'qxl', config.video_ram || 32,
+        config.boot_order || 'hd,cdrom,network', config.cpu_hotplug ? 1 : 0, config.mem_hotplug ? 1 : 0, config.hugepages ? 1 : 0, config.ha_enabled ? 1 : 0,
+        config.disk_cache || 'none');
 
     // 创建系统盘
     this.db.prepare(`INSERT INTO vm_disks (id,vm_id,name,size,type,bus,format) VALUES (?,?,?,?,?,?,?)`).run(uuidv4(), id, `${config.name}-sys`, config.disk || 40, 'system', 'virtio', 'qcow2');
@@ -342,6 +349,14 @@ class MockDriver extends VirtDriver {
     if (config.description !== undefined) { fields.push('description = ?'); values.push(config.description); }
     if (config.owner !== undefined) { fields.push('owner = ?'); values.push(config.owner); }
     if (config.name !== undefined) { fields.push('name = ?'); values.push(config.name); }
+    // Advanced config fields
+    for (const key of ['cpu_mode', 'bios_type', 'video_type', 'boot_order', 'disk_cache']) {
+      if (config[key] !== undefined) { fields.push(`${key} = ?`); values.push(config[key]); }
+    }
+    if (config.video_ram !== undefined) { fields.push('video_ram = ?'); values.push(config.video_ram); }
+    for (const key of ['cpu_hotplug', 'mem_hotplug', 'hugepages', 'ha_enabled']) {
+      if (config[key] !== undefined) { fields.push(`${key} = ?`); values.push(config[key] ? 1 : 0); }
+    }
 
     if (fields.length === 0) throw new Error('无可更新字段');
     fields.push("updated_at = datetime('now')");
@@ -723,6 +738,118 @@ class MockDriver extends VirtDriver {
     this.db.prepare('DELETE FROM templates WHERE id = ?').run(id);
     this._addEvent('template', id, tpl.name, '', 'warning', 'template_delete', '删除黄金镜像', `删除 ${tpl.title || tpl.name}`, 'admin');
     return { success: true };
+  }
+
+  // ===========================
+  //  模板版本管理
+  // ===========================
+  async listTemplateVersions(templateId) {
+    return this.db.prepare('SELECT * FROM template_versions WHERE template_id = ? ORDER BY version DESC').all(templateId);
+  }
+
+  async createTemplateVersion(templateId, description) {
+    const tpl = this.db.prepare('SELECT * FROM templates WHERE id = ?').get(templateId);
+    if (!tpl) throw new Error('模板不存在');
+    const maxVer = this.db.prepare('SELECT MAX(version) as mv FROM template_versions WHERE template_id = ?').get(templateId);
+    const newVer = (maxVer?.mv || 0) + 1;
+    const id = uuidv4();
+    this.db.prepare('INSERT INTO template_versions (id, template_id, version, description, snapshot_name, created_by) VALUES (?,?,?,?,?,?)')
+      .run(id, templateId, newVer, description || `版本 ${newVer}`, `snap_v${newVer}_${tpl.name}`, 'admin');
+    this.db.prepare("UPDATE templates SET version = ?, updated_at = datetime('now') WHERE id = ?").run(newVer, templateId);
+    this._addEvent('template', templateId, tpl.name, '', 'info', 'template_version', '创建版本', `${tpl.name} 创建版本 v${newVer}`, 'admin');
+    return this.db.prepare('SELECT * FROM template_versions WHERE id = ?').get(id);
+  }
+
+  async rollbackTemplateVersion(templateId, versionId) {
+    const ver = this.db.prepare('SELECT * FROM template_versions WHERE id = ? AND template_id = ?').get(versionId, templateId);
+    if (!ver) throw new Error('版本不存在');
+    const tpl = this.db.prepare('SELECT * FROM templates WHERE id = ?').get(templateId);
+    if (!tpl) throw new Error('模板不存在');
+    this.db.prepare("UPDATE templates SET version = ?, updated_at = datetime('now') WHERE id = ?").run(ver.version, templateId);
+    this._addEvent('template', templateId, tpl.name, '', 'warning', 'template_rollback', '版本回滚', `${tpl.name} 回滚到 v${ver.version}`, 'admin');
+    return this.getTemplate(templateId);
+  }
+
+  async deleteTemplateVersion(templateId, versionId) {
+    const ver = this.db.prepare('SELECT * FROM template_versions WHERE id = ? AND template_id = ?').get(versionId, templateId);
+    if (!ver) throw new Error('版本不存在');
+    this.db.prepare('DELETE FROM template_versions WHERE id = ?').run(versionId);
+    return { success: true };
+  }
+
+  // ===========================
+  //  子网管理
+  // ===========================
+  async listSubnets(networkId) {
+    if (networkId) {
+      return this.db.prepare('SELECT * FROM subnets WHERE network_id = ? ORDER BY created_at DESC').all(networkId);
+    }
+    return this.db.prepare('SELECT s.*, n.name as network_name FROM subnets s LEFT JOIN networks n ON s.network_id = n.id ORDER BY s.created_at DESC').all();
+  }
+
+  async createSubnet(config) {
+    const id = uuidv4();
+    this.db.prepare('INSERT INTO subnets (id, network_id, name, cidr, gateway, dns1, dns2, dhcp_enabled, dhcp_start, dhcp_end, vlan_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+      .run(id, config.network_id, config.name, config.cidr, config.gateway || '', config.dns1 || '', config.dns2 || '', config.dhcp_enabled ? 1 : 0, config.dhcp_start || '', config.dhcp_end || '', config.vlan_id || 0);
+    this._addEvent('network', id, config.name, '', 'info', 'subnet_create', '创建子网', `创建子网 ${config.name} (${config.cidr})`, 'admin');
+    return this.db.prepare('SELECT * FROM subnets WHERE id = ?').get(id);
+  }
+
+  async editSubnet(id, updates) {
+    const sub = this.db.prepare('SELECT * FROM subnets WHERE id = ?').get(id);
+    if (!sub) throw new Error('子网不存在');
+    const fields = [], values = [];
+    for (const key of ['name', 'cidr', 'gateway', 'dns1', 'dns2', 'dhcp_start', 'dhcp_end']) {
+      if (updates[key] !== undefined) { fields.push(`${key} = ?`); values.push(updates[key]); }
+    }
+    if (updates.dhcp_enabled !== undefined) { fields.push('dhcp_enabled = ?'); values.push(updates.dhcp_enabled ? 1 : 0); }
+    if (updates.vlan_id !== undefined) { fields.push('vlan_id = ?'); values.push(updates.vlan_id); }
+    if (fields.length > 0) { values.push(id); this.db.prepare(`UPDATE subnets SET ${fields.join(', ')} WHERE id = ?`).run(...values); }
+    return this.db.prepare('SELECT * FROM subnets WHERE id = ?').get(id);
+  }
+
+  async deleteSubnet(id) {
+    const sub = this.db.prepare('SELECT * FROM subnets WHERE id = ?').get(id);
+    if (!sub) throw new Error('子网不存在');
+    this.db.prepare('DELETE FROM subnets WHERE id = ?').run(id);
+    this._addEvent('network', id, sub.name, '', 'warning', 'subnet_delete', '删除子网', `删除子网 ${sub.name}`, 'admin');
+    return { success: true };
+  }
+
+  // ===========================
+  //  存储告警 & 磁盘角色
+  // ===========================
+  async listStorageAlerts() {
+    return this.db.prepare("SELECT * FROM alerts WHERE target_type = 'storage' ORDER BY created_at DESC LIMIT 50").all();
+  }
+
+  async checkStorageHealth() {
+    const pools = this.db.prepare('SELECT * FROM storage_pools WHERE status = ?').all('active');
+    const alerts = [];
+    for (const p of pools) {
+      if (p.total > 0) {
+        const usage = (p.used / p.total) * 100;
+        if (usage >= 90) {
+          const id = uuidv4();
+          this.db.prepare("INSERT INTO alerts (id, level, type, target_type, target_id, target_name, message, value, threshold) VALUES (?,?,?,?,?,?,?,?,?)")
+            .run(id, 'critical', 'storage_full', 'storage', p.id, p.name, `存储池 ${p.name} 使用率已达 ${usage.toFixed(1)}%, 容量: ${p.used}GB / ${p.total}GB`, usage, 90);
+          alerts.push({ pool: p.name, usage: usage.toFixed(1), level: 'critical' });
+        } else if (usage >= 80) {
+          const id = uuidv4();
+          this.db.prepare("INSERT INTO alerts (id, level, type, target_type, target_id, target_name, message, value, threshold) VALUES (?,?,?,?,?,?,?,?,?)")
+            .run(id, 'warning', 'storage_warning', 'storage', p.id, p.name, `存储池 ${p.name} 使用率已达 ${usage.toFixed(1)}%, 容量: ${p.used}GB / ${p.total}GB`, usage, 80);
+          alerts.push({ pool: p.name, usage: usage.toFixed(1), level: 'warning' });
+        }
+      }
+    }
+    return { checked: pools.length, alerts };
+  }
+
+  async updateVolumeRole(volumeId, role) {
+    const vol = this.db.prepare('SELECT * FROM volumes WHERE id = ?').get(volumeId);
+    if (!vol) throw new Error('卷不存在');
+    this.db.prepare('UPDATE volumes SET disk_role = ? WHERE id = ?').run(role, volumeId);
+    return this.db.prepare('SELECT * FROM volumes WHERE id = ?').get(volumeId);
   }
 
   // ===========================

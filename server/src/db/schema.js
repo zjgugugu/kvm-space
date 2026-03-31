@@ -119,6 +119,20 @@ function initSchema(db) {
       owner TEXT DEFAULT '',
       description TEXT DEFAULT '',
       vnc_port INTEGER DEFAULT 0,
+      -- 高级配置 (对标KSVD V7)
+      cpu_mode TEXT DEFAULT 'host-passthrough',
+      cpu_pinning TEXT DEFAULT '',
+      cpu_hotplug INTEGER DEFAULT 0,
+      mem_hotplug INTEGER DEFAULT 0,
+      hugepages TEXT DEFAULT '',
+      bios_type TEXT DEFAULT 'seabios',
+      video_type TEXT DEFAULT 'qxl',
+      video_ram INTEGER DEFAULT 65536,
+      boot_order TEXT DEFAULT 'hd,cdrom,network',
+      ha_enabled INTEGER DEFAULT 1,
+      auto_migrate INTEGER DEFAULT 1,
+      expire_date TEXT DEFAULT '',
+      disk_cache TEXT DEFAULT 'none',
       deleted INTEGER DEFAULT 0,
       deleted_at DATETIME,
       created_at DATETIME DEFAULT (datetime('now')),
@@ -272,6 +286,7 @@ function initSchema(db) {
       size INTEGER DEFAULT 0,
       used INTEGER DEFAULT 0,
       format TEXT DEFAULT 'qcow2',
+      disk_role TEXT DEFAULT 'data',
       status TEXT DEFAULT 'active',
       created_at DATETIME DEFAULT (datetime('now')),
       FOREIGN KEY (pool_id) REFERENCES storage_pools(id)
@@ -403,9 +418,105 @@ function initSchema(db) {
       key TEXT PRIMARY KEY,
       value TEXT DEFAULT '',
       description TEXT DEFAULT '',
+      category TEXT DEFAULT 'general',
       updated_at DATETIME DEFAULT (datetime('now'))
     );
+
+    -- ==================== 模板版本 ====================
+    CREATE TABLE IF NOT EXISTS template_versions (
+      id TEXT PRIMARY KEY,
+      template_id TEXT NOT NULL,
+      version INTEGER NOT NULL,
+      description TEXT DEFAULT '',
+      snapshot_name TEXT DEFAULT '',
+      created_by TEXT DEFAULT 'admin',
+      created_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (template_id) REFERENCES templates(id)
+    );
+
+    -- ==================== 集群管理 ====================
+    CREATE TABLE IF NOT EXISTS clusters (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      status TEXT DEFAULT 'active',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 审批流程 ====================
+    CREATE TABLE IF NOT EXISTS approvals (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      resource_type TEXT DEFAULT '',
+      resource_id TEXT DEFAULT '',
+      resource_name TEXT DEFAULT '',
+      requester TEXT DEFAULT '',
+      approver TEXT DEFAULT '',
+      status TEXT DEFAULT 'pending',
+      reason TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now')),
+      resolved_at DATETIME
+    );
+
+    -- ==================== 操作审计 ====================
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id TEXT PRIMARY KEY,
+      user TEXT NOT NULL,
+      user_ip TEXT DEFAULT '',
+      action TEXT NOT NULL,
+      resource_type TEXT DEFAULT '',
+      resource_name TEXT DEFAULT '',
+      detail TEXT DEFAULT '',
+      result TEXT DEFAULT 'success',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 子网管理 ====================
+    CREATE TABLE IF NOT EXISTS subnets (
+      id TEXT PRIMARY KEY,
+      network_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      cidr TEXT DEFAULT '',
+      gateway TEXT DEFAULT '',
+      dns1 TEXT DEFAULT '',
+      dns2 TEXT DEFAULT '',
+      dhcp_enabled INTEGER DEFAULT 0,
+      dhcp_start TEXT DEFAULT '',
+      dhcp_end TEXT DEFAULT '',
+      vlan_id INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'active',
+      created_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (network_id) REFERENCES networks(id)
+    );
+
   `);
+
+  // ==== SQLite ALTER TABLE migrations for existing databases ====
+  const alterColumns = [
+    { table: 'vms', column: 'cpu_mode', def: "TEXT DEFAULT 'host-passthrough'" },
+    { table: 'vms', column: 'cpu_pinning', def: "TEXT DEFAULT ''" },
+    { table: 'vms', column: 'cpu_hotplug', def: "INTEGER DEFAULT 0" },
+    { table: 'vms', column: 'mem_hotplug', def: "INTEGER DEFAULT 0" },
+    { table: 'vms', column: 'hugepages', def: "INTEGER DEFAULT 0" },
+    { table: 'vms', column: 'bios_type', def: "TEXT DEFAULT 'seabios'" },
+    { table: 'vms', column: 'video_type', def: "TEXT DEFAULT 'qxl'" },
+    { table: 'vms', column: 'video_ram', def: "INTEGER DEFAULT 32" },
+    { table: 'vms', column: 'boot_order', def: "TEXT DEFAULT 'hd,cdrom,network'" },
+    { table: 'vms', column: 'ha_enabled', def: "INTEGER DEFAULT 0" },
+    { table: 'vms', column: 'auto_migrate', def: "INTEGER DEFAULT 0" },
+    { table: 'vms', column: 'expire_date', def: "TEXT DEFAULT ''" },
+    { table: 'vms', column: 'disk_cache', def: "TEXT DEFAULT 'none'" },
+    { table: 'sys_config', column: 'category', def: "TEXT DEFAULT ''" },
+    { table: 'volumes', column: 'disk_role', def: "TEXT DEFAULT 'data'" },
+    { table: 'hosts', column: 'cluster_id', def: "TEXT DEFAULT ''" },
+  ];
+  for (const { table, column, def } of alterColumns) {
+    try {
+      db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${def}`).run();
+    } catch (e) {
+      // Column already exists — ignore
+    }
+  }
 }
 
 function initDefaultData(db) {
@@ -449,9 +560,35 @@ function initDefaultData(db) {
     { key: 'default_protocol', value: 'UDAP', description: '默认远程协议' },
     { key: 'watermark_enabled', value: 'false', description: '全局水印开关' },
     { key: 'screen_record_enabled', value: 'false', description: '全局录屏开关' },
+    // ===== 对标KSVD V7 全局策略 =====
+    { key: 'ksm_enabled', value: 'false', description: '启用KSM内存超配(内核相同页合并)' },
+    { key: 'secure_udap', value: 'false', description: '启用安全UDAP连接(SSL加密桌面协议)' },
+    { key: 'cache_io_enabled', value: 'false', description: '启用缓存I/O(本地镜像缓存)' },
+    { key: 'vm_scheduling', value: 'true', description: '虚拟机调度开关' },
+    { key: 'boot_animation', value: 'true', description: '显示虚拟机开机动画' },
+    { key: 'load_balance_mode', value: 'optimal', description: '负载均衡模式(optimal/cpu/session/memory/disk_io/storage)' },
+    { key: 'auto_logout_timeout', value: '30', description: '超时注销(分钟: 5/10/15/30/60/240/1440)' },
+    { key: 'network_speed_test', value: 'false', description: '网络测速开关' },
+    { key: 'network_speed_limit', value: '10', description: '网络测速进程上限' },
+    { key: 'user_netdisk', value: 'false', description: '用户网盘开关' },
+    { key: 'gpu_allocation_mode', value: 'performance', description: '显卡分配模式(performance/density)' },
+    { key: 'vgpu_scheduling', value: 'preempt', description: 'NVIDIA vGPU调度策略(preempt/dynamic/absolute)' },
+    { key: 'desktop_refresh_interval', value: '10', description: '桌面状态刷新间隔(秒: 3/5/10/30/180)' },
+    { key: 'allow_storage_on_mgmt', value: 'false', description: '允许镜像/VM存储至管理卷' },
+    { key: 'usb_redirect_enabled', value: 'true', description: 'USB重定向管控开关' },
+    { key: 'terminal_request_interval', value: '60', description: '终端请求间隔(秒: 30/60/120/180)' },
+    { key: 'cert_type', value: 'SSL', description: '加密证书类型(SSL/GMSSL)' },
+    { key: 'mem_reclaim_threshold', value: '30', description: '内存回收阈值(%)' },
+    { key: 'mem_return_threshold', value: '70', description: '内存返还阈值(%)' },
+    { key: 'disk_overcommit', value: 'false', description: '虚拟磁盘超配开关' },
+    { key: 'disk_overcommit_reserve', value: '50', description: '虚拟磁盘超配预留(GB)' },
+    { key: 'ha_enabled', value: 'true', description: '全局HA高可用开关' },
+    { key: 'drs_enabled', value: 'false', description: '分布式资源调度(DRS)开关' },
+    { key: 'drs_mode', value: 'manual', description: 'DRS模式(manual/semi_auto/auto)' },
+    { key: 'dpm_enabled', value: 'false', description: '智能电源管理(DPM)开关' },
   ];
   for (const c of sysDefaults) {
-    db.prepare(`INSERT INTO sys_config (key, value, description) VALUES (?, ?, ?)`).run(c.key, c.value, c.description);
+    db.prepare(`INSERT OR IGNORE INTO sys_config (key, value, description) VALUES (?, ?, ?)`).run(c.key, c.value, c.description);
   }
 
   console.log('[DB] 已创建默认账号: admin/secadmin/auditor (密码: admin123)');

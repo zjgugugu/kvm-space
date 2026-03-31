@@ -54,6 +54,43 @@
                 <el-option label="无" value="none" /><el-option label="writeback" value="writeback" /><el-option label="writethrough" value="writethrough" />
               </el-select>
             </el-form-item>
+            <el-form-item label="磁盘QoS">
+              <el-switch v-model="form.disk_qos" />
+            </el-form-item>
+            <template v-if="form.disk_qos">
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="读IOPS限制"><el-input-number v-model="form.disk_read_iops" :min="0" style="width: 100%;" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="写IOPS限制"><el-input-number v-model="form.disk_write_iops" :min="0" style="width: 100%;" /></el-form-item></el-col>
+              </el-row>
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="读带宽(MB/s)"><el-input-number v-model="form.disk_read_bw" :min="0" style="width: 100%;" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="写带宽(MB/s)"><el-input-number v-model="form.disk_write_bw" :min="0" style="width: 100%;" /></el-form-item></el-col>
+              </el-row>
+            </template>
+          </el-form>
+        </el-tab-pane>
+
+        <el-tab-pane label="网络配置" name="network">
+          <el-form :model="form" label-width="100px">
+            <el-form-item label="网卡类型">
+              <el-select v-model="form.nic_type" style="width: 100%;">
+                <el-option label="virtio" value="virtio" /><el-option label="e1000" value="e1000" /><el-option label="rtl8139" value="rtl8139" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="网络QoS">
+              <el-switch v-model="form.net_qos" />
+            </el-form-item>
+            <template v-if="form.net_qos">
+              <el-row :gutter="16">
+                <el-col :span="12"><el-form-item label="入站限速(Mbps)"><el-input-number v-model="form.net_inbound" :min="0" style="width: 100%;" /></el-form-item></el-col>
+                <el-col :span="12"><el-form-item label="出站限速(Mbps)"><el-input-number v-model="form.net_outbound" :min="0" style="width: 100%;" /></el-form-item></el-col>
+              </el-row>
+            </template>
+            <el-form-item label="MAC地址池">
+              <el-select v-model="form.mac_pool" style="width: 100%;" clearable placeholder="使用默认">
+                <el-option label="默认池" value="default" />
+              </el-select>
+            </el-form-item>
           </el-form>
         </el-tab-pane>
 

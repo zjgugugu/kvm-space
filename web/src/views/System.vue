@@ -128,6 +128,103 @@
         </el-table>
       </el-tab-pane>
 
+      <!-- 常规设置 (对标KSVD全局策略) -->
+      <el-tab-pane label="常规设置" name="policies">
+        <div style="max-width: 700px;">
+          <h4 style="margin: 0 0 16px;">全局策略配置</h4>
+          <el-divider content-position="left">虚拟化</el-divider>
+          <el-form :model="policies" label-width="200px" size="default">
+            <el-form-item label="KSM 内存合并"><el-switch v-model="policies.ksm_enabled" active-value="true" inactive-value="false" /></el-form-item>
+            <el-form-item label="安全UDAP"><el-switch v-model="policies.secure_udap" active-value="true" inactive-value="false" /></el-form-item>
+            <el-form-item label="缓存I/O"><el-switch v-model="policies.cache_io_enabled" active-value="true" inactive-value="false" /></el-form-item>
+            <el-form-item label="虚拟机调度策略">
+              <el-select v-model="policies.vm_scheduling" style="width: 200px;">
+                <el-option label="负载均衡" value="load_balance" />
+                <el-option label="高可用" value="ha" />
+                <el-option label="手动" value="manual" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="开机动画"><el-switch v-model="policies.boot_animation" active-value="true" inactive-value="false" /></el-form-item>
+          </el-form>
+
+          <el-divider content-position="left">负载均衡</el-divider>
+          <el-form :model="policies" label-width="200px" size="default">
+            <el-form-item label="负载均衡模式">
+              <el-select v-model="policies.load_balance_mode" style="width: 200px;">
+                <el-option label="CPU" value="cpu" />
+                <el-option label="内存" value="memory" />
+                <el-option label="综合" value="mixed" />
+                <el-option label="会话数" value="session" />
+                <el-option label="轮询" value="round_robin" />
+                <el-option label="权重" value="weighted" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="HA 高可用"><el-switch v-model="policies.ha_enabled" active-value="true" inactive-value="false" /></el-form-item>
+            <el-form-item label="DRS 资源调度"><el-switch v-model="policies.drs_enabled" active-value="true" inactive-value="false" /></el-form-item>
+            <el-form-item label="DRS 模式">
+              <el-select v-model="policies.drs_mode" style="width: 200px;">
+                <el-option label="手动" value="manual" />
+                <el-option label="半自动" value="semi" />
+                <el-option label="全自动" value="auto" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="DPM 电源管理"><el-switch v-model="policies.dpm_enabled" active-value="true" inactive-value="false" /></el-form-item>
+          </el-form>
+
+          <el-divider content-position="left">安全与会话</el-divider>
+          <el-form :model="policies" label-width="200px" size="default">
+            <el-form-item label="自动登出超时(分)"><el-input-number v-model.number="policies.auto_logout_timeout" :min="0" :max="999" /></el-form-item>
+            <el-form-item label="网络测速"><el-switch v-model="policies.network_speed_test" active-value="true" inactive-value="false" /></el-form-item>
+            <el-form-item label="网络限速(Mbps)"><el-input-number v-model.number="policies.network_speed_limit" :min="0" :max="10000" /></el-form-item>
+            <el-form-item label="用户网盘"><el-switch v-model="policies.user_netdisk" active-value="true" inactive-value="false" /></el-form-item>
+          </el-form>
+
+          <el-divider content-position="left">GPU 与显示</el-divider>
+          <el-form :model="policies" label-width="200px" size="default">
+            <el-form-item label="GPU 分配模式">
+              <el-select v-model="policies.gpu_allocation_mode" style="width: 200px;">
+                <el-option label="直通" value="passthrough" />
+                <el-option label="vGPU" value="vgpu" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="vGPU 调度">
+              <el-select v-model="policies.vgpu_scheduling" style="width: 200px;">
+                <el-option label="固定" value="fixed" />
+                <el-option label="尽力" value="best_effort" />
+                <el-option label="均分" value="equal_share" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="USB 重定向"><el-switch v-model="policies.usb_redirect_enabled" active-value="true" inactive-value="false" /></el-form-item>
+            <el-form-item label="桌面刷新间隔(秒)"><el-input-number v-model.number="policies.desktop_refresh_interval" :min="5" :max="300" /></el-form-item>
+          </el-form>
+
+          <el-divider content-position="left">资源与存储</el-divider>
+          <el-form :model="policies" label-width="200px" size="default">
+            <el-form-item label="内存回收阈值(%)"><el-input-number v-model.number="policies.mem_reclaim_threshold" :min="0" :max="100" /></el-form-item>
+            <el-form-item label="内存回还阈值(%)"><el-input-number v-model.number="policies.mem_return_threshold" :min="0" :max="100" /></el-form-item>
+            <el-form-item label="磁盘超分比"><el-input-number v-model.number="policies.disk_overcommit" :min="1" :max="10" :step="0.1" /></el-form-item>
+            <el-form-item label="磁盘预留(GB)"><el-input-number v-model.number="policies.disk_reserve_gb" :min="0" :max="1000" /></el-form-item>
+            <el-form-item label="管理网存储"><el-switch v-model="policies.allow_storage_on_mgmt" active-value="true" inactive-value="false" /></el-form-item>
+          </el-form>
+
+          <el-divider content-position="left">终端与证书</el-divider>
+          <el-form :model="policies" label-width="200px" size="default">
+            <el-form-item label="终端请求间隔(秒)"><el-input-number v-model.number="policies.terminal_request_interval" :min="1" :max="300" /></el-form-item>
+            <el-form-item label="证书类型">
+              <el-select v-model="policies.cert_type" style="width: 200px;">
+                <el-option label="自签名" value="self_signed" />
+                <el-option label="CA签发" value="ca" />
+              </el-select>
+            </el-form-item>
+          </el-form>
+
+          <div style="text-align: right; margin-top: 16px;">
+            <el-button @click="loadPolicies">重置</el-button>
+            <el-button type="primary" @click="savePolicies">保存全局策略</el-button>
+          </div>
+        </div>
+      </el-tab-pane>
+
       <!-- 系统信息 -->
       <el-tab-pane label="关于系统" name="about">
         <el-descriptions :column="2" border size="default" title="系统信息" style="max-width: 600px;">
@@ -193,6 +290,16 @@ const roles = ref([
 ])
 // Backups
 const backups = ref([])
+// Global policies
+const policies = reactive({
+  ksm_enabled: 'false', secure_udap: 'false', cache_io_enabled: 'false',
+  vm_scheduling: 'load_balance', boot_animation: 'false',
+  load_balance_mode: 'mixed', ha_enabled: 'false', drs_enabled: 'false', drs_mode: 'manual', dpm_enabled: 'false',
+  auto_logout_timeout: 30, network_speed_test: 'false', network_speed_limit: 0, user_netdisk: 'false',
+  gpu_allocation_mode: 'passthrough', vgpu_scheduling: 'fixed', usb_redirect_enabled: 'true', desktop_refresh_interval: 30,
+  mem_reclaim_threshold: 80, mem_return_threshold: 60, disk_overcommit: 1, disk_reserve_gb: 10,
+  allow_storage_on_mgmt: 'false', terminal_request_interval: 30, cert_type: 'self_signed',
+})
 
 async function load() {
   loading.value = true
@@ -225,6 +332,7 @@ async function load() {
     try {
       backups.value = (await api.get('/backups')).data || []
     } catch(e) {}
+    await loadPolicies()
   } catch(e) {} finally { loading.value = false }
 }
 
@@ -288,6 +396,26 @@ async function deleteBackup(b) {
   await ElMessageBox.confirm(`确认删除备份 ${b.name}?`, '删除', { type: 'warning' })
   await api.delete(`/backups/${b.id}`)
   ElMessage.success('已删除'); load()
+}
+
+async function loadPolicies() {
+  try {
+    const rows = await api.get('/system/policies')
+    for (const row of (rows || [])) {
+      if (row.key in policies) {
+        const v = row.value
+        if (typeof policies[row.key] === 'number') policies[row.key] = Number(v)
+        else policies[row.key] = v
+      }
+    }
+  } catch(e) {}
+}
+
+async function savePolicies() {
+  const data = {}
+  for (const [k, v] of Object.entries(policies)) data[k] = String(v)
+  await api.put('/system/policies', data)
+  ElMessage.success('全局策略已保存')
 }
 
 onMounted(load)
