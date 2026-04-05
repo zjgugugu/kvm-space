@@ -2,6 +2,8 @@
 var express = require('express');
 var cors = require('cors');
 var path = require('path');
+var fs = require('fs');
+var https = require('https');
 var { execSync } = require('child_process');
 var { openDatabase } = require('../../../server/src/db/sqlite-wrapper');
 var { initSchema, initDefaultData } = require('./schema');
@@ -66,9 +68,24 @@ async function main() {
     res.sendFile(path.join(distDir, 'index.html'));
   });
 
-  app.listen(PORT, '0.0.0.0', function () {
-    console.log('[Cockpit] 总控虚拟化界面启动于 http://0.0.0.0:' + PORT);
-  });
+  // HTTPS or HTTP
+  var certDir = path.join(__dirname, '..', '..', '..', 'certs');
+  var keyPath = path.join(certDir, 'server.key');
+  var crtPath = path.join(certDir, 'server.crt');
+
+  if (fs.existsSync(keyPath) && fs.existsSync(crtPath)) {
+    var sslOptions = {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(crtPath)
+    };
+    https.createServer(sslOptions, app).listen(PORT, '0.0.0.0', function () {
+      console.log('[Cockpit] 总控虚拟化界面启动于 https://0.0.0.0:' + PORT);
+    });
+  } else {
+    app.listen(PORT, '0.0.0.0', function () {
+      console.log('[Cockpit] 总控虚拟化界面启动于 http://0.0.0.0:' + PORT + ' (无SSL证书)');
+    });
+  }
 }
 
 // 获取管理网络IP（优先10.126.x.x等非内部地址）

@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+const https = require('https');
 const zlib = require('zlib');
 const { openDatabase } = require('./db/sqlite-wrapper');
 const { initSchema, initDefaultData } = require('./db/schema');
@@ -127,10 +129,26 @@ async function main() {
     }
   });
 
-  app.listen(PORT, () => {
-    console.log(`[KVM Cloud] 服务启动于 http://localhost:${PORT}`);
-    console.log(`[KVM Cloud] 运行模式: ${MODE}`);
-  });
+  // HTTPS or HTTP
+  const certDir = path.join(__dirname, '..', '..', 'certs');
+  const keyPath = path.join(certDir, 'server.key');
+  const crtPath = path.join(certDir, 'server.crt');
+
+  if (fs.existsSync(keyPath) && fs.existsSync(crtPath)) {
+    const sslOptions = {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(crtPath)
+    };
+    https.createServer(sslOptions, app).listen(PORT, () => {
+      console.log(`[KVM Cloud] 服务启动于 https://0.0.0.0:${PORT}`);
+      console.log(`[KVM Cloud] 运行模式: ${MODE}`);
+    });
+  } else {
+    app.listen(PORT, () => {
+      console.log(`[KVM Cloud] 服务启动于 http://0.0.0.0:${PORT}`);
+      console.log(`[KVM Cloud] 运行模式: ${MODE} (无SSL证书，使用HTTP)`);
+    });
+  }
 }
 
 main().catch(err => {
