@@ -29,6 +29,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import api from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
@@ -38,42 +39,35 @@ const selected = ref([])
 function typeText(t) { return { vm: '虚拟机', template: '模板', network: '网络', storage: '存储' }[t] || t }
 function onSelect(rows) { selected.value = rows }
 
-// Demo data - no backend API for recycle bin yet
-const demoItems = [
-  { id: 1, name: 'test-vm-old', type: 'vm', deleted_by: 'admin', deleted_at: '2024-01-10 14:30:00', expire_at: '2024-02-10 14:30:00' },
-  { id: 2, name: 'unused-network', type: 'network', deleted_by: 'admin', deleted_at: '2024-01-12 09:00:00', expire_at: '2024-02-12 09:00:00' },
-]
-
 async function load() {
   loading.value = true
-  items.value = demoItems
-  loading.value = false
+  try { items.value = (await api.get('/recycle-bin')).data || [] }
+  catch (e) { items.value = [] }
+  finally { loading.value = false }
 }
 
 async function restoreItem(item) {
-  await ElMessageBox.confirm(`确认恢复 ${item.name}?`, '恢复', { type: 'info' })
-  items.value = items.value.filter(i => i.id !== item.id)
-  ElMessage.success(`${item.name} 已恢复`)
+  await ElMessageBox.confirm(`确认恢复 ${item.name || item.resource_name}?`, '恢复', { type: 'info' })
+  await api.post(`/recycle-bin/${item.id}/restore`)
+  ElMessage.success('已恢复'); load()
 }
 
 async function purgeItem(item) {
-  await ElMessageBox.confirm(`彻底删除 ${item.name}？此操作不可恢复!`, '警告', { type: 'warning' })
-  items.value = items.value.filter(i => i.id !== item.id)
-  ElMessage.success(`${item.name} 已彻底删除`)
+  await ElMessageBox.confirm(`彻底删除 ${item.name || item.resource_name}？此操作不可恢复!`, '警告', { type: 'warning' })
+  await api.delete(`/recycle-bin/${item.id}`)
+  ElMessage.success('已彻底删除'); load()
 }
 
 async function restoreAll() {
   await ElMessageBox.confirm(`确认恢复选中的 ${selected.value.length} 项?`)
-  const ids = selected.value.map(s => s.id)
-  items.value = items.value.filter(i => !ids.includes(i.id))
-  ElMessage.success('批量恢复完成')
+  for (const s of selected.value) { await api.post(`/recycle-bin/${s.id}/restore`) }
+  ElMessage.success('批量恢复完成'); load()
 }
 
 async function purgeAll() {
   await ElMessageBox.confirm(`确认彻底删除选中的 ${selected.value.length} 项?`, '警告', { type: 'warning' })
-  const ids = selected.value.map(s => s.id)
-  items.value = items.value.filter(i => !ids.includes(i.id))
-  ElMessage.success('批量删除完成')
+  for (const s of selected.value) { await api.delete(`/recycle-bin/${s.id}`) }
+  ElMessage.success('批量删除完成'); load()
 }
 
 onMounted(load)

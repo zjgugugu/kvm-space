@@ -24,6 +24,15 @@ const alertRoutes = require('./routes/alerts');
 const systemRoutes = require('./routes/system');
 const snapshotPolicyRoutes = require('./routes/snapshot-policies');
 const statsRoutes = require('./routes/stats');
+const desktopPoolRoutes = require('./routes/desktop-pools');
+const appManagementRoutes = require('./routes/app-management');
+const clientRoutes = require('./routes/clients');
+const scalingRoutes = require('./routes/scaling');
+const recycleBinRoutes = require('./routes/recycle-bin');
+const fileManageRoutes = require('./routes/file-manage');
+const networkExtraRoutes = require('./routes/network-extra');
+const systemExtraRoutes = require('./routes/system-extra');
+const terminalBindingRoutes = require('./routes/terminal-bindings');
 
 const MODE = process.env.KVM_MODE || 'libvirt';
 const PORT = parseInt(process.env.PORT) || 8444;
@@ -112,6 +121,15 @@ async function main() {
   app.use('/api/system', authMiddleware, systemRoutes);
   app.use('/api/snapshot-policies', authMiddleware, snapshotPolicyRoutes);
   app.use('/api/stats', authMiddleware, statsRoutes);
+  app.use('/api/desktop-pools', authMiddleware, desktopPoolRoutes);
+  app.use('/api/apps', authMiddleware, appManagementRoutes);
+  app.use('/api/clients', authMiddleware, clientRoutes);
+  app.use('/api/scaling', authMiddleware, scalingRoutes);
+  app.use('/api/recycle-bin', authMiddleware, recycleBinRoutes);
+  app.use('/api/files', authMiddleware, fileManageRoutes);
+  app.use('/api/network-extra', authMiddleware, networkExtraRoutes);
+  app.use('/api/system-extra', authMiddleware, systemExtraRoutes);
+  app.use('/api/terminal-bindings', authMiddleware, terminalBindingRoutes);
 
   // 模式信息（无需认证）
   app.get('/api/info', (req, res) => {

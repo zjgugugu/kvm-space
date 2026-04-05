@@ -8,7 +8,7 @@
         <el-card shadow="hover">
           <template #header><span style="font-weight:bold;">许可证信息</span></template>
           <el-descriptions :column="1" border size="default">
-            <el-descriptions-item label="产品名称">麒麟信安云 V7R023</el-descriptions-item>
+            <el-descriptions-item label="产品名称">KVM Cloud 虚拟化管理平台</el-descriptions-item>
             <el-descriptions-item label="许可类型"><el-tag>{{ license.type || '开发版' }}</el-tag></el-descriptions-item>
             <el-descriptions-item label="授权单位">{{ license.org || '开发/测试' }}</el-descriptions-item>
             <el-descriptions-item label="有效期至">

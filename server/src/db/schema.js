@@ -489,6 +489,419 @@ function initSchema(db) {
       FOREIGN KEY (network_id) REFERENCES networks(id)
     );
 
+    -- ==================== 桌面池 ====================
+    CREATE TABLE IF NOT EXISTS desktop_pools (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT DEFAULT 'dynamic',
+      template_id TEXT DEFAULT '',
+      spec_id TEXT DEFAULT '',
+      min_count INTEGER DEFAULT 0,
+      max_count INTEGER DEFAULT 10,
+      spare_count INTEGER DEFAULT 2,
+      prefix TEXT DEFAULT 'pool-',
+      status TEXT DEFAULT 'active',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (template_id) REFERENCES templates(id),
+      FOREIGN KEY (spec_id) REFERENCES desktop_specs(id)
+    );
+
+    -- ==================== 应用程序层 ====================
+    CREATE TABLE IF NOT EXISTS app_layers (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      version TEXT DEFAULT '1.0',
+      os_type TEXT DEFAULT 'linux',
+      size INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'active',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 软件库 ====================
+    CREATE TABLE IF NOT EXISTS software_library (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      version TEXT DEFAULT '',
+      category TEXT DEFAULT '',
+      size INTEGER DEFAULT 0,
+      file_path TEXT DEFAULT '',
+      status TEXT DEFAULT 'active',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 软件发布 ====================
+    CREATE TABLE IF NOT EXISTS software_publish (
+      id TEXT PRIMARY KEY,
+      software_id TEXT DEFAULT '',
+      target_type TEXT DEFAULT 'template',
+      target_id TEXT DEFAULT '',
+      target_name TEXT DEFAULT '',
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (software_id) REFERENCES software_library(id)
+    );
+
+    -- ==================== 应用管控规则 ====================
+    CREATE TABLE IF NOT EXISTS app_control_rules (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT DEFAULT 'builtin',
+      category TEXT DEFAULT '',
+      action TEXT DEFAULT 'block',
+      process_name TEXT DEFAULT '',
+      hash TEXT DEFAULT '',
+      enabled INTEGER DEFAULT 1,
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 应用发布 - 应用组 ====================
+    CREATE TABLE IF NOT EXISTS virtual_app_groups (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      app_type TEXT DEFAULT 'desktop',
+      status TEXT DEFAULT 'active',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 应用发布 - 应用会话 ====================
+    CREATE TABLE IF NOT EXISTS virtual_app_sessions (
+      id TEXT PRIMARY KEY,
+      group_id TEXT DEFAULT '',
+      user_id TEXT DEFAULT '',
+      username TEXT DEFAULT '',
+      app_name TEXT DEFAULT '',
+      status TEXT DEFAULT 'active',
+      started_at DATETIME DEFAULT (datetime('now')),
+      ended_at DATETIME,
+      FOREIGN KEY (group_id) REFERENCES virtual_app_groups(id)
+    );
+
+    -- ==================== 终端管理 ====================
+    CREATE TABLE IF NOT EXISTS terminals (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      ip TEXT DEFAULT '',
+      mac TEXT DEFAULT '',
+      type TEXT DEFAULT 'TC',
+      os TEXT DEFAULT '',
+      version TEXT DEFAULT '',
+      status TEXT DEFAULT 'offline',
+      user_id TEXT DEFAULT '',
+      username TEXT DEFAULT '',
+      group_name TEXT DEFAULT '',
+      last_online DATETIME,
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS terminal_tasks (
+      id TEXT PRIMARY KEY,
+      terminal_id TEXT DEFAULT '',
+      terminal_name TEXT DEFAULT '',
+      type TEXT DEFAULT 'upgrade',
+      status TEXT DEFAULT 'pending',
+      progress INTEGER DEFAULT 0,
+      message TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now')),
+      finished_at DATETIME,
+      FOREIGN KEY (terminal_id) REFERENCES terminals(id)
+    );
+
+    -- ==================== 负载均衡 ====================
+    CREATE TABLE IF NOT EXISTS load_balancers (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      algorithm TEXT DEFAULT 'round_robin',
+      vip TEXT DEFAULT '',
+      port INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'active',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS load_balancer_members (
+      id TEXT PRIMARY KEY,
+      lb_id TEXT NOT NULL,
+      server_ip TEXT DEFAULT '',
+      server_port INTEGER DEFAULT 0,
+      weight INTEGER DEFAULT 1,
+      status TEXT DEFAULT 'active',
+      FOREIGN KEY (lb_id) REFERENCES load_balancers(id)
+    );
+
+    -- ==================== 自动伸缩 ====================
+    CREATE TABLE IF NOT EXISTS scaling_strategies (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      metric TEXT DEFAULT 'cpu',
+      threshold_up REAL DEFAULT 80,
+      threshold_down REAL DEFAULT 20,
+      cooldown INTEGER DEFAULT 300,
+      enabled INTEGER DEFAULT 1,
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS scaling_groups (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      strategy_id TEXT DEFAULT '',
+      template_id TEXT DEFAULT '',
+      min_instances INTEGER DEFAULT 1,
+      max_instances INTEGER DEFAULT 10,
+      current_instances INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'active',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now')),
+      FOREIGN KEY (strategy_id) REFERENCES scaling_strategies(id),
+      FOREIGN KEY (template_id) REFERENCES templates(id)
+    );
+
+    -- ==================== 僵尸云服务器 ====================
+    CREATE TABLE IF NOT EXISTS zombie_servers (
+      id TEXT PRIMARY KEY,
+      vm_id TEXT DEFAULT '',
+      vm_name TEXT DEFAULT '',
+      host_id TEXT DEFAULT '',
+      host_name TEXT DEFAULT '',
+      reason TEXT DEFAULT '',
+      detected_at DATETIME DEFAULT (datetime('now')),
+      resolved INTEGER DEFAULT 0,
+      resolved_at DATETIME
+    );
+
+    -- ==================== VLAN池 ====================
+    CREATE TABLE IF NOT EXISTS vlan_pools (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      vlan_start INTEGER DEFAULT 1,
+      vlan_end INTEGER DEFAULT 4094,
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 端口镜像 ====================
+    CREATE TABLE IF NOT EXISTS port_mirroring (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      source_network TEXT DEFAULT '',
+      source_port TEXT DEFAULT '',
+      dest_network TEXT DEFAULT '',
+      dest_port TEXT DEFAULT '',
+      direction TEXT DEFAULT 'both',
+      status TEXT DEFAULT 'active',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 网络配置规则 ====================
+    CREATE TABLE IF NOT EXISTS network_config_rules (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT DEFAULT 'qos',
+      network_id TEXT DEFAULT '',
+      bandwidth_limit INTEGER DEFAULT 0,
+      priority INTEGER DEFAULT 0,
+      enabled INTEGER DEFAULT 1,
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 虚拟防火墙 ====================
+    CREATE TABLE IF NOT EXISTS virtual_firewalls (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      network_id TEXT DEFAULT '',
+      default_action TEXT DEFAULT 'accept',
+      status TEXT DEFAULT 'active',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS firewall_rules (
+      id TEXT PRIMARY KEY,
+      firewall_id TEXT NOT NULL,
+      direction TEXT DEFAULT 'inbound',
+      protocol TEXT DEFAULT 'tcp',
+      port_range TEXT DEFAULT '',
+      source TEXT DEFAULT '',
+      dest TEXT DEFAULT '',
+      action TEXT DEFAULT 'accept',
+      priority INTEGER DEFAULT 100,
+      FOREIGN KEY (firewall_id) REFERENCES virtual_firewalls(id)
+    );
+
+    -- ==================== 端口组 ====================
+    CREATE TABLE IF NOT EXISTS port_groups (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      network_id TEXT DEFAULT '',
+      vlan_id INTEGER DEFAULT 0,
+      type TEXT DEFAULT 'access',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 组织/资源调度 ====================
+    CREATE TABLE IF NOT EXISTS organizations (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      parent_id TEXT DEFAULT '',
+      cpu_quota INTEGER DEFAULT 0,
+      mem_quota INTEGER DEFAULT 0,
+      storage_quota INTEGER DEFAULT 0,
+      vm_quota INTEGER DEFAULT 0,
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 亲和组 ====================
+    CREATE TABLE IF NOT EXISTS affinity_groups (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT DEFAULT 'affinity',
+      enabled INTEGER DEFAULT 1,
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS affinity_group_vms (
+      group_id TEXT NOT NULL,
+      vm_id TEXT NOT NULL,
+      PRIMARY KEY (group_id, vm_id)
+    );
+
+    -- ==================== 标签 ====================
+    CREATE TABLE IF NOT EXISTS labels (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      color TEXT DEFAULT '#409eff',
+      category TEXT DEFAULT 'general',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS label_assignments (
+      label_id TEXT NOT NULL,
+      resource_type TEXT NOT NULL,
+      resource_id TEXT NOT NULL,
+      PRIMARY KEY (label_id, resource_type, resource_id)
+    );
+
+    -- ==================== 文件管理 ====================
+    CREATE TABLE IF NOT EXISTS managed_files (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT DEFAULT 'iso',
+      category TEXT DEFAULT 'desktop',
+      size INTEGER DEFAULT 0,
+      path TEXT DEFAULT '',
+      md5 TEXT DEFAULT '',
+      upload_user TEXT DEFAULT 'admin',
+      status TEXT DEFAULT 'ready',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 回收站 ====================
+    CREATE TABLE IF NOT EXISTS recycle_bin (
+      id TEXT PRIMARY KEY,
+      resource_type TEXT NOT NULL,
+      resource_id TEXT NOT NULL,
+      resource_name TEXT DEFAULT '',
+      deleted_by TEXT DEFAULT '',
+      original_data TEXT DEFAULT '',
+      expires_at DATETIME,
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 一键检测 ====================
+    CREATE TABLE IF NOT EXISTS detection_results (
+      id TEXT PRIMARY KEY,
+      category TEXT NOT NULL,
+      item TEXT NOT NULL,
+      status TEXT DEFAULT 'pass',
+      message TEXT DEFAULT '',
+      detail TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 访问策略 ====================
+    CREATE TABLE IF NOT EXISTS access_policies (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT DEFAULT 'ip',
+      rule TEXT DEFAULT '',
+      action TEXT DEFAULT 'allow',
+      enabled INTEGER DEFAULT 1,
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 角色管理 ====================
+    CREATE TABLE IF NOT EXISTS roles (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT DEFAULT 'custom',
+      permissions TEXT DEFAULT '[]',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 云服务器启动顺序 ====================
+    CREATE TABLE IF NOT EXISTS boot_order_config (
+      id TEXT PRIMARY KEY,
+      vm_id TEXT NOT NULL,
+      vm_name TEXT DEFAULT '',
+      boot_priority INTEGER DEFAULT 100,
+      delay_seconds INTEGER DEFAULT 0,
+      enabled INTEGER DEFAULT 1,
+      FOREIGN KEY (vm_id) REFERENCES vms(id)
+    );
+
+    -- ==================== DRS (分布式资源调度) ====================
+    CREATE TABLE IF NOT EXISTS drs_rules (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      mode TEXT DEFAULT '全自动',
+      threshold INTEGER DEFAULT 70,
+      check_interval INTEGER DEFAULT 5,
+      last_run DATETIME,
+      migrations INTEGER DEFAULT 0,
+      status TEXT DEFAULT '启用',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== DPM (分布式电源管理) ====================
+    CREATE TABLE IF NOT EXISTS dpm_policies (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      mode TEXT DEFAULT '自动',
+      low_threshold INTEGER DEFAULT 20,
+      high_threshold INTEGER DEFAULT 80,
+      hosts_managed INTEGER DEFAULT 0,
+      hosts_powered_off INTEGER DEFAULT 0,
+      status TEXT DEFAULT '启用',
+      description TEXT DEFAULT '',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
+    -- ==================== 终端用户绑定 ====================
+    CREATE TABLE IF NOT EXISTS terminal_user_bindings (
+      id TEXT PRIMARY KEY,
+      terminal TEXT NOT NULL,
+      terminal_ip TEXT DEFAULT '',
+      user TEXT DEFAULT '',
+      user_group TEXT DEFAULT '',
+      pool TEXT DEFAULT '',
+      bind_type TEXT DEFAULT '浮动',
+      status TEXT DEFAULT '离线',
+      created_at DATETIME DEFAULT (datetime('now'))
+    );
+
   `);
 
   // ==== SQLite ALTER TABLE migrations for existing databases ====

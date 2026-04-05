@@ -82,8 +82,8 @@ async function load() {
     const [tpl, sp] = await Promise.all([api.get('/templates'), api.get('/specs')])
     templates.value = tpl.data || []
     specs.value = sp.data || []
-    // Load pools from publish rules or dedicated endpoint
-    try { pools.value = (await api.get('/publish-rules')).data || [] } catch(e) { pools.value = [] }
+    // Load pools from dedicated desktop-pools endpoint
+    try { pools.value = (await api.get('/desktop-pools')).data || [] } catch(e) { pools.value = [] }
   } catch(e) {}
   finally { loading.value = false }
 }
@@ -96,20 +96,20 @@ function showDialog(p) {
 }
 
 async function save() {
-  if (editing.value) await api.put(`/publish-rules/${editing.value.id}`, form)
-  else await api.post('/publish-rules', form)
+  if (editing.value) await api.put(`/desktop-pools/${editing.value.id}`, form)
+  else await api.post('/desktop-pools', form)
   ElMessage.success('保存成功'); dialogVisible.value = false; load()
 }
 
 async function togglePool(p) {
   const status = p.status === 'active' ? 'disabled' : 'active'
-  await api.put(`/publish-rules/${p.id}`, { ...p, status })
+  await api.put(`/desktop-pools/${p.id}`, { ...p, status })
   ElMessage.success('操作成功'); load()
 }
 
 async function remove(p) {
   await ElMessageBox.confirm(`确认删除桌面池 ${p.name}?`, '删除', { type: 'warning' })
-  await api.delete(`/publish-rules/${p.id}`); ElMessage.success('已删除'); load()
+  await api.delete(`/desktop-pools/${p.id}`); ElMessage.success('已删除'); load()
 }
 
 onMounted(load)

@@ -62,81 +62,72 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Folder, Document, Upload, FolderAdd } from '@element-plus/icons-vue'
+import api from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const showUpload = ref(false)
-const currentPath = ref('')
+const currentCategory = ref('')
+const files = ref([])
+const loading = ref(false)
+
+const currentFiles = computed(() => {
+  if (!currentCategory.value) return files.value
+  return files.value.filter(f => f.category === currentCategory.value || f.type === currentCategory.value)
+})
 
 const pathSegments = computed(() => {
-  const segs = ['']
-  if (currentPath.value) segs.push(...currentPath.value.split('/').filter(Boolean))
+  const segs = ['根目录']
+  if (currentCategory.value) segs.push(currentCategory.value)
   return segs
 })
 
-const fileTree = {
-  '': [
-    { name: 'iso', type: 'folder', size: '-', modified: '2025-01-10 08:00', owner: 'root' },
-    { name: 'templates', type: 'folder', size: '-', modified: '2025-01-12 10:00', owner: 'root' },
-    { name: 'backups', type: 'folder', size: '-', modified: '2025-01-18 14:00', owner: 'root' },
-    { name: 'logs', type: 'folder', size: '-', modified: '2025-01-19 09:00', owner: 'root' },
-    { name: 'README.txt', type: 'file', size: '2.4 KB', modified: '2025-01-05 12:00', owner: 'admin' },
-  ],
-  'iso': [
-    { name: 'KylinOS-V10-SP3.iso', type: 'file', size: '4.2 GB', modified: '2025-01-08 10:00', owner: 'root' },
-    { name: 'UOS-20-desktop.iso', type: 'file', size: '3.8 GB', modified: '2025-01-09 14:00', owner: 'root' },
-    { name: 'CentOS-7.9.iso', type: 'file', size: '4.4 GB', modified: '2025-01-07 09:00', owner: 'root' },
-  ],
-  'templates': [
-    { name: 'desktop-kylin.qcow2', type: 'file', size: '8.5 GB', modified: '2025-01-12 10:30', owner: 'root' },
-    { name: 'server-centos.qcow2', type: 'file', size: '12.0 GB', modified: '2025-01-11 16:00', owner: 'root' },
-  ],
-  'backups': [
-    { name: 'full-backup-20250118.tar.gz', type: 'file', size: '25.6 GB', modified: '2025-01-18 14:30', owner: 'root' },
-  ],
-  'logs': [
-    { name: 'mc-server.log', type: 'file', size: '15.2 MB', modified: '2025-01-19 09:30', owner: 'root' },
-    { name: 'libvirtd.log', type: 'file', size: '8.7 MB', modified: '2025-01-19 09:00', owner: 'root' },
-  ],
+async function load() {
+  loading.value = true
+  try {
+    const params = currentCategory.value ? { category: currentCategory.value } : {}
+    files.value = (await api.get('/files', { params })).data || []
+  } catch (e) { files.value = [] }
+  finally { loading.value = false }
 }
 
-const currentFiles = computed(() => fileTree[currentPath.value] || [])
-
 function openItem(row) {
-  if (row.type === 'folder') {
-    currentPath.value = currentPath.value ? currentPath.value + '/' + row.name : row.name
+  if (row.type === 'folder' || row.category) {
+    currentCategory.value = row.name || row.category
+    load()
   }
 }
 
 function navigateTo(idx) {
-  if (idx === 0) currentPath.value = ''
-  else currentPath.value = pathSegments.value.slice(1, idx + 1).join('/')
+  if (idx === 0) { currentCategory.value = ''; load() }
 }
 
 function downloadFile(row) { ElMessage.info('下载: ' + row.name) }
 
 async function renameItem(row) {
   const { value } = await ElMessageBox.prompt('新名称:', '重命名', { inputValue: row.name })
-  if (value) { row.name = value; ElMessage.success('重命名成功') }
+  if (value) {
+    try {
+      await api.put(`/files/${row.id}`, { name: value })
+      ElMessage.success('重命名成功'); load()
+    } catch (e) { ElMessage.error('重命名失败') }
+  }
 }
 
 async function deleteItem(row) {
   await ElMessageBox.confirm(`确定删除 "${row.name}" ?`, '确认')
-  const list = fileTree[currentPath.value]
-  if (list) {
-    const idx = list.indexOf(row)
-    if (idx >= 0) list.splice(idx, 1)
-  }
-  ElMessage.success('删除成功')
+  await api.delete(`/files/${row.id}`)
+  ElMessage.success('删除成功'); load()
 }
 
 async function createFolder() {
   const { value } = await ElMessageBox.prompt('文件夹名称:', '新建文件夹')
   if (value) {
-    const list = fileTree[currentPath.value]
-    if (list) list.unshift({ name: value, type: 'folder', size: '-', modified: new Date().toLocaleString(), owner: 'admin' })
-    ElMessage.success('创建成功')
+    await api.post('/files', { name: value, type: 'folder', category: currentCategory.value || 'general' })
+    ElMessage.success('创建成功'); load()
   }
 }
+
+onMounted(load)
 </script>

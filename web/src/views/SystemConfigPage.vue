@@ -54,7 +54,7 @@ const fields = computed(() => {
     ]
     case 'WelcomeMessage': return [
       { key: 'enabled', label: '显示欢迎信息', type: 'switch' },
-      { key: 'title', label: '标题', placeholder: '欢迎使用麒麟信安云' },
+      { key: 'title', label: '标题', placeholder: '欢迎使用KVM Cloud' },
       { key: 'message', label: '欢迎内容', type: 'textarea' },
       { key: 'show_logo', label: '显示Logo', type: 'switch' },
       { key: 'show_version', label: '显示版本号', type: 'switch' },
@@ -121,7 +121,7 @@ const fields = computed(() => {
 const defaults = {
   VideoRedirect: { enabled: false, codec: 'h264', max_fps: 30, max_bitrate: 5000, resolution: 'none' },
   TrafficServer: { enabled: false, address: '', port: 8080, bandwidth_limit: 0, protocol: 'tcp' },
-  WelcomeMessage: { enabled: true, title: '欢迎使用麒麟信安云', message: '麒麟信安云桌面虚拟化管理平台 V7R023', show_logo: true, show_version: true },
+  WelcomeMessage: { enabled: true, title: '欢迎使用KVM Cloud', message: 'KVM Cloud 虚拟化管理平台', show_logo: true, show_version: true },
   LabelSettings: { host_labels: '生产,测试,开发', vm_labels: 'VDI,服务器,测试', network_labels: '管理,业务,存储', storage_labels: '本地,共享,备份' },
   AffinityGroup: { vm_affinity: false, vm_anti_affinity: false, host_affinity: false, group_name: 'default', policy: 'affinity' },
   DynamicPolicy: { enabled: false, cpu_threshold: 80, mem_threshold: 80, check_interval: 300, action: 'alert' },

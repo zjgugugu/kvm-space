@@ -9,6 +9,7 @@
         <el-button @click="loadData">
           <el-icon><Refresh /></el-icon> 刷新
         </el-button>
+        <el-button type="primary" @click="scanZombies">扫描僵尸服务器</el-button>
       </div>
     </div>
 
@@ -41,34 +42,40 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Refresh } from '@element-plus/icons-vue'
+import api from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
 const selected = ref([])
 const tableData = ref([])
 
-function loadData() {
+async function loadData() {
   loading.value = true
-  tableData.value = [
-    { id: 1, name: 'zombie-vm-001', uuid: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789', host: 'host-01', last_seen: '2025-01-10 14:30', reason: '宿主机下线' },
-    { id: 2, name: 'zombie-vm-002', uuid: 'b2c3d4e5-f6a7-8901-bcde-f01234567890', host: 'host-02', last_seen: '2025-01-08 09:15', reason: '存储丢失' },
-    { id: 3, name: 'orphan-disk-vm', uuid: 'c3d4e5f6-a7b8-9012-cdef-012345678901', host: 'host-01', last_seen: '2025-01-05 18:00', reason: '磁盘不可达' },
-  ]
-  loading.value = false
+  try { tableData.value = (await api.get('/system-extra/zombie-servers')).data || [] }
+  catch (e) { tableData.value = [] }
+  finally { loading.value = false }
+}
+
+async function scanZombies() {
+  loading.value = true
+  try {
+    const res = await api.post('/system-extra/zombie-servers/scan')
+    ElMessage.success(res.data?.message || '扫描完成')
+    await loadData()
+  } catch (e) { ElMessage.error('扫描失败'); loading.value = false }
 }
 
 async function cleanOne(row) {
-  await ElMessageBox.confirm(`确定清理僵尸虚拟机 "${row.name}" ?`, '确认清理')
-  tableData.value = tableData.value.filter(r => r.id !== row.id)
-  ElMessage.success('已清理')
+  await ElMessageBox.confirm(`确定清理僵尸虚拟机 "${row.vm_name || row.name}" ?`, '确认清理')
+  await api.delete(`/system-extra/zombie-servers/${row.id}`)
+  ElMessage.success('已清理'); loadData()
 }
 
 async function batchClean() {
   await ElMessageBox.confirm(`确定清理选中的 ${selected.value.length} 台僵尸虚拟机?`, '确认批量清理')
-  const ids = new Set(selected.value.map(r => r.id))
-  tableData.value = tableData.value.filter(r => !ids.has(r.id))
+  for (const r of selected.value) { await api.delete(`/system-extra/zombie-servers/${r.id}`) }
   selected.value = []
-  ElMessage.success('批量清理完成')
+  ElMessage.success('批量清理完成'); loadData()
 }
 
 onMounted(loadData)

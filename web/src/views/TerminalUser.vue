@@ -70,6 +70,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { Plus, Search } from '@element-plus/icons-vue'
+import api from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const search = ref('')
@@ -77,18 +78,18 @@ const showDialog = ref(false)
 const editingId = ref(null)
 const form = reactive({ terminal: '', terminal_ip: '', user: '', pool: '', bind_type: '浮动' })
 
-const tableData = ref([
-  { id: 1, terminal: 'TC-001', terminal_ip: '192.168.1.101', user: 'zhangsan', user_group: '办公组', pool: '通用桌面池', bind_type: '固定', status: '在线' },
-  { id: 2, terminal: 'TC-002', terminal_ip: '192.168.1.102', user: 'lisi', user_group: '办公组', pool: '通用桌面池', bind_type: '浮动', status: '在线' },
-  { id: 3, terminal: 'TC-003', terminal_ip: '192.168.1.103', user: 'wangwu', user_group: '开发组', pool: '开发桌面池', bind_type: '固定', status: '离线' },
-  { id: 4, terminal: 'TC-004', terminal_ip: '192.168.1.104', user: 'zhaoliu', user_group: '测试组', pool: '测试桌面池', bind_type: '浮动', status: '离线' },
-])
+const tableData = ref([])
 
 const filteredData = computed(() => {
   if (!search.value) return tableData.value
   const q = search.value.toLowerCase()
   return tableData.value.filter(r => r.terminal.toLowerCase().includes(q) || r.user.toLowerCase().includes(q) || r.terminal_ip.includes(q))
 })
+
+async function load() {
+  try { tableData.value = (await api.get('/terminal-bindings')).data || [] }
+  catch (e) { tableData.value = [] }
+}
 
 function editRow(row) {
   editingId.value = row.id
@@ -98,19 +99,20 @@ function editRow(row) {
 
 async function deleteRow(row) {
   await ElMessageBox.confirm(`确定解除 "${row.terminal}" 与 "${row.user}" 的绑定?`, '确认')
-  tableData.value = tableData.value.filter(r => r.id !== row.id)
-  ElMessage.success('已解绑')
+  await api.delete(`/terminal-bindings/${row.id}`)
+  ElMessage.success('已解绑'); load()
 }
 
-function save() {
+async function save() {
   if (editingId.value) {
-    const idx = tableData.value.findIndex(r => r.id === editingId.value)
-    if (idx >= 0) Object.assign(tableData.value[idx], form)
+    await api.put(`/terminal-bindings/${editingId.value}`, form)
   } else {
-    tableData.value.push({ ...form, id: Date.now(), user_group: '-', status: '离线' })
+    await api.post('/terminal-bindings', form)
   }
   showDialog.value = false
   editingId.value = null
-  ElMessage.success('保存成功')
+  ElMessage.success('保存成功'); load()
 }
+
+onMounted(load)
 </script>

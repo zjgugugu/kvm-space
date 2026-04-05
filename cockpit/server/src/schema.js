@@ -1,5 +1,5 @@
 // Cockpit 总控虚拟化界面 - 数据库Schema
-// 复刻麒麟信安 cockpit.sql 表结构
+// Cockpit 总控虚拟化界面 - 数据库表结构
 
 function initSchema(db) {
   db.exec(`

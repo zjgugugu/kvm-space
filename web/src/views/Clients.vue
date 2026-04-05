@@ -62,14 +62,6 @@ const tab = ref('list')
 const clients = ref([]), tasks = ref([])
 const search = ref(''), statusFilter = ref('')
 
-// Simulated client data (no backend API yet for clients)
-const demoClients = [
-  { id: 1, name: 'TC-001', ip: '192.168.1.101', mac: '52:54:00:A1:B2:C3', type: 'TC', os: 'Linux', status: 'online', user: 'user01', last_seen: '2024-01-15 10:30:00' },
-  { id: 2, name: 'TC-002', ip: '192.168.1.102', mac: '52:54:00:A1:B2:C4', type: 'TC', os: 'Linux', status: 'online', user: 'user02', last_seen: '2024-01-15 10:28:00' },
-  { id: 3, name: 'SC-001', ip: '192.168.1.201', mac: '52:54:00:D4:E5:F6', type: 'SC', os: 'Windows', status: 'offline', user: '', last_seen: '2024-01-14 18:00:00' },
-  { id: 4, name: 'TC-003', ip: '192.168.1.103', mac: '52:54:00:A1:B2:C5', type: 'TC', os: 'Linux', status: 'online', user: 'user03', last_seen: '2024-01-15 10:25:00' },
-]
-
 const filteredClients = computed(() => {
   let list = clients.value
   if (search.value) {
@@ -82,14 +74,24 @@ const filteredClients = computed(() => {
 
 async function load() {
   loading.value = true
-  // Use demo data since client API doesn't exist yet
-  clients.value = demoClients
-  tasks.value = []
-  loading.value = false
+  try {
+    const [cRes, tRes] = await Promise.all([
+      api.get('/clients'),
+      api.get('/clients/tasks/list').catch(() => ({ data: [] }))
+    ])
+    clients.value = cRes.data || []
+    tasks.value = tRes.data || []
+  } catch (e) { clients.value = []; tasks.value = [] }
+  finally { loading.value = false }
 }
 
 function showDetail(c) { ElMessage.info(`终端 ${c.name} 详情页开发中`) }
-function sendCommand(c, cmd) { ElMessage.success(`已向 ${c.name} 发送 ${cmd} 命令（模拟）`) }
+async function sendCommand(c, cmd) {
+  try {
+    await api.post(`/clients/${c.id}/action`, { action: cmd })
+    ElMessage.success(`已向 ${c.name} 发送 ${cmd} 命令`)
+  } catch (e) { ElMessage.error('命令发送失败') }
+}
 
 onMounted(load)
 </script>

@@ -4,7 +4,7 @@ var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 var router = express.Router();
 
-var JWT_SECRET = 'cockpit-secret-key-ksvd';
+var JWT_SECRET = 'cockpit-secret-key-cloud';
 
 // 登录
 router.post('/login', function (req, res) {

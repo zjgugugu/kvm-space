@@ -63,6 +63,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Plus, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import api from '../api'
 
 const route = useRoute()
 const loading = ref(false)
@@ -72,6 +73,16 @@ const showDialog = ref(false)
 const editingId = ref(null)
 const form = reactive({})
 const tableData = ref([])
+
+const apiMap = {
+  AutoScalingStrategy: '/scaling/strategies',
+  AutoScalingGroup: '/scaling/groups',
+  LoadBalance: '/scaling/load-balancers',
+  DRS: '/scaling/drs',
+  DPM: '/scaling/dpm',
+}
+
+function getApiPath() { return apiMap[route.name] || null }
 
 const config = computed(() => {
   switch (route.name) {
@@ -226,27 +237,33 @@ function editRow(row) {
 
 async function deleteRow(row) {
   await ElMessageBox.confirm(`确定删除 "${row.name}" ?`, '确认')
-  tableData.value = tableData.value.filter(r => r.id !== row.id)
-  ElMessage.success('删除成功')
+  const path = getApiPath()
+  if (path) await api.delete(`${path}/${row.id}`)
+  ElMessage.success('删除成功'); load()
 }
 
-function saveItem() {
-  if (editingId.value) {
-    const idx = tableData.value.findIndex(r => r.id === editingId.value)
-    if (idx >= 0) tableData.value[idx] = { ...form }
-  } else {
-    tableData.value.push({ ...form, id: Date.now(), status: '启用' })
+async function saveItem() {
+  const path = getApiPath()
+  if (path) {
+    if (editingId.value) await api.put(`${path}/${editingId.value}`, form)
+    else await api.post(path, form)
   }
   showDialog.value = false
   editingId.value = null
-  ElMessage.success('保存成功')
+  ElMessage.success('保存成功'); load()
 }
 
-function load() {
+async function load() {
   loading.value = true
   editingId.value = null
   Object.keys(form).forEach(k => delete form[k])
-  tableData.value = [...(config.value.demoData || [])]
+  const path = getApiPath()
+  if (path) {
+    try { tableData.value = (await api.get(path)).data || [] }
+    catch (e) { tableData.value = [] }
+  } else {
+    tableData.value = []
+  }
   loading.value = false
 }
 
