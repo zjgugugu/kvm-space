@@ -213,9 +213,9 @@ class LibvirtDriver extends MockDriver {
   async _refreshHostInfo(hostId) {
     try {
       const info = await this._collectLocalHostInfo();
-      // 更新运行时数据（不覆盖手工设定的 name/ip/role）
-      this.db.prepare(`UPDATE hosts SET cpu_used = ?, mem_used = ?, disk_used = ?, uptime = ?, status = 'online', kernel = ? WHERE id = ?`)
-        .run(0, info.mem_used, info.disk_used, info.uptime, info.kernel, hostId);
+      // 更新运行时数据（不覆盖 cpu_used - 由 getDashboardOverview 计算）
+      this.db.prepare(`UPDATE hosts SET mem_used = ?, disk_used = ?, uptime = ?, status = 'online', kernel = ? WHERE id = ?`)
+        .run(info.mem_used, info.disk_used, info.uptime, info.kernel, hostId);
       // 更新 VM 计数
       const vmCount = this.db.prepare("SELECT COUNT(*) as c FROM vms WHERE host_id = ? AND deleted = 0").get(hostId);
       this.db.prepare('UPDATE hosts SET vm_count = ? WHERE id = ?').run(vmCount ? vmCount.c : 0, hostId);
