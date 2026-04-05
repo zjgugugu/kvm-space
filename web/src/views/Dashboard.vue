@@ -107,7 +107,7 @@ const resourceRef = ref(null)
 const chartInstances = []
 let refreshTimer = null
 
-// ===== 虚拟机饼图 (对标KSVD virtual-machine.js) =====
+// ===== 虚拟机饼图 =====
 function initVmPie() {
   if (!vmPieRef.value) return
   const chart = echarts.init(vmPieRef.value)
@@ -157,7 +157,7 @@ function initVmPie() {
   })
 }
 
-// ===== 在线趋势图 (对标KSVD trend-map.js) =====
+// ===== 在线趋势图 =====
 function initTrendChart() {
   if (!trendChartRef.value) return
   const chart = echarts.init(trendChartRef.value)
@@ -168,7 +168,7 @@ function initTrendChart() {
     const lines = resp.chart?.lines || []
     const dataTypeMap = resp.dataTypeMap || {}
 
-    // KSVD dataType → legend name mapping
+    // dataType → legend name mapping
     const nameMap = {
       ONLINE_USER_COUNT: '用户', ONLINE_CLINET_COUNT: '终端',
       SESSION_COUNT: '会话', SERVER_VIRTUAL_SESSION_COUNT: '云服务器',
@@ -196,7 +196,7 @@ function initTrendChart() {
       ])
     })
 
-    // Build series from KSVD lines
+    // Build series
     const legendData = []
     const series = lines.map(line => {
       const dt = line.lineQuery?.dataType?.name || ''
@@ -238,7 +238,7 @@ function initTrendChart() {
   }).catch(() => {})
 }
 
-// ===== 终端系统类型 (对标KSVD system-type.js) =====
+// ===== 终端系统类型 =====
 function initSystemType() {
   if (!systemTypeRef.value) return
   const chart = echarts.init(systemTypeRef.value)
@@ -267,7 +267,7 @@ function initSystemType() {
   })
 }
 
-// ===== 集群资源使用情况 (对标KSVD utilization-rate.js) =====
+// ===== 集群资源使用情况 =====
 function initResource() {
   if (!resourceRef.value) return
   const chart = echarts.init(resourceRef.value)
@@ -353,7 +353,10 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
   refreshTimer = setInterval(async () => {
     await loadDashboard()
-    // 只更新数据不重建图表（避免闪烁）
+    await nextTick()
+    // Update charts with new data
+    initVmPie()
+    initResource()
   }, 30000)
 })
 
@@ -366,7 +369,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ===== KSVD深色大屏仪表板 ===== */
+/* ===== 深色大屏仪表板 ===== */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;

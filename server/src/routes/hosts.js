@@ -16,7 +16,7 @@ router.post('/clusters', (req, res) => {
   const { name, description } = req.body;
   if (!name) return res.status(400).json({ error: '集群名称不能为空' });
   db.prepare('INSERT INTO clusters (id, name, description) VALUES (?,?,?)').run(id, name, description || '');
-  res.status(201).json(db.prepare('SELECT * FROM clusters WHERE id = ?').get(id));
+  res.json(db.prepare('SELECT * FROM clusters WHERE id = ?').get(id));
 });
 
 router.put('/clusters/:id', (req, res) => {
@@ -65,7 +65,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const host = await req.app.locals.driver.addHost(req.body);
-    res.status(201).json(host);
+    res.json(host);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

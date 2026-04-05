@@ -25,7 +25,7 @@ router.get('/security-groups/:id', async (req, res) => {
 router.post('/security-groups', async (req, res) => {
   try {
     const sg = await req.app.locals.driver.createSecurityGroup(req.body);
-    res.status(201).json(sg);
+    res.json(sg);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -43,7 +43,7 @@ router.put('/security-groups/:id', async (req, res) => {
 router.post('/security-groups/:id/rules', async (req, res) => {
   try {
     const rule = await req.app.locals.driver.addSecurityRule(req.params.id, req.body);
-    res.status(201).json(rule);
+    res.json(rule);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -80,7 +80,7 @@ router.get('/mac-pools', async (req, res) => {
 router.post('/mac-pools', async (req, res) => {
   try {
     const pool = await req.app.locals.driver.createMacPool(req.body);
-    res.status(201).json(pool);
+    res.json(pool);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -117,7 +117,7 @@ router.get('/subnets', async (req, res) => {
 router.post('/subnets', async (req, res) => {
   try {
     const subnet = await req.app.locals.driver.createSubnet(req.body);
-    res.status(201).json(subnet);
+    res.json(subnet);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -164,7 +164,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const net = await req.app.locals.driver.createNetwork(req.body);
-    res.status(201).json(net);
+    res.json(net);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

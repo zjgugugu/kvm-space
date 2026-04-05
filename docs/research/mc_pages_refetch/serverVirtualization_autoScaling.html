@@ -1,0 +1,2966 @@
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+
+将thin-main.gsp与main.gsp合并——modify by ph
+1. 删除所有css引入，放在一级模块gsp中维护
+2. 删除所有js引入， 放在一级模块gsp中维护
+
+ PS: CSS,JS代码请放入if (filterPaths) 语句中
+
+-->
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="description" content="Kylin MC"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <title>管理控制台： 服务器虚拟化</title>
+    <link rel="shortcut icon" href="/mc/favicon.ico" type="image/ico"/>
+    
+    
+    
+    
+    
+
+        <!-- bootstrap & fontawesome -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css"
+              href="/mc/font-awesome/4.5.0/css/font-awesome.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/jquery-ui.min.css"/>
+
+        <!-- ace styles -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace.min.css"
+              class="ace-main-stylesheet" id="main-ace-style"/>
+        <!--[if lte IE 9]>
+        <link rel="stylesheet" type="text/css"  href="/mc/css/ace/ace-part2.min.css" class="ace-main-stylesheet" />
+    <![endif]-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-skins.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-rtl.min.css"/>
+        <!--[if lte IE 9]>
+        <link rel="stylesheet" type="text/css"   href="/mc/css/ace/ace-ie.min.css"/>
+    <![endif]-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/gpl/jquery.cluetip.css"/>
+
+        <!-- 引入mc工具类 -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/mc/mc_util_simple.css"/>
+        <!-- page specific plugin styles -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+        <!-- 引入共用样式，以覆盖/全局使用-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/mc/common-style.css"/>
+
+
+        <!--[if !IE]> -->
+        <script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+        <!-- <![endif]-->
+        <!--[if IE]>
+        <script src="/mc/js/ace/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+        <![endif]-->
+        <script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/jquery-ui.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/jquery.jqGrid.min.js" type="text/javascript"></script>
+
+        <!-- ace scripts -->
+        <script src="/mc/js/ace/ace-elements.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/ace.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/gpl/jquery/jquery.jgrowl_minimized.js" type="text/javascript"></script>
+
+        <!-- mc.js 初始化时会调用，不引入会导致发布规则编辑页面报错 -->
+        <script src="/mc/js/gpl/jquery/jquery.cluetip.js" type="text/javascript"></script>
+
+        <script src="/mc/js/gpl/jquery/jquery.hoverIntent.js" type="text/javascript"></script>
+
+
+        <script src="/mc/js/hnkylin/mc.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/notify.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/task.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/approvalNotify.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/common/common.js" type="text/javascript"></script>
+
+    
+
+    
+    <link rel="stylesheet" type="text/css" href="/mc/css/mc/task_platform.css" />
+
+    <link rel="stylesheet" type="text/css" href="/mc/css/lib/swiper.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+    <script src="/mc/js/../mc/lib/swiper.min.js" type="text/javascript"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+        
+            <script src="/mc/js/gpl/Datejs/date-zh-CN.js" type="text/javascript"></script>
+
+        
+        <script type="text/javascript">
+
+      jQuery(document).ready(function() {
+        KSVD.updatei18nMap({
+          titleConfirm: "确认",
+          titleInfo: "提示",
+          titleWarn: "警告",
+          titleError: "错误",
+          OK: "确定",
+          cancel: "取消",
+          urgent: "紧急", // 紧急
+        });
+        KSVD.appCtx = "/mc/";
+        KSVD.initSideBar();
+        KSVD.notify.init();
+        KSVD.task.init();
+        KSVD.approvalNotify.init();
+        KSVD.initGlobalSettings();
+        KSVD.errorStr = "错误";
+      });
+        
+</script>
+
+    
+
+    
+    
+    
+    <script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+
+        {
+            const $ = jQuery;
+            $(function () {
+                const body = $('body');
+                // 注册关于
+                body.on('click', '.j-dialog-info-trigger', function () {
+                    KSVD.dialogFormat('alert', 'dialog-info', $(this).attr('data-info'), null, null);
+                });
+            });
+        }
+    
+</script>
+
+
+    
+    
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="layout" content="main"/>
+    <script src="/mc/js/gpl/HighCharts/highcharts.js" type="text/javascript"></script>
+
+    
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/jquery-ui.min.css" />
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-datepicker3.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/daterangepicker.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ui.jqgrid.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/chosen.min.css"/>
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ace.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-skins.min.css"/>
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-duallistbox.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-multiselect.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/bootstrap-switch-v4.0.0-alpha.1/bootstrap-switch.min.css"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+
+<link rel="stylesheet" type="text/css" href="/mc/css/mc/mc_global.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/mc/common-style.css" />
+
+
+    <link rel="stylesheet" type="text/css"
+          href="/mc/css/hnkylin/serverVirtualization/indexcss.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="/mc/css/hnkylin/serverVirtualization/detail/index.css"/>
+    
+<script src="/mc/js/ace/ace-extra.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+
+
+<script src="/mc/js/ace/jquery-ui.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/jquery.jqGrid.min.js" type="text/javascript"></script>
+
+
+
+
+    <script src="/mc/js/ace/grid.locale-cn.js" type="text/javascript"></script>
+
+
+<script src="/mc/js/ace/chosen.jquery.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/wizard.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/tree.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootstrap-treeview.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/spin.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootbox.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/moment.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/jquery.validate.min.js" type="text/javascript"></script>
+
+
+
+
+<script src="/mc/js/ace/ace-elements.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/ace.min.js" type="text/javascript"></script>
+
+
+<script src="/mc/js/ace/jquery.bootstrap-duallistbox.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootstrap-multiselect.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/../bootstrap-switch-v4.0.0-alpha.1/bootstrap-switch.min.js" type="text/javascript"></script>
+
+
+
+
+
+
+<script src="/mc/js/../mc/lib/echarts.js" type="text/javascript"></script>
+
+
+
+
+<script src="/mc/js/hnkylin/mc.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/notify.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/task.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/approvalNotify.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/common/common.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+
+// 记录jQuery
+(function use$(){
+    window.origin$ = window.$;
+    window.$ = jQuery;
+}());
+
+
+KSVD.appCtx = "/mc/";
+window.addEventListener('DOMContentLoaded', () => {
+    KSVD.updatei18nMap({
+          titleConfirm: "确认",
+          titleInfo: "提示",
+          titleWarn: "警告",
+          titleError: "错误",
+          OK: "确定",
+          cancel: "取消"
+        });
+     // KSVD.appCtx = "/mc/";
+     KSVD.initSideBar();
+     KSVD.notify.init();
+     KSVD.task.init();
+     KSVD.approvalNotify.init();
+     KSVD.initGlobalSettings();
+     KSVD.errorStr = "错误";
+});
+
+{
+    const $ = jQuery;
+    $(function(){
+        const body = $('body');
+        var clickEvents = $._data($("body")[0], "events")
+        //判断是否已经绑定数据
+        var selectorEventsBol = clickEvents&&clickEvents.click&&clickEvents.click[0].selector == ".j-dialog-info-trigger"
+        // if(selectorEventsBol) return
+        // // 注册关于
+        // body.on('click', '.j-dialog-info-trigger', function () {
+        //     KSVD.dialogFormat('alert','dialog-info',$(this).attr('data-info'),null,null);
+        // });
+    });
+}
+
+</script>
+
+<script src="/mc/js/../mc/common/module-servers.js" type="text/javascript"></script>
+
+
+
+<script type="text/javascript">
+
+// 框架相关的翻译 by ph
+
+!function($, window){
+'use strict'
+
+
+getFE().translate.library = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        language: "chinese",
+        modifySuccess: "修改成功，请稍后查看", // 修改成功，请稍后查看
+        noData: "暂无数据", // 暂无数据
+        name: "名称", // 名称
+        operation: "操作", // 操作
+        operationFailed: "操作失败", // 操作失败
+        minute: "分", // 分
+        hour: "时", // 时
+        day: "天", // 天
+        confirm: "确认", // 确认
+        cancel: "取消", // 取消
+        tip: "提示", // 提示
+        warn: "警告", // 警告
+        error: "错误", // 错误
+        save: "保存", // 保存
+        requestFailTip: "发送请求失败，请稍后再试", // 发送请求失败，请稍后再试
+        add: "新增", // 新增
+        delete: "删除", // 删除
+
+        // 桌面规格应用管控
+        applicationControl: "应用管控", // 应用管控
+        tip1: "禁止以下应用规则", // 禁止以下应用规则
+        tip2: "仅允许以下应用规则", // 仅允许以下应用规则
+        edit: "编辑", // 编辑
+        deleteBatch: "批量删除", // 批量删除
+        tip3: "确认删除所选规则吗？", // 确认删除所选规则吗？
+        tip4: "这些规则已经被使用了，无法删除。", // 这些规则已经被使用了，无法删除。
+        // name: "名称", // 名称
+        ruleLibrary: "所属规则库", // 所属规则库
+
+        ruleType: "规则类型", // 规则类型
+        // operation: "操作", // 操作
+        defaultRuleLibrary: "默认规则库", // 默认规则库
+        customRuleLibrary: "自定义规则库", // 自定义规则库
+        description: "描述", // 描述
+        allGroupNames: "全部组名", // 全部组名
+        off: "关闭", // 关闭
+        path: "路径", // 路径
+        filename: "文件名", // 文件名
+        featureInformation: "特征信息", // 特征信息
+        size: "大小", // 大小
+        productName: "产品名", // 产品名
+        publisher: "发布者", // 发布者
+        applyRules: "应用规则", // 应用规则
+        tip5: "Windows 7 旗舰版，企业版；Windows 8/8.1 企业版；Windows 10 企业版，教育版", // Windows 7 旗舰版，企业版；Windows 8/8.1 企业版；Windows 10 企业版，教育版
+        tip6: "支持的系统", // 支持的系统
+
+        tip7: "规则名称", // 规则名称
+        tip8: "规则描述", // 规则描述
+        tip9: "匹配路径", // 匹配路径
+        tip10: "匹配特征信息", // 匹配特征信息
+        tip11: "匹配发布和产品", // 匹配发布和产品
+        tip12: "匹配发布者", // 匹配发布者
+        removeingTip: "正在移除中，请稍后", // 正在移除中，请稍后
+
+        // 多虚拟磁盘
+        mVD_storage: "存储", 
+        mVD_add: "添加", 
+        mVD_del: "删除", 
+        mVD_name: "名称", 
+        mVD_bus: "总线类型", 
+        mVD_opacity: "容量", 
+        mVD_operation: "操作", 
+        mVD_edit: "编辑", 
+        mVD_desktopDisk: "桌面磁盘", 
+        mVD_scan: "一键扫描空闲磁盘", 
+        mVD_disk: "磁盘", 
+        mVD_vName: "虚拟机名称", 
+        mVD_user: "用户", 
+        mVD_address: "存储位置", 
+        mVD_takeUpSpace: "占用空间", 
+        mVD_sure: "确定", 
+        mVD_cancel: "取消", 
+        mVD_tip1: "确定要彻底删除该磁盘吗？", 
+        mVD_tip2: "删除前建议扫描一次空闲磁盘，确保磁盘列表为最新且该操作将彻底删除该磁盘，无法恢复，请确认是否要彻底删除磁盘？", 
+        mVD_addDisk: "添加磁盘", 
+        mVD_choose: "请选择", 
+        mVD_tip3: "高速硬盘virtio部分老系统如XP</br>无法支持，需要额外安装驱动。</br>普通硬盘ide相对通用。",
+        mVD_tip3_userDisk: "与系统盘保持一致",
+        mVD_advancedSettings: "高级设置", 
+        mVD_cacheMode: "缓存模式",
+        mVD_cacheMode_systemTip: "数据安全排序：directsync > writethrough > none > writeback > unsafe</br>性能排序：unsafe > writeback > none > writethrough > directsync</br>系统安装时默认使用none模式</br>注：【动态模式-长模式】和【静态模式】下一定要修改为none模式，或安全等级比none高的模式。",
+        mVD_cacheMode_userTip: "数据安全排序：directsync > writethrough > none > writeback > unsafe</br>性能排序：unsafe > writeback > none > writethrough > directsync</br>推荐用户盘子使用none模式！",
+        mVD_cacheMode_diskTip: "数据安全排序：directsync > writethrough > none > writeback > unsafe</br>性能排序：unsafe > writeback > none > writethrough > directsync</br>writethrough：读性能更好、推荐静态模式、长模式使用</br>none：写性能更好、推荐动态模式下使用（默认使用）</br>unsafe：推荐安装系统时使用",
+        mVD_ioRate: "I/O速率限制",
+        mVD_read: "读",
+        mVD_read_tip: "I/O速率限制最大为1000",
+        mVD_tip4: "磁盘读取速率限制，0表示不限制，此设置可能会导致虚拟机出现卡顿，</br>建议不低于5MB/s，否则会影响虚拟机的正常使用",
+        mVD_write: "写",
+        mVD_diskWriteTip: "磁盘写入速率限制，0表示不限制，此设置可能会导致虚拟机出现卡顿，</br>建议不低于5MB/s，否则会影响虚拟机的正常使用",
+        mVD_text1: "关机后清空用户盘数据", 
+        mVD_tip5: "删除失败", 
+        mVD_text2: "挂载的镜像文件", 
+        mVD_text3: "启动时挂载优化工具", 
+        mVD_tip6: "修改磁盘大小对已打快照虚拟机不生效；</br>磁盘容量缩小将对已有桌面不生效，对新建桌面生效；", 
+        mVD_text4: "用户盘数据加密", 
+        mVD_text5: "关机后清空该盘数据", 
+        mVD_text6: "用户文档存放服务器上", 
+        mVD_tip7: "这个功能是针对windows的，windows的文档，图片，视频，</br>桌面这几个系统自带文件夹会重定向到服务器。不保存在用</br>户自己的用户盘，其它数据不影响。", 
+        mVD_text7: "内置光驱", 
+        mVD_userDisk: "用户盘", 
+        mVD_saveFail: "保存失败", 
+        mVD_text8: "数据安全", 
+        mVD_text9: "系统盘", 
+        mVD_text10: "光驱", 
+        mVD_text11: "自动适应", 
+        mVD_tip8: "确定删除该磁盘？删除桌面规格磁盘，删除的磁盘将放入回收站，可前往回收站彻底删除", 
+        mVD_requestFail: "请求失败", 
+        mVD_text12: "桌面规格", 
+        mVD_text13: "用户详情", 
+        mVD_diskSize: "磁盘大小", 
+        mVD_deleteSuccess: "删除成功",
+        mVD_text14: "扫描桌面规格中已删除的空闲磁盘",
+        mVD_encryption: "磁盘加密:",//磁盘密码
+        mVD_inputEncryption: "输入密码:",//输入密码
+        mVD_sureEncryption: "确认密码:",//确认密码
+        mVD_isEncryption: "是否开启磁盘加密？",//开启加密
+        mVD_contentEncryption: "开启磁盘加密可保证用户磁盘数据的安全，该功能仅对新生成的磁盘生效，对历史生成的磁盘不生效，请确认后继续操作！",//开启加密提示内容
+        mVD_closeEncryption:"是否关闭磁盘加密？",//关闭加密
+        mVD_closeContentEncryption:"磁盘加密可保证用户磁盘数据的安全，关闭磁盘加密，新生成的磁盘将不会加密，请确认后继续操作！",//关闭加密内容提示
+        mVD_adminEncryption: "fe.unitModule.multipleVirtualDisks.administrator.encryption",//管理员确认内容提示
+        mVD_diskEncryption: "磁盘数据加密",//磁盘数据加密
+        mVD_successEncryption:"操作成功！",//操作成功
+        mVD_failEncryption:"磁盘加密失败！",//操作失败
+        mVD_deletePassTitle:"确定删除该磁盘？",//删除的确认标题
+        mVD_deletePassContent:"删除的磁盘将放入桌面规格磁盘回收站，可前往回收站彻底删除；",//删除的确认标题
+        mVD_notice:"通知",
+        mVD_editTitle:"系统盘总线类型修改提醒",//修改系统盘的确认标题
+        mVD_editContent:"修改系统盘总线类型，将同步修改用户盘的总线类型,请确认后操作！",//修改系统盘的确认内容
+        mvd_cleanTip: "关机后清空该盘数据可能导致引用该桌面规格的发布规则的桌面数据丢失，是否继续？",//关机后清空该盘数据由未勾选变为勾选提示
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+
+<script type="text/javascript">
+
+// “一体机模块”的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.servers = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        lock: "锁定规格", // 锁定规格
+        unlock: "解锁规格", // 解锁规格
+        passSwitch: "直通切换", // 直通切换
+        vgpuSwitch: "显卡切分", // VGPU切换
+        gpuType: "显卡类型", // 显卡类型
+        useOfGpu: "显卡使用情况", // 显卡使用情况
+        requestTip: "请求已成功发送，请稍后", // 请求已成功发送，请稍后
+        busId: "总线号", // 总线号
+        temperature: "显卡温度", // 显卡温度
+        memoryUsage: "显存使用率", // 显存使用率
+        GFXUsage: "GFX使用率", // GFX使用率
+        GFXUsageEngineClock: "显卡频率", // 显卡频率
+        powerUsage: "显卡功率", // 显卡功率
+        currentDPMLevel: "DPM级别", // DPM级别
+        PCIELinkSpeed: "链路速率", // 链路速率
+        PCIELinkWidth: "链路带宽", // 链路带宽
+        driverVersion: "驱动版本", // 驱动版本
+        utilization: "显卡使用率", // 显卡使用率
+        graphicsClock: "图形频率", // 图形频率
+        memoryClock: "内存频率", // 内存频率
+        vedioClock: "视频频率", // 视频频率
+        smClock: "SM频率", // SM频率
+        swThermalSlowdown: "软件减速", // 软件减速
+        hwThermalSlowdown: "硬件减速", // 硬件减速
+        gpuLinkGeneration: "链路版本", // 链路版本
+        gpuLinkWidth: "链路带宽", // 链路带宽
+        lessThanTip: "因当前集群服务器数量小于3台，必须确保新增服务器与集群原服务器型号一致，否则会导致数据存储副本扩充失败",
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+
+<script type="text/javascript">
+
+// “报表统计模块”的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.statistics = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        client: "终端", // 终端
+        numberOfOnlineTerminals: "在线终端数(个)", // 在线终端数(个)
+        terminalType: "终端类型", // 终端类型
+        onlineState: "在线状态", // 在线状态
+        online: "在线", // 在线
+        offline: "离线", // 离线
+
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+<script type="text/javascript">
+
+// “文档管理模块”的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.document = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        documentManagement: "文档管理", // 文档管理
+        numberOfOnlineUsers: "在线用户数", // 在线用户数
+        numberOfFileOutputs: "文件输出数", // 文件输出数
+        total: "总数", // 总数
+        onlineNumber: "在线人数", // 在线人数
+        usageMode: "使用模式", // 使用模式
+        terminalManagement: "终端管理", // 终端管理
+        cloudDesktop: "云桌面", // 云桌面
+        overrunAlarm: "超限告警", // 超限告警
+        time: "时间", // 时间
+        department: "部门", // 部门
+        outputQuantity: "输出数量", // 输出数量
+
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+<script type="text/javascript">
+
+// auth模块的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.auth = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        // “ldap服务器”
+        ldap: {
+            importUsers: "导入用户", // 导入用户
+            importOuMode1: "导入OU（方式一）", // 导入OU（方式一）
+            importOuMode2: "导入OU（方式二）", // 导入OU（方式二）
+            keyword: "关键字", // 关键字
+            query: "查询", // 查询
+            queryResults: "查询结果", // 查询结果
+            importMethod: "导入方式", //导入方式
+            importSeparately: "单独导入", // 单独导入
+            recursiveImport: "递归导入", // 递归导入
+            importUserOu: "导入用户的OU", // 导入用户的OU
+            towImport: "支持两种导入方式", // 支持两种导入方式
+            importMode1: "导入方式一", // 导入方式一
+            importMode2: "导入方式二", // 导入方式二
+            importToLocal: "导入到本地用户组", // 导入到本地用户组
+            onlySingle: "只支持单选", // 只支持单选
+            import: "导入", // 导入
+            isSyncGroup: "是否同步组结构", // 是否同步组结构
+            timingImportSettings: "定时导入设置", // 定时导入设置
+            open: "开启", // 开启
+            intervalTip1: "每隔", // 每隔
+            intervalTip2: "小时(1~24)自动导入", // 小时(1~24)自动导入
+            requiredTip: "请输入必填信息", // 请输入必填信息
+            intervalTip: "定时导入设置请输入整数（1~24）", // 定时导入设置请输入整数（1~24）
+            createGroupTip: "当前还没有任何组，请先新建组", // 当前还没有任何组，请先新建组
+            importSubmitloading: "加载中...", // 加载中
+            importLoadingText: "正在导入用户，数据量过大，预计需要2-3分钟，请在当前页面耐心等待...", // 加载提示文字
+            dialogFailure:"导入失败!", // 失败
+            dialogSuccess:"导入成功!", // 成功
+            dialogContentOne:"已成功导入", // 弹窗成功文字1
+            dialogContentTwo:"条数据，可前往用户列表查看已导入用户。", // 弹窗成功文字2
+            dialogContentThree:"以下", // 弹窗成功文字3
+            dialogContentFour:"条数据未导入成功。", // 弹窗成功文字4
+
+         }
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+<script type="text/javascript">
+
+!function($, window) {
+'use strict'
+
+getFE().translate.app = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        type: "类型",
+        action: "操作类型",
+        objName: "对象名称",
+        note: "备注",
+        status: "状态",
+        startTime: "申请时间",
+        operation:"操作",
+        approve: "通过",
+        reject: "拒绝",
+        pending: "待处理",
+        approved: "已通过",
+        rejected: "已拒绝",
+        failed:" 已失败",
+        approveInfo: "您确定要通过所选的请求吗？",
+        rejectInfo: "您确定要拒绝所选的请求吗？",
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+<script type="text/javascript">
+
+// 框架相关的翻译 by ph
+
+!function($, window){
+'use strict'
+
+
+getFE().translate.storage = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        dataStorage: "数据存储", // 数据存储
+        distributedStorage: "分布式存储", // 分布式存储
+        otherStorage: "其他存储", // 其他存储
+        name: "名称", // 名称
+        type:"类型", // 类型
+        status: "状态", // 状态
+        purpose: "用途", // 用途
+        totalCapacity: "总容量", // 总容量
+        usableCapacity:"可用容量", //可用容量
+        capacityUtilization: "容量使用率", // 容量使用率
+        numberOfCopy: "副本数", // 副本数
+        virtualMachinesTotalNumber: "虚拟机总数", // 虚拟机总数
+        virtualMachinesRunningNumber: "正运行虚拟机数量", // 正运行虚拟机数量
+        new: "新建", // 新建
+        success: "成功", // 成功
+        storageName: "存储名称", // 存储名称
+        storageCapacity: "存储容量", // 存储容量
+        resourcePoolDetails: "资源池详情", // 资源池详情
+        maximumAvailableCapacity: "可用容量", // 可用容量
+        numberOfAvailable: "数据盘数量", // 可用数据盘数量
+        numberOfHosts: "主机数量", // 主机数量
+        processing: "处理中", // 处理中
+        storageVolume:"存储卷", // 存储卷
+        afterDelete:"删除后", // 删除后
+        allDate:"存储上所有用户数据", // 存储上所有用户数据
+        willDelete:"将删除。", // 将删除。
+        unrecoverable:"且不可恢复！", // 且不可恢复！
+        tipSure: "请谨慎操作，删除前请确保已关闭运行在该存储卷上的虚拟机。", // 请谨慎操作，删除前请确保已关闭运行在该存储卷上的虚拟机。
+        pleaseEnter: "请输入", // 请输入
+        administratorPwd: "管理员密码", // 管理员密码
+        manage: "管理", // 管理
+        data:"数据", // 数据
+        nas: "NFS", // NFS
+        local:"本地磁盘", // 本地
+        online:"正常", // 在线
+        offline:"离线",// 离线
+        netConfigstep1_tt: "请根据自身实际使用场景，选择分布式存储的网络类型，用于访问各主机上的分布式存储数据", // 请根据自身实际使用场景，选择分布式存储的网络类型，用于访问各主机上的分布式存储数据
+        netConfigstep1_radio1: "存储网络共用管理网络", // 存储网络共用管理网络
+        netConfigstep1_radio1Help: "存储网络和管理网络共用一套网络链路，适合快速部署的简易场景，不适用于高负载场景", // 存储网络和管理网络共用一套网络链路，适合快速部署的简易场景，不适用于高负载场景
+        netConfigstep1_radio2: "存储网络使用独立物理网络", // 存储网络使用独立物理网络
+        netConfigstep1_radio2Help: "每台物理服务器使用一个或多个空闲的物理网卡作为存储网口，建立独立的存储网络，与管理网络和业务网络分开，适用于高负载的运行环境", // 每台物理服务器使用一个或多个空闲的物理网卡作为存储网口，建立独立的存储网络，与管理网络和业务网络分开，适用与高负载的运行环境
+        netConfigstep1_radio3: "单网卡", // 单网卡
+        netConfigstep1_radio3Help: "每台物理服务器上，使用一个空闲的物理网卡作为存储网口", // 每台物理服务器上，使用一个空闲的物理网卡作为存储网口
+        netConfigstep1_radio4: "聚合网络", // 聚合网络
+        netConfigstep1_radio4Help: "每台物理服务器上，使用一个以上空闲的物理网卡作为存储网口，默认使用bond6（自适应负载均衡策略），可有效提高负载均衡和灾备能力", // 每台物理服务器上，使用一个以上空闲的物理网卡作为存储网口，默认使用bond6（自适应负载均衡策略），可有效提高负载均衡和灾备能力
+        netConfigstep1_tip1: "至少请选择一种存储网络", // 至少请选择一种存储网络
+        netConfigstep1_tip2: "存在正在运行的虚拟机或离线状态的服务器，禁止修改", // 存在正在运行的虚拟机或离线状态的服务器，禁止修改
+        netConfigstep1_tip3: "您将要切换存储网络，是否继续？", // 您将要切换存储网络，是否继续？
+        netConfigTitle: "配置存储网口", // 配置存储网口
+        next: "下一步", // 下一步
+        prev: "上一步", // 上一步
+        loading: "拼命加载中...", // 拼命加载中...
+        saving: "拼命保存中...", // 拼命保存中...
+        netConfigstep_tip1: "当前集群主机数量小于3，不允许创建", // 当前集群主机数量小于3，不允许创建
+        netConfigstep2_tip1_1: "每台主机请选择", // 每台主机请选择
+        netConfigstep2_tip1_2: "张网卡", // 张网卡
+        netConfigstep2_text1: "存储口IP", // 存储口IP
+        netConfigstep2_tip2: "不能为空", // 不能为空
+        netConfigstep2_tip3: "请输入正确的IP", // 请输入正确的IP
+        netConfigstep2_tip4: "IP重复", // IP重复
+        netConfigstep2_tip5: "IP不在相同网段", // IP不在相同网段
+        netConfigstep2_text2: "主机", // 主机
+        netConfigstep2_text3: "物理网卡", // 物理网卡
+        netConfigstep2_text4: "存储口状态", // 存储口状态
+        netConfigstep2_tip6: "请选择物理网卡", // 请选择物理网卡
+        netConfigstep2_tip7: "请输入IP", // 请输入IP
+        netConfigstep2_tip8: "配置存储网口失败的机器", // 配置存储网口失败的机器
+        netConfigstep2_tip9: function(data){return `请不要以${data}开头`;}, // 请不要以开头
+        normal: "正常", // 正常
+        off: "断开", // 断开
+        chooseDisk_text1: "即将格式化所选磁盘，并将磁盘放入资源池，供系统统一分配，磁盘中数据将完全删除，是否继续", // 即将格式化所选磁盘，并将磁盘放入资源池，供系统统一分配，磁盘中数据将完全删除，是否继续？
+        chooseDisk_text2: "即将新建一个分布式存储，副本数量为3，即每份数据有3份拷贝，可有效保障磁盘故障而导致数据无法访问或丢失的风险。现将各主机的空闲硬盘资源集中整合至资源池，供新建分布式存储使用。", // 即将新建一个分布式存储，副本数量为3，即每份数据有3份拷贝，可有效保障磁盘故障而导致数据无法访问或丢失的风险。现将各主机的空闲硬盘资源集中整合至资源池，供新建分布式存储使用。
+        chooseDisk_text3: "请选择空闲磁盘用途", // 请选择空闲磁盘用途
+        chooseDisk_text4: "磁盘名称", // 磁盘名称
+        chooseDisk_text5: "磁盘类型", // 磁盘类型
+        chooseDisk_text6: "磁盘大小", // 磁盘大小
+        chooseDisk_text7: "磁盘用途", // 磁盘用途
+        chooseDisk_text8: "数据盘", // 数据盘
+        chooseDisk_text8_desc: "用于存储用户数据", // 用于存储用户数据
+        chooseDisk_text9: "暂不使用", // 暂不使用
+        chooseDisk_text10: "存在部分磁盘不符合系统要求，是否继续", // 存在部分磁盘不符合系统要求，是否继续
+        chooseDisk_text11: "以下磁盘初始化失败，未能加入资源池", // 以下磁盘初始化失败，未能加入资源池
+        chooseDisk_text12: "失败原因", // 失败原因
+        chooseDisk_text13: "个数据盘", // 个数据盘
+        chooseDisk_text14: "个缓存盘", // 个缓存盘
+        chooseDisk_text15: "缓存盘", // 缓存盘
+        chooseDisk_text15_desc: "使用固态磁盘给数据盘做IO加速，提高数据读写速度", // 使用固态磁盘给数据盘做IO加速，提高数据读写速度
+        DATA: "数据盘", // 数据盘
+        CACHE: "缓存盘", // 缓存盘
+        storageResource: "存储资源", // 存储资源
+        storageType: "存储类型", // 存储类型
+        capacity: "容量", // 容量
+
+        choose: "请选择",
+        noChoose: "未选择",
+        choosed: "已选择",
+        comfirm: "确 定",
+        cancal: "取 消",
+
+        client: "所有符合升级范围的终端",
+        tip1: "任务名称不能包含特殊字符",
+        tip2: "请输入任务名称",
+        tip3: "请输入版本号",
+        tip4: "请选择升级文件",
+        tip5: "请选择升级时间",
+        tip6: "请选择终端",
+        all: "全部终端",
+        part: "部分终端",
+        no: "暂无",
+
+
+
+
+        };
+    }
+
+    }(jQuery, window);
+
+</script>
+
+
+<script type="text/javascript">
+
+// 框架相关的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.addHost = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        newHost:"新增主机", //新增主机
+        addSuccess:"新增成功", //新增成功
+        manageStorageIp:"管理存储IP", //管理存储IP
+        errHostNetwork:"主机管理IP和服务器地址不在同一网段", //主机管理IP和服务器地址不在同一网段
+        errStorageNetwork:"管理存储IP和服务器地址不在同一网段", //管理存储IP和服务器地址不在同一网段
+        ipExist:"该IP已被使用", //已被使用
+        noEmpty: "不能为空", // 不能为空
+        legal : function(v){return `请输入合法的${v}`}, //请输入合法的{v}
+        hostManagementIP:"主机管理IP", //主机管理IP
+        rootPassword:"root密码", //root密码
+        serverRole:"服务器角色", //服务器角色
+        processing: "处理中", // 处理中
+        clientIp: "客户端访问IP", // 客户端访问IP
+        manageList: "管理节点列表", // 管理节点列表
+
+        cm: "管理（CM）", // 管理（CM）
+        vdi: "计算（VDI）", // 计算（VDI）
+        cm_vdi: "管理_计算（CM_VDI）", // 管理_计算（CM_VDI）
+        gateway: "网关（Gateway）", // 网关（Gateway）
+        arbiter: "仲裁（Arbiter）", // 仲裁（Arbiter）
+        arbiterTip: "仅支持在 2 个节点时新增独立的分布式存储仲裁节点（Arbiter），仲裁节点不提供云桌面和云服务器",
+
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+
+    <script type="text/javascript">
+
+    jQuery(document).ready(function() {
+                KSVD.updatei18nMap({
+                alert: "警告",
+                OK : "确定",
+                cancel : "取消",
+                export_csr_body : "证书签名请求 (CSR) 已被导出。",
+                export_csr_title : "导出证书签名请求",
+                apply_certs_title : "导入证书",
+                apply_certs_success : "已成功应用证书。<br/><br/>这些证书将在主机/服务器重启之后生效。",
+                apply_certs_error : "应用证书时出错：<br/><br/>",
+                export_csr_instructions : "<ul><li>让证书授权机构 (CA) 在 CSR 文件上签名。</li><li>使用“导入证书”按钮导入已签名证书和根/链证书。</li></ul>",
+                convertotemplate : "确定要将云服务器转换成模版吗？",
+                convertToVmService : "确定要将模版转换成云服务器吗？",
+                seting: "高级设置",
+                ForceShutDown:"强制关机",
+                Migrate:"迁移",
+                custerMigrate:"跨集群迁移",
+                custerMigrateInvalid:"云服务器配置有“PCI、大页内存、VCPU绑定物理CPU、虚拟NUMA、USB、GPU、光驱镜像文件、块磁盘、SRIOV网卡直通”不支持跨集群迁移",
+                storageMigrateMess:"serverVirtualizationService.storateMigrageMess",
+                hostStorageMigrateMes:"主机存储迁移目标主机需存在源主机存储",
+                createDate:"创建时间",
+                powerOnDate:"开机时间",
+                lastOperateDate:"最后操作时间",
+                autoStartByHost:"开机自启",
+                autoStartByHost_open:"开启",
+                autoStartByHost_closed:"关闭",
+                autoMigrate:"自动迁移",
+                autoMigrate_open:"开启",
+                autoMigrate_closed:"关闭",
+                qgaStatus:"Tools",
+                qgaStatus_run:"运行",
+                qgaStatus_notrun:"未运行",
+                serverVmName:"名称",
+                memoryCount:"内存(GB)",
+                cpuCurrent:"CPU(核)",
+                vmTaskStatus:"任务状态",
+                cmdSended:"指令发送成功",
+                vmname:"主机名",
+                vmtitle:"标题",
+                vmdescription:"描述",
+                vmdvcpu:"cpu个数",
+                vmdplacement:"限制",
+                vmdcpuset:"物理cpu绑定",
+                vmdcurrent:"启动时分配几个cpu",
+                vmdcpumodel:"cpu模式",
+                vmdmemory:"内存大小",
+                vmdmaxMemory:"内存上限",
+                vmdarch:"硬件类型",
+                vmdmachine:"操作系统类型",
+                duplicate:"服务器虚拟机的名称重复，请换一个未注册的服务器名称",
+                pciName:"名称",
+                supplier:"供应商",
+                pciDevice:"产品设备",
+                isUsed:"已使用",
+                pciVm:"云服务器",
+                relTime:"绑定时间",
+                used:"是",
+                noUsed:"否",
+                sriovName:"网口名称",
+                sriovType:"类型",
+                sriovMac:"MAC地址",
+                noSriovVf:"该网卡已没有VF可分配",
+                gpuName:"名称",
+                gpuType:"显卡类型",
+                gpuUsed:"使用数量",
+                gpuFree:"剩余数量",
+                type:"虚拟机",
+                convertTotemplate:"确定要将云服务器转换成模版吗？",
+                convertTotemplateError:"转换模版失败",
+                createVirtualService:"创建云服务器",
+                createVirtualServiceTask:"创建虚拟机任务提交",
+                setting:"高级设置",
+                createVirtualServiceByTemplate:"基于模板创建云服务器",
+                PowerOn:"开机",
+                PowerOnError:"云服务器开机失败，请在服务器虚拟化事件或任务中心页面，查看详情。",
+                PowerOnErrorPre:"云服务器开机失败，",
+                ERR_SYSTEM:"未知原因，请联系技术支持",
+                NO_MATCHING_SERVER:"桌面未被任何服务器缓存",
+                LAUNCH_SUSPENDED:"暂停启动新会话",
+                AT_LICENSE_CAPACITY:"群集已达到许可证容量",
+                LICENSE_EXPIRED:"许可过期",
+                LICENSE_INVALID:"许可不可用",
+                LICENSE_MISSING:"许可不存在",
+                RESOURCE_REQUIREMENTS_GPU:"无法满足gpu的资源需求",
+                RESOURCE_REQUIREMENTS_ARCH:"无法满足架构资源需求",
+                RESOURCE_REQUIREMENTS_OTHER:"无法满足资源需求",
+                ALL_SERVER_NOREADY:"所有服务器均未就绪",
+                ALL_SERVER_OFFLINE:"所有服务器都脱机",
+                AT_RESOURCE_CAPACITY_MEM:"集群的内存资源容量不足",
+                AT_RESOURCE_CAPACITY_SESS:"群集的会话资源容量不足",
+                NO_STORAGE_LOCATION:"所有服务器都没有存储",
+                LICENSE_NO_GPU_CAPABILITY:"GPU桌面需要Pro许可证",
+                LICENSE_CONCURRENT_USERS_EXCEEDED:"并发用户超出许可证限制",
+                LICENSE_SV_CPUS_EXCEEDED:"CPU数量超过许可证限制",
+                AFFINEGROUP_NO_SERVER:"亲和组策略限制",
+                LICENSE_CONCURRENT_INSTANCES_EXCEEDED:"concurrent vm exceeds the license limit",
+                RUNTIME_SERVER_ERR:"未知原因，请联系技术支持",
+                HUGEPAGE_NOT_ENOUGH:"运行主机大页内存不足",
+                TICKET_EXPIRED:"票据过期",
+                ShutDown:"关机",
+                ShutDownConfirm:"确定要关闭该虚拟机吗？如果无法关闭虚拟机，请开启远程控制台关闭虚拟机。",
+                confirmOperation:"确定执行此操作吗",
+                serverShutConfirmTip:"确定将云服务器关机？",
+                serverRebootConfirmTip:"确定将云服务器重启？",
+                serverShutTip:"某些操作系统可能因无法响应关机请求或者需要较长的关机时间导致关机失败，如失败，请使用远程控制台进行系统内关机",
+                serverRebootTip:"某些操作系统可能因无法响应重启请求或者需要较长的关机时间导致重启失败，如失败，请使用远程控制台进行系统内关机",
+                electric:"电源",
+                logFetch:"日志提取",
+                moreOption:"更多操作",
+                Reboot:"重启",
+                ForceReboot:"强制重启",
+                Suspend:"暂停",
+                Resume:"唤醒",
+                Abort:"终止",
+                Delete:"删除",
+                DeleteConfirm:"<font style='font-size:18px;'>选择删除云服务器方式 </font> <br> <input checked='checked' name='confirmDelete' value='recycle' type='radio' id='deleteRadioRecycle' style=''> <label style='text-decoration: none;position: relative;top: -2px;line-height: 2;' for='deleteRadioRecycle'>移入回收站</label><br><input type='radio' value='onlyDatabase' name='confirmDelete' id='deleteRadioSaveImg'> <label style='text-decoration: none;position: relative;top: -2px;line-height: 2;' for='deleteRadioSaveImg'>保留镜像数据</label><br> <input type='radio' value='delete' name='confirmDelete' id='deleteRadioDeleteImg'> <label style='text-decoration: none;position: relative;top: -2px;line-height: 2;' for='deleteRadioDeleteImg'>删除镜像数据</label><br><input type='radio' value='shredDelete' name='confirmDelete' id='deleteRadioFormat'> <label style='text-decoration: none;position: relative;top: -2px;line-height: 2;' for='deleteRadioFormat'>低格删除<span class='help-button' data-rel='popover' data-trigger='hover' id='formateDeleteTipSpan' data-placement='right' data-container='body' data-content='低格删除，会将云服务器的占用空间彻底擦除，无法使用数据恢复工具进行恢复'>?</span></label>",
+                DeleteConfirm_canotShareDelete:"<font style='font-size:18px;'>选择删除云服务器方式 </font> <br> <input checked='checked' name='confirmDelete' value='recycle' type='radio' id='deleteRadioRecycle' style=''> <label style='text-decoration: none;position: relative;top: -2px;line-height: 2;' for='deleteRadioRecycle'>移入回收站</label><br><input type='radio' value='onlyDatabase' name='confirmDelete' id='deleteRadioSaveImg'> <label style='text-decoration: none;position: relative;top: -2px;line-height: 2;' for='deleteRadioSaveImg'>保留镜像数据</label><br> <input type='radio' value='delete' name='confirmDelete' id='deleteRadioDeleteImg'> <label style='text-decoration: none;position: relative;top: -2px;line-height: 2;' for='deleteRadioDeleteImg'>删除镜像数据</label><br><input type='radio' disabled='disabled' value='shredDelete' name='confirmDelete' id='deleteRadioFormat'> <label style='text-decoration: none;position: relative;top: -2px;line-height: 2;' for='deleteRadioFormat'>低格删除<span class='help-button' data-rel='popover' data-trigger='hover' id='formateDeleteTipSpan' data-placement='right' data-container='body' data-content='低格删除，会将云服务器的占用空间彻底擦除，无法使用数据恢复工具进行恢复'>?</span></label>",
+                DeleteDevice:"确定要删除该设备吗？",
+                CannotDelDisk:"磁盘设备不支持在线热删除",
+                CannotDelIso:"光驱设备不支持在线热删除",
+                CannotDelInterface:"网卡设备不支持在线热删除",
+                SaveVMDetailInfo:"修改的部分配置需要关机再开机生效",
+                ideDiskOver:"ide类型的磁盘和光驱总数不能大于4个",
+                allDiskOver:"磁盘总数不能大于20个",
+                isoNumOver:"光驱数不能超过ide类型的磁盘数量",
+                sriovClusterCustomize:"sriov模式所选主机必须是自定义类型",
+                sriovClusterOnlyOne:"sriov模式所选主机必须有且只能有一个",
+                pciClusterCustomize:"添加PCI设备所选主机必须是自定义类型",
+                gpuClusterCustomize:"添加GPU设备所选主机必须是自定义类型",
+                pciClusterOnlyOne:"添加PCI设备所选主机必须有且只能有一个",
+                gpuClusterOnlyOne:"添加GPU设备所选主机必须有且只能有一个",
+                convertTemplateCheck:"请先解绑pci设备，再转换为模板",
+                convertTemplate:"转为模版",
+                convertVmService:"转为云服务器",
+                cloneVm:"克隆",
+                cloneServerVm:"克隆云服务器",
+                VirtualdetailSetting:"虚拟机详情设置",
+                machineName:"主机名称",
+                Group:"所属组",
+                detailSetting:"详细设置",
+                Cluster:"计算资源",
+                Server:"运行主机",
+                logConfirm:"确认提取此虚拟机的日志吗？",
+                rawDevice:"附加裸设备映射",
+                logConfirmServerVm:"确认提取此云服务器的日志吗？",
+                InterfaceType:"网络类型",
+                Interface:"网卡",
+                NetType:"网卡连接类型",
+                DriverType:"驱动类型",
+                MAC:"MAC",
+                NewDevice:"新增硬件",
+                NewEquipment:"新增设备",
+                DiskEquipment:"磁盘 设备",
+                InterfaceEquipment:"网卡 设备",
+                CdromEquipment:"光驱 设备",
+                GroupName:"组名",
+                MachineName:"主机名",
+                Description:"描述",
+                Memory:"内存(GB)",
+                MaxMemory:"内存上限",
+                SystemType:"系统类型",
+                SystemVersion:"系统版本",
+                SelectIso:"选择安装镜像",
+                aotuMigrateSwitch:"自动迁移",
+                upload:"上传镜像文件",
+                CpuNumber:"CPU数",
+                CpuKernels:"CPU核数",
+                Disk:"磁盘容量(GB)",
+                maxDiskLimit:"##存储位置最大磁盘空间为**G,请调整磁盘信息相关配置",
+                NativeDiskType:"虚拟磁盘",
+                BlockDiskType:"块设备",
+                ExistedDiskType:"从已有磁盘创建",
+                OtherDiskType:"其它设备",
+                machineOnLine:"虚拟机在线",
+                machineOffLine:"虚拟机离线",
+                enableCpuDynamic:"启用cpu热添加",
+                enableMemDynamic:"启用内存热添加",
+
+                AddressPool:"地址池",
+                PortGroup:"端口组",
+
+                VirtualSwitch:"虚拟交换机",
+                Add:"添加",
+                BasicInfo:"基本信息",
+                SubordinateGroup:"所属组",
+                Setting:"配置",
+                serviceName:"服务器名",
+                operatingSystemMc:"系统",
+                vmName:"云服务器",
+                Type:"类型",
+                CpuUse:"CPU",
+                MemoryUse:"内存",
+                usage:"利用率",
+                IpAddress:"IP地址",
+                Clusters:"所在集群",
+                Status:"状态",
+                memory:"内存",
+                VNC:"vnc连接",
+                operation:"高级操作",
+                pleaseShutdown:"请先关机",
+                more:"更多",
+                VirtualServersGroups:"服务器组",
+                alerted:"修改成功",
+                alertError:"修改失败",
+                migrate:"迁移成功",
+                migrateTask:"迁移任务创建成功",
+                blockNotSupport:"目标机没有匹配的块设备",
+                deleteGroupInfo:"该分组下存在虚拟机，不支持删除",
+                aliasName:"名称",
+                StorageLocation:"存储位置",
+                allStorageLocation:"全部存储位置",
+                allServer:"全部主机",
+                ONLINE:"正常",
+                OFFLINE:"离线",
+                nameAgain:"名称不能重复，请重新输入新的名称",
+                cloudServer:"云服务器",
+                vmAliasName:"名称",
+                maxDiskLimit:"##存储位置最大磁盘空间为**G,请调整磁盘信息相关配置",
+                target_exceed_maxVcpu :"超过vcpu数最大支持数：**vcpu",
+                target_exceed_maxMem:"超过云服务器内存最大支持：**",
+                target_exceed_maxdisk:"超过单盘支持的最大容量：**",
+                diskTooMany:"暂不支持多磁盘云服务器的链接克隆",
+                cloneVmDiskCannotAdd:"链接克隆的云服务器暂不支持磁盘扩容",
+                alLinkCloned:"链接克隆生成的虚拟机不支持再次链接克隆",
+                sameDiskTypeWarn:"磁盘驱动类型必须与导入文件的磁盘类型一致，确认一致并继续？",
+                moveGroup:"移动分组",
+                success:"成功",
+                createError:"创建失败",
+                copy:"复制",
+                passwordNull:"密码不能为空",
+                lifeEndTimeNull:"生命周期结束时间不能为空",
+                checkPlease:"不可以选择当前所在分组",
+                currentGroup:"当前组",
+                selectGroup:"请选择组，组不能为空",
+                selectTemplate:"请选择模板",
+                DiskNull:"磁盘信息不能为空",
+                diskSizeCanOnlyNumber:"磁盘大小只能是正整数",
+                CannotLessThanZero:"所填入值不可为负数",
+                ipNotValidity:"当前IP信息输入格式不合法",
+                maskNotValidity:"子网掩码信息不合法",
+                DiskTypeCannotIde:"在线状态不可添加ide类型的磁盘",
+                DescriptionNull:"详情不能为空",
+                cpuNull:"CPU数不可为空",
+                bindCpuNull:"绑定CPU为空",
+                memoryNull:"内存大小不可为空",
+                memoryCannotLess:"内存只可增大",
+                memoryCanOnlyNumber:"内存请输入正整数",
+                memoryCannotOut:"所选计算资源中物理内存最小主机的最大内存为*，为确保系统运行，内存设置请小于#",
+                noMatchArchHost:"无可用*架构宿主机，请确认架构选择是否正确或宿主机是否开机",
+                diskCannotLess:"磁盘大小只可增大",
+                vcpuCoresCannotLess:"在线状态插槽核数只可增大",
+                diskTooMax:"磁盘大小不能大于 2T",
+                ClusterNull:"计算资源不能为空",
+                resourceNull:"绑定资源不能为空",
+                template:"模版",
+                service:"虚拟机",
+                currentSessions:"当前会话数",
+                currentRunningVms:"运行虚拟机器数",
+                hugePages:"大页内存",
+                hugePages_start:"<span style='color:green'>开启</span>",
+                hugePages_stop:"关闭",
+                loadaverage:"平均负载",
+                cluster_status:"状态",
+                cluster_status_online:"在线",
+                cluster_status_offline:"离线",
+                cluster_status_half:"脱机",
+                newSuccess:"创建成功",
+                importFail:"导入失败",
+                newSuccessByTemplate:"虚拟机目前正在创建中。这可能需要几分钟时间。",
+                Yes:"确认",
+                YecannotPowerOns:"不能开机",
+                cannotNull:"带*号关键信息不能为空，请补充",
+                inputPlease:"请输入内容",
+                slectnotNull:"必须选择一项",
+                pleaseInputNumber:"请输入数字",
+                grouprepeat:"组名重复",
+                rootcantdelete:"根目录不能删除",
+                deleteSucess:"删除成功",
+                memoryisNumber:"内存处请添入数字",
+                diskisNumber:"磁盘处请添入数字",
+                diskIdeCountError:"ide磁盘不能超过3块，且磁盘个数不能超过8个",
+                Deletegroup:"删除组",
+                Finish:"完成",
+                edit:"编辑",
+                arrch:"架构",
+                SHUTDOWN:"关机",
+                INSTALLING:"安装",
+                CONNECTED:"已连接",
+                SUSPEND:"暂停",
+                AVAILABLE:"可用",
+                STATUS_ONLINE:"在线",
+                STATUS_NEW:"新建",
+                STATUS_NEWFAILED:"新建失败",
+                STATUS_INSTALLFAILED:"安装失败",
+                CREATING:"正在创建",
+                STARTING:"正在启动",
+                SHUTDOWNING:"正在关机",
+                REBOOTING:"正在重启",
+                SUSPENDING:"正在暂停",
+                RESUMING:"正在唤醒",
+                DELETING:"正在删除",
+                VOLUME_MIGRATING:"正在存储迁移",
+                HOST_MIGRATING:"正在主机迁移",
+                BACKUP_RUNNING:"正在备份",
+                BACKUP_RECOVERING:"正在备份恢复",
+                SNAPSHOT_RUNNING:"正在快照",
+                SNAPSHOT_RECOVERING:"正在快照恢复",
+                IMPORTING:"正在导入",
+                EXPORTING:"正在导出",
+                export:"导出",
+                CLONING:"正在克隆",
+                UNKNOWN:"未知",
+                TASK_STATUS_LEISURE:"空闲",
+                CLUSTER_MIGRATING:"跨集群迁移中",
+                DISK_COPYING:"正在磁盘拷贝",
+                DISK_COPY_FAILED:"磁盘拷贝失败",
+                TASK_STATUS_TIMEOUT_PAUSE:"超时暂停",
+                checkStatus:"取回状态",
+                CheckStatusConfirm:"在某些异常的情况下，云服务器在页面的显示状态和实际状态不一致，需要从底层获取实际的云服务器状态。您确定要执行取回云服务器状态的操作吗？",
+                ServerAarchError:"注意：x86框架与ARM框架有所区别，同一虚拟机无法在不同架构的集群上运行，创建时请只选择一种框架，并保证创建完成后虚拟机运行的宿主机框架类型一致不变",
+                setVmServerExport:"模版导出",
+                export:"导出",
+                setVmExport:"云服务器导出",
+                endServerByTemplate:"跳过当前克隆任务",
+                importServiceTemplate:"模版导入成功",
+                DiskType:"磁盘类型",
+                cacheMode:"缓存方式",
+                provisionType:"置备方式",
+                provisionTypeThin:"简置备",
+                provisionTypeThick:"厚置备置零",
+                provisionTypeThickDelay:"厚置备延迟置零",
+                Disksingel:"磁盘",
+                DiskAttributes:"磁盘属性",
+                cdrom:"光驱",
+                validaString:"不允许输入特殊字符",
+                snapServerVmList:"云服务器列表",
+                snapServerListSelect:"选择",
+                snapServerListName:"名称",
+                snapServerListGroup:"组",
+                snapServerListStatus:"状态",
+                snapServerListOwner:"所属用户",
+                snapServerListFramework:"架构",
+                serverListMoreSnapshot:"快照",
+                snapshot_action_pending : "正在创建",
+                snapshot_action_fail : "失败",
+                snapshot_action_success : "成功",
+                show_current : "当前",
+                server_detail_show_detail_lose: "快照制造者：{0}， 创建时间：{1}，系统盘快照：{2}<br/>",
+                server_detail_show_losed: "丢失",
+                server_detail_show_normal: "正常",
+                server_detail_show_natrual: "快照制造者：{0}， 创建时间：{1}<br/>",
+                snapshot_edit_title : "编辑云服务器快照",
+                snapshot_edit_success : "修改快照成功",
+                snapshot_create_title : "创建云服务器快照",
+                not_create_snap_deploy : "无法创建虚拟机快照，原因：虚拟机部署模式不适合创建快照",
+                not_edit_snap_nosnap : "无法编辑虚拟机快照，原因：虚拟机无快照信息",
+                not_apply_snap_nosnap : "无法应用虚拟机快照，原因：虚拟机无快照信息",
+                not_delete_snap_nosnap : "无法删除虚拟机快照，原因：虚拟机无快照信息",
+                not_create_snap_pending : "无法创建虚拟机快照，原因：虚拟机快照正在创建",
+                not_edit_snap_pending : "无法编辑虚拟机快照，原因：虚拟机快照正在创建",
+                not_apply_snap_pending : "无法应用虚拟机快照，原因：虚拟机快照正在创建",
+                not_delete_snap_pending : "无法删除虚拟机快照，原因：虚拟机快照正在创建",
+                not_edit_snap_noselect : "无法编辑虚拟机快照，原因：虚拟机快照没有被选中",
+                not_apply_snap_noselect : "无法应用虚拟机快照，原因：虚拟机快照没有被选中",
+                not_delete_snap_noselect : "无法删除虚拟机快照，原因：虚拟机快照没有被选中",
+                snapshot_del_text : "确定要删除云服务器快照",
+                snapshot_cmd_error: "命令执行出错",
+                snapshot_hint: "提示",
+                snapshot_del_suc_text : "成功提交删除快照任务",
+                snapshot_task_prog : "查看任务进度，",
+                snapshot_task_link : "点击这里",
+                snapshot_apply_text : "使用快照恢复云服务器后，用户在该快照点之后配置的数据和信息会丢失，是否继续？",
+                snapshot_apply_suc_text : "成功提交恢复云服务器任务",
+                snapshot_create_suc_text : "成功提交创建快照任务",
+                ioRange : "限制I/O速率",
+                ioRangeRead : "读",
+                ioRangeWrite : "写",
+                iopsRange : "限制IOPS",
+                iopsRangeRead : "读",
+                iopsRangeWrite : "写",
+                vcpuSocketAfterReboot:"插槽数已改变，重启虚拟机后生效！",
+                no_port_group:"所选虚拟交换机上没有配置任何端口组",
+                memoryVlaueNotLegal:"输入不正确，要求输入的内容为正整数",
+                memoryVlaueNoMoreThanMax:"输入不正确，要求输入的内容不大于",
+                biosWaitTime:"BIOS停留时间",
+                biosWaitTimeVlaueNotLegal:"输入不正确，要求输入的内容为0～60正整数",
+                editDisk:"磁盘",
+                editIso:"光驱",
+                editImageFile:"镜像文件",
+                editInterface:"网卡",
+                editUsb:"USB",
+                editPci:"PCI设备",
+                editGpu:"GPU",
+                editSRIOV:"SRIOV",
+                selectDiskFile:"选择磁盘文件",
+                deleteDiskFile:"删除原始磁盘文件",
+                export_disk_suc_text:"成功提交导出磁盘任务",
+                serverbackup_menu:"恢复备份",
+                serverbackup_list_name:"备份名称",
+                serverbackup_list_createDate:"创建时间",
+                serverbackup_alone_cannotRecover:"虚拟机正在创建备份，不能执行恢复操作",
+                serverbackup_alone_cannotDelete:"虚拟机正在创建备份，不能执行删除操作",
+                serverbackup_alone_noSelectRecoverTip:"请选择要恢复的备份！",
+                serverbackup_alone_noSelectDeleteTip:"请选择要删除的备份！",
+                serverbackup_alone_recoverConfirm:"使用备份恢复云服务器后，用户在该备份之后配置的数据和信息会丢失，是否继续？",
+                serverbackup_alone_deleteConfirm:"确定要删除云服务器备份",
+                serverbackup_alone_deleteSuccess:"成功发送删除器备份任务",
+                serverbackup_alone_recoverSuccess:"成功发送恢复器备份任务",
+                editNetworkCardType:"网卡类型",
+                editMacAddressPool:"地址池",
+                editMacAddress:"MAC地址",
+                editvirtualSwitch:"虚拟交换机",
+                editportGroup:"端口组",
+                editSecurityGroup:"已生效安全组",
+                ipToMac:"IP信息",
+                bindMacFlag:"IP/MAC绑定",
+                manualSet:"手动设置",
+                automaticAcq:"自动设置",
+                ipBindMac:"云服务器未安装QGA工具，手工设置不生效",
+                ipAddressInfo:"IP地址",
+                maskInfo:"子网掩码",
+                getWayInfo:"网关",
+                dnsFirstInfo:"首选DNS",
+                dnsSecondInfo:"备选DNS",
+                editUsbHost:"主机",
+                chooseHost:"选择主机",
+                choosePCI:"选择PCI设备",
+                chooseGPU:"选择GPU",
+                chooseSriov:"选择SRIOV",
+                chooseDevice:"选择",
+                editVmUsb:"USB设备",
+                editVmUsbVersion:"USB控制器类型",
+                usbTipsTitle:"提示",
+                usbTipsContent:"云主机需要包含USB3.0控制器的驱动才可以正常识别USB3.0设备。Windows系统可以通过安装gustertools性能优化工具解决驱动问题，linux系统需要内核模块需要包含USB3.0控制器驱动模块。",
+                uploadIsoLink:"上传",
+                refreshUploadIso:"刷新",
+                createLink:"/mc/image/uploadIso",
+                createDiskLink:"/mc/serverVirtualization/uploadDisk",
+                not_apply_snap_lose : "无法应用虚拟机快照，原因：虚拟机系统盘快照丢失",
+                not_edit_snap_nosnap : "无法编辑虚拟机快照，原因：虚拟机无快照信息",
+                not_apply_snap_nosnap : "无法应用虚拟机快照，原因：虚拟机无快照信息",
+                not_delete_snap_nosnap : "无法删除虚拟机快照，原因：虚拟机无快照信息",
+                not_create_snap_pending : "无法创建虚拟机快照，原因：虚拟机快照正在创建",
+                not_edit_snap_pending : "无法编辑虚拟机快照，原因：虚拟机快照正在创建",
+                not_apply_snap_pending : "无法应用虚拟机快照，原因：虚拟机快照正在创建",
+                not_delete_snap_pending : "无法删除虚拟机快照，原因：虚拟机快照正在创建",
+                not_edit_snap_noselect : "无法编辑虚拟机快照，原因：虚拟机快照没有被选中",
+                not_apply_snap_noselect : "无法应用虚拟机快照，原因：虚拟机快照没有被选中",
+                not_delete_snap_noselect : "无法删除虚拟机快照，原因：虚拟机快照没有被选中",
+                snapshot_apply_title : "应用虚拟机快照",
+                snapshot_delete_title : "删除虚拟机快照",
+                VirtualSwitchError:"在此服务器上找不到虚拟交换机",
+                operatingSystem:"操作系统",
+                maxVCpu:"最大可分配",
+                vcpuSocket:"CPU个数",
+                vcpuCores:"CPU核数",
+                cpuMode:"CPU模式",
+                MaxMemory:"内存上限",
+                memory:"内存",
+                usbName:"设备名",
+                PID:"PID",
+                VID:"VID",
+                usbType:"类型",
+                usbDriver:"驱动",
+                usbProtocol:"协议",
+                usbRate:"速率",
+                usbHost:"云主机",
+                usbReportTime:"上报时间",
+                helpContentCpumode:"兼容模式：虚拟化模拟通用的标准虚拟CPU, 兼容性好，但没有为云服务器提供最优性能。主机匹配模式：虚拟化模拟与物理服务器CPU最接近的CPU型号，能够尽可能地找到CPU性能参数相近的cpu型号，但在不同的cpu服务器上，找出的型号也不相同，对迁移的兼容性较差。直通模式：将服务器主机CPU型号和大部分功能能透传给云服务器。可为云服务器提供最优性能，但迁移兼容性很差，在同一厂家不同代的CPU之间也可能不支持迁移",
+                helpContentDiskType:"virtio类型的磁盘能够大幅提升云服务器的磁盘IO性能，但是某些版本的操作系统不支持，可能会导致安装系统时找不到磁盘，建议遇到此问题时，修改成ide磁盘再安装；最多可加载24个virtio类型的磁盘或者不超过4个的ide类型的设备（包括光驱，光驱为ide设备）",
+                helpContentCacheType:"none:关闭主机缓存，数据从虚拟磁盘缓存中读写; writethrough:关闭虚拟磁盘写缓存，数据直接被写入磁盘。只有磁盘读缓存; writeback: 数据在写入磁盘之前，首先写入缓存，写缓存成功之后，写操作就认为已经完成，数据并没有立即同步到磁盘; unsafe:与writeback相似，但其忽视了刷新缓存指令，从而无法保证虚拟机镜像的数据一致性，故性能得到了提升;directsync：关闭主机和虚拟磁盘缓存，直接读写物理磁盘。注意：由于writethrough、writeback、none，在服务器异常断电下，可能导致数据来不及刷新到物理磁盘而丢失，建议使用默认的直接读写(directsync)模式",
+                helpContentProvisionType:"厚置备将预先分配磁盘空间，可以将提升磁盘性能，但会占用较多的存储空间，且不支持快照备份；简置备则会按实际数据占用大小，需要时再分配存储空间",
+                helpContentIoRangeread:"取值范围1KB/s~100GB/s，或者为空，空表示不作限制，其他数值表示具体限制的大小",
+                helpContentIoRangewrite:"取值范围1KB/s~100GB/s，或者为空，空表示不作限制，其他数值表示具体限制的大小",
+                helpContentIopsRangeread:"取值范围16~2147483647，或者为空，空表示不作限制，其他数值表示具体限制的大小",
+                helpContentIopsRangewrite:"取值范围16~2147483647，或者为空，空表示不作限制，其他数值表示具体限制的大小",
+                helpContentNetworkCardType:"virtio：传输速度10Gb/s，兼容性一般，需要在系统内安装Virtio驱动程序;e1000：传输速度1Gb/s，兼容性好;rtl8139：传输速度10/100Mb/s，兼容性好",
+                plateformtype:"架构",
+                optionalCannotNull:"不可以为空",
+                customizeTime:"自定义使用到",
+                ipMaskCannotNull:"非DHCP场景下IP地址不可为空",
+                usbRepeat:"此云服务器存在重复usb重定向配置",
+                pciRepeat:"此云服务器存在重复PCI设备配置，请重新配置",
+                usbUsed:"usb设备已被云服务器(**)重定向",
+                srcCloned:"此云服务器存在链接克隆的子服务器，不可执行此操作",
+                srcClonedForBatch:"云服务器存在链接克隆的子服务器，不可执行此操作",
+                outDiskLimit:"##存储位置限制范围内最大可利用的磁盘空间为**G,请调整磁盘信息相关配置",
+                outSriovLimit:"SRIOV网卡剩余VF数量不足，请重新设置",
+                maxDiskLimit:"##存储位置最大磁盘空间为**G,请调整磁盘信息相关配置",
+                serverVirtualDetail_netType:"网络类型",
+                serverVirtualDetail_netName:"名称",
+                serverVirtualDetail_VirtualSwitch:"虚拟交换机",
+                serverVirtualDetail_portGrop:"所属端口组",
+                serverVirtualDetail_macAddress:"MAC地址",
+                serverVirtualDetail_ipAddress:"IP地址",
+                serverVirtualDetail_ipPool:"地址池",
+                serverVirtualDetail_netDeviceType:"网卡类型",
+                serverVirtualDetail_downloadSpeed:"下行带宽",
+                serverVirtualDetail_uploadSpeed:"上行带宽",
+                serverVirtuaDisk_diskName:"名称",
+                serverVirtuaDisk_diskType:"磁盘类型",
+                serverVirtuaDisk_diskDevice:"磁盘控制器",
+                serverVirtuaDisk_disSize:"容量",
+                serverVirtuaDisk_diskPath:"存储路径",
+                serverVirtuaPci_pciName:"名称",
+                serverVirtuaPci_pciVid:"供应商",
+                serverVirtuaPci_hostIp:"主机",
+                serverVirtuaPci_createTime:"创建时间",
+                serverVirtuaGpu_gpuName:"名称",
+                serverVirtuaGpu_gpuUserName:"创建者",
+                serverVirtuaGpu_gpuType:"显卡类型",
+                serverVirtuaGpu_createTime:"创建时间",
+                serverVirtaulTaskGrid_type: "类型",
+                serverVirtaulTaskGrid_createTime: "创建时间",
+                serverVirtaulTaskGrid_startTime: "开始时间",
+                serverVirtaulTaskGrid_finishTime: "结束时间",
+                serverVirtaulTaskGrid_action: "操作",
+                serverVirtaulTaskGrid_objName: "对象名称",
+                serverVirtaulTaskGrid_operUser: "操作用户",
+                serverVirtaulTaskGrid_status: "状态",
+                serverVirtaulTaskGrid_reason: "原因",
+                serverVirtaulTaskGrid_detail: "详情",
+                serverVirtaulPage_showMemory: "内存",
+                serverVirtaulPage_showDisk: "存储",
+                serverVirtaulPage_warningType: "告警类型",
+                serverVirtaulPage_warningTime: "告警时间",
+                serverVirtaulPage_warningLevel: "告警等级",
+                serverVirtaulPage_warningDetail: "告警详情",
+                serverVirtaulPage_cpuUsedRate: "CPU使用率",
+                serverVirtaulPage_usedPercent: "使用率",
+                serverVirtaulPage_cpuUsedPercent: "CPU百分比",
+                serverVirtaulPage_memoryUsedRate: "内存使用率",
+                serverVirtaulPage_memoryPercent: "内存百分比",
+                serverVirtaulPage_ioReadSpend: "磁盘读取速度",
+                serverVirtaulPage_ioWriteSpend: "磁盘写入速度",
+                serverVirtaulPage_ioSpend: "磁盘读写速率",
+                serverVirtaulPage_net: "网络",
+                serverVirtaulPage_netInSpend: "网络流入速度",
+                serverVirtaulPage_netOutSpend: "网络流出速度",
+                dayUnit: "天",
+                hourUnit: "时",
+                minutetUnit: "分",
+                secondtUnit: "秒",
+                logConfirm: "确认提取此虚拟机的日志吗？",
+                localDisk: "虚拟磁盘",
+                rawDisk: "块设备",
+                rawDeviceYes: "是",
+                rawDeviceNo: "否",
+                  rawDevice: "附加裸设备映射",
+                  label: "标签",
+                  bindLabel: "绑定标签",
+                  labelNameMess: "名称不可以为空且不超过20个字符",
+                  unBindLabel: "解绑标签",
+                  bindAffinity:"绑定亲和组",
+                  unbindAffinity:"解绑亲和组",
+                  bindDate:"绑定时间",
+                  showAllTask: "查看全部任务",
+                  allStatus: "全部状态",
+                  doingStatus: "进行中",
+                  failStatus: "失败",
+                  successStatus: "成功",
+                  completeStatus: "完成",
+                  taskProgress: "任务进度",
+                interfaceDelConfirm: "删除网卡前请先确保此网卡在系统内不被使用，是否确认删除？",
+                securityGroup_filterPlaceholder: "查询",
+                securityGroup_nonSelectedText: "请选择",
+                securityGroup_nSelectedText: "已选择",
+                securityGroup_allSelectedText: "已全部选择",
+                recoverBackUpConfirm: "恢复备份可能导致所选备份节点之后的数据丢失，是否确认恢复备份？",
+                diskDelConfirm: "删除磁盘前请先确保该磁盘在系统内不被使用且已在系统内卸载，是否确认删除？",
+                forceShutDownConfirm: "此操作可能导致云服务器内尚未保存的数据丢失，是否确认强制关机？",
+                forceRebootConfirm: "此操作可能导致云服务器内尚未保存的数据丢失，是否确认强制重启？",
+                thresholdMess: "请输入合理的阈值",
+                labelMess: "请输入合理的阈值",
+                serverVirutal_page_detail_backup_table_label_status: "状态",
+                serverVirutal_page_detail_backup_table_label_name: "备份名称",
+                serverVirutal_page_detail_backup_table_label_testSpend: "磁盘测试速度",
+                serverVirutal_page_detail_backup_table_label_backupDate: "备份开始时间",
+                serverVirutal_page_detail_backup_table_label_description: "描述",
+                serverVirutal_page_detail_backup_table_label_backupPath: "备份路径",
+                serverVirutal_page_detail_backup_table_label_operation: "操作",
+                serverVirutal_page_detail_backup_table_label_failReason: "失败原因",
+                serverVirutal_page_detail_backup_table_label_delete: "删除",
+                serverVirutal_page_detail_backup_table_label_recover: "恢复",
+                serverVirutal_page_detail_backup_table_label_type: "备份类型",
+                serverVirutal_moveToRecycleManySuccess: "批量删除成功。您删除的云服务器会暂时存放在回收站中。",
+                serverVirutal_moveToRecycleOneSuccess: "删除成功。您删除的云服务器会暂时存放在回收站中。",
+                serverVirutal_convertTempTipSuccess: "云服务器转模板成功",
+                serverVirutal_convertCloudSercerSuccess: "模板转云服务器成功",
+                snapshot_name_null : "快照名输入不能为空",
+                serverVirutal_page_detail_snapshot_table_label_alias: "快照名称",
+                serverVirutal_page_detail_snapshot_table_label_description: "描述",
+                serverVirutal_page_detail_snapshot_table_label_dateCreated: "快照创建时间",
+                serverVirutal_page_detail_snapshot_table_label_createUserName: "创建者",
+                serverVirutal_page_detail_snapshot_table_label_status: "快照状态",
+                serverVirutal_page_detail_snapshot_table_label_lose: "系统盘是否丢失",
+                serverVirutal_page_detail_snapshot_table_label_snapType: "快照类型",
+                serverVirutal_page_detail_snapshot_table_label_memorySnapshot: "内存快照",
+                serverVirutal_page_detail_snapshot_table_label_snapType_strategy: "快照策略",
+                serverVirutal_page_detail_snapshot_table_label_snapType_manually: "手动创建",
+                numaConfig:"虚拟NUMA",
+                memoryHugeConfig:"大页内存",
+                validCount:"数量",
+                validNow:"在线生效的修改",
+                validReboot:"需要关机在开机生效的修改",
+                dnamicValid:"内存回收与内存动态热添加不可以同时开启",
+                searchTip:"搜索",
+                serverVirutal_guide_template_network_ipType:"IP类型",
+                serverVirutal_guide_template_network_ipGetWay:"获取方式",
+                serverVirutal_guide_template_network_ipGetWay_auto:"自动获取IP地址",
+                serverVirutal_guide_template_network_ipGetWay_manually:"手动配置IP地址",
+                serverVirutal_guide_template_network_ipAddress:"IP地址",
+                serverVirutal_guide_template_network_netmask:"子网掩码",
+                serverVirutal_guide_template_network_defaultGateway:"默认网关",
+                serverVirutal_guide_template_network_firstDns:"首选DNS",
+                serverVirutal_guide_template_network_secondDns:"备选DNS",
+                serverVirutal_guide_template_computerName:"计算机名称",
+                serverVirutal_guide_template_computerName_error:"支持英文与数字输入，不超过18位字数",
+                serverVirutal_guide_template_adminName:"管理员名称",
+                serverVirutal_guide_template_password:"密码",
+                serverVirutal_guide_template_passwordErr:"两次密码不一致",
+                serverVirutal_guide_template_password_invalid:"必须包含大小写字母和数字的组合，可以使用特殊字符，长度在8-26之间",
+                serverVirutal_guide_template_ipErr:"IP格式错误",
+                serverVirtualizationService_fullClone:"完整克隆",
+                serverVirtualizationService_linkClone:"链接克隆",
+                serverVirtualizationService_checked_open:"开启",
+                serverVirtualizationService_checked_closed:"未开启",
+                serverVirutal_guide_template_default:"默认",
+                serverVirutal_guide_template_custom:"自定义规格",
+                serverVirutal_guide_template_customAttr:"自定义属性",
+                serverVirutal_guide_template_networkSet:"网卡设置",
+                serverVirutal_guide_template_vmHa_noConfig:"未配置",
+                serverVirutal_guide_template_vmHa_reOpen:"重启",
+                serverVirutal_guide_template_vmHa_byOther:"由其它服务器重建",
+                serverVirutal_guide_template_lifeCycle_noTime:"无期限",
+                serverVirutal_guide_template_bios_legacy:"LEGACY启动",
+                serverVirutal_guide_template_bios_uefi:"UEFI启动",
+                serverVirutal_guide_template_bios_userUpload:"自定义启动",
+                queueCount:"队列个数",
+                mtuCount:"MTU",
+                hotDrawing:"热拔",
+                queueCountTip:"队列个数取值不能超过云服务器当前的CPU总数量",
+                mtuCountTip:"设置云服务器网卡的最大传输单元，默认为1500，取值范围：1000~9000",
+                hotDrawingTip:"是否开启云服务器在线时，增加网卡后立即生效",
+                physicalNetworkCard:"物理网卡",
+                physicalNetworkCardTip:"绑定物理网卡后，不支持使用休眠、唤醒、在线迁移、主机及存储迁移、内存快照、内存热添加、网卡在线添加与删除、IP与MAC绑定、安全组、DRS、DPM、宿主机HA、亲和组。",
+                vlanTip:"VLAN取值范围为1~4095整数，0代表不限制",
+                serverVirutal_machine_numa_bingCpu_title:"绑定物理CPU",
+                serverVirutal_machine_numa_bingCpu_table_operation_bind:"绑定",
+                serverVirutal_machine_numa_bingCpu_virutalCpuName:"虚拟CPU",
+                serverVirutal_machine_numa_bingCpu_physicsCpuName:"物理CPU",
+                serverVirutal_machine_numa_bingCpu_select_error:"每个云服务器CPU不允许跨NUMA节点绑定物理CPU",
+                serverVirutal_machine_numa_maxCpu_tip:"最大可分配数XX核,总核数=插槽数*插槽核数",
+                serverVirutal_machine_numa_start_fail:"numa开启失败， 请确认每一个虚拟cpu都绑定了物理cpu后再试。",
+                serverVirutal_qga_not_run:"未运行",
+                serverVirutal_qga_run:"已运行",
+                serverVirutal_target_machine_type_vm:"源云服务器：",
+                serverVirutal_target_machine_type_template:"源模板：",
+                serverVirutal_child_linkClone_title:"链接克隆云服务器",
+                serverVirutal_child_linkClone_aliasName:"云服务器名称",
+                serverVirutal_child_linkClone_cloneTime:"链接克隆时间",
+                serverVirutal_huagepage_tip_selectClsuter:"请先选择计算资源后再开启大页内存",
+                serverVirutal_huagepage_tip_clusterNotOpenHuagepage:"运行的XX主机未开启大页内存",
+                serverVirutal_fast_start_order_title:"云服务器启动顺序",
+                zombie_select_title : "条件筛选",
+                serverCloudStartOrder_table_system:"系统" ,
+                serverCloudStartOrder_table_name:"名称"      ,
+                serverCloudStartOrder_table_status:"状态"  ,
+                serverCloudStartOrder_table_group:"所属分组"    ,
+                serverCloudStartOrder_table_cpu:"CPU（核）"	,
+                serverCloudStartOrder_table_mem:"内存（GB）"        ,
+                serverCloudStartOrder_table_userPercent:"利用率" ,
+                serverCloudStartOrder_table_runningMachine:"运行主机" ,
+                serverCloudStartOrder_table_computerResource:"计算资源"  ,
+                serverCloudStartOrder_table_operation:"操作",
+                serverCloudStartOrder_table_operation_up:"上移" ,
+                serverCloudStartOrder_table_operation_down:"下移" ,
+                serverCloudStartOrder_table_operation_upTop:"上移顶部"  ,
+                serverCloudStartOrder_table_operation_downEnd:"下移底部" ,
+                serverCloudStartOrder_remove_tip:"确定关闭云服务器开机自启动？关闭后，云服务器开机自启动功能为关闭状态" ,
+                serverCloudStartOrder_machine_autoStart:"开机自启" ,
+                serverCloudStartOrder_addMachine_title:"添加云服务器" ,
+                serverCloudStartOrder_setIntervalTitle:"设置间隔时间" ,
+                serverCloudStartOrder_interval_success:"保存成功" ,
+                serverCloudStartOrder_interval_error_numOnly:"间隔时间只能是正整数" ,
+                serverVirutal_createbytemplate_please_choose_template:"请先选择模板",
+                serverViruta_selectclusters_max_mem_tip:"宿主机最大可分配内存：XX",
+                 serverVirutal_changeCluster_notAllow:"虚拟CPU绑定了物理CPU，不支持修改计算资源",
+
+
+                haTAskName:"任务名称",
+                haVmName:"云服务器",
+                haTaskStatus:"状态",
+                haMonitorStrategy:"监控策略",
+                haServiceName:"服务名称",
+                haServiceStatus:"服务状态",
+                addAppMonitor:"添加应用监控",
+                applyMonitorStrategy:"应用监控策略",
+                strategyName:"名称",
+                strategyDesc:"描述",
+                strategyOperSys:"适用操作系统",
+                strategyCreateDate:"创建时间",
+
+                haRunning:"运行",
+                haClose:"关闭'",
+                haUnnormal:"异常",
+                haNormal:"正常",
+                haStart:"开启",
+                haDelete:"删除",
+                addStrategyMonitor:"serverVirtualizationService.ha.list.addStrategyMonitor",
+                selectServer:"serverVirtualizationService.ha.list.selectServer",
+                selectStrategy:"serverVirtualizationService.ha.list.selectStrategy",
+                cluster_resource_title:"绑定资源",
+
+                clusterMigrateHugePage:"大页内存",
+                clusterMigrateLinkClone:"源云服务器或者子云服务器是链接克隆类型",
+                clusterMigratePci:"PCI",
+                clusterMigratePassthrough:"cpu直通",
+                clusterMigrateNuma:"虚拟NUMA",
+                clusterMigrateUsb:"USB",
+                clusterMigrateCdrom:"光驱镜像文件",
+                clusterMigrateRaw:"块磁盘",
+                checkCluster:"计算资源获取方式为自动不可以获取裸设备",
+                clusterMigrateGpu:"GPU",
+                clusterMigratePreMess:"云服务器使用",
+                clusterMigrateTaiMess:"不支持跨集群迁移",
+                clusterMigrateSizeExceed:"集群间迁移数据量超过限制大小(50G)，请联系技术支持人员采用其它方式",
+                autoMigrateTaiMess:"不支持自动迁移",
+                server_virtual_edit_securityStrategy:"安全策略",
+                server_virtual_edit_securityStrategy_none:"无",
+                server_virtual_edit_securityStrategy_group:"安全组",
+                server_virtual_edit_securityStrategy_fireWall:"虚拟防火墙",
+                server_virtual_edit_name_label:"名称",
+                server_virtual_edit_description_label:"说明",
+                bindResource:"绑定资源",
+                waitingDelete:"删除中",
+                adSetting:"高级设置",
+                serverVirutal_support_maxInterfaceNum:"最多支持**块网卡",
+                serverVirutal_storage_status_warn:"警告",
+                serverVirutal_storage_status_error:"不可用",
+                vGPUTooMuch:"只允许加一个vGPU显卡",
+                hasSnapshotCantChange:"提示：当云服务器存在快照的情况下，不允许修改磁盘的容量",
+                meroryVCantChange:"当云服务器存在快照的情况下，不允许修改磁盘的容量",
+                rowDiskCantChange:"该磁盘类型为块设备，不允许修改磁盘的容量",
+                rowAndSnapCantChange:"该磁盘类型为块设备，且存在快照的情况下，不允许修改磁盘的容量",
+                vcpuTotalNumberCannotLess:"虚拟机在线时，CPU总核数可增大，不可减少",
+                CannotDelIsoOnlineGpu:"在线状态GPU不可删除",
+                cantOnlineAddGpu:"在线状态不可添加GPU",
+                ipAddressIncorrect:"网卡*无效的IP地址",
+                netMaskAddressIncorrect:"网卡*无效的子网掩码",
+                gatewayAddressIncorrect:"网卡*无效的网关地址",
+                firstDnsAddressIncorrect:"网卡*无效的首选DNS",
+                secondDnsAddressIncorrect:"网卡*无效的备选DNS",
+
+                jinxiang:"镜像文件",
+                nojinxiang:"无镜像文件",
+                mountTools:"挂载Tools",
+                noMountTools:"未挂载Tools",
+                mount2imgToolsTip:"挂载镜像文件将会自动卸载已挂载的tools,请确认是否继续挂载镜像文件?",
+                server_machine_label_soundCard:"声卡",
+                server_machine_sound_card_tip:"*云服务器处于在线或者暂停状态，此次修改操作将在云服务器下次启动时生效。",
+                soundCard_label_type:"类型"
+
+
+});
+
+});
+
+</script>
+
+
+    <script src="/mc/js//hnkylin/serverVirtualization/serverAutoScaling/listAutoScalingGroup.js" type="text/javascript"></script>
+
+    
+    <script type="text/javascript">
+
+    jQuery(document).ready(function() {
+      KSVD.updatei18nMap({
+            autoScalingGroup_create_title:"创建弹性伸缩组",
+            autoScalingGroup_create_selectTemplate_title:"请选择您要使用的模板",
+            autoScalingGroup_create_selectTemplate_list_templateName:"模板名称",
+            autoScalingGroup_create_selectTemplate_list_templateConfig:"模板配置",
+            autoScalingGroup_create_selectStrategy_title:"请选择弹性伸缩组要使用的策略",
+            autoScalingStrategyList_name:"策略名称",
+            autoScalingStrategyList_triggerCondition:"触发条件",
+            autoScalingStrategyList_executeAction:"执行动作" ,
+            autoScalingGroup_error_notnull:"请输入{0}" ,
+            autoScalingGroup_list_healthyCheckStrategy:"健康检查策略",
+            autoScalingGroup_list_healthyCheckCircle:"健康检查周期",
+            autoScalingGroup_list_loadBalance:"负载均衡",
+            autoScalingGroup_list_name:"组名称",
+            autoScalingGroup_list_maxInstance:"最大实例",
+            autoScalingGroup_list_status:" 状态",
+            autoScalingGroup_list_minInstance:"最小实例",
+            autoScalingGroup_list_InitInstance:"初始实例",
+            autoScalingGroup_list_templateName:"模板名称",
+            autoScalingGroup_list_strategyName:"策略名称",
+            autoScalingGroup_list_createTime:"创建时间",
+            autoScalingGroup_list_operation:"操作",
+            autoScalingGroup_detail_machine_list_status:"状态",
+            autoScalingGroup_detail_machine_list_coloudName:"云服务器名称",
+            autoScalingGroup_detail_machine_list_ip:"IP",
+            autoScalingGroup_detail_machine_list_userd:"利用率",
+            autoScalingGroup_detail_machine_list_powerOnDateTime:"开机时间",
+            autoScalingGroup_detail_machine_list_createDateTime:"创建时间",
+            autoScalingStrategyList_operation_update:"修改",
+            autoScalingStrategyList_operation_delete:"删除",
+            autoScalingGroup_update_title:"编辑弹性伸缩组",
+            autoScalingGroup_delete_success:"删除成功",
+            autoScalingGroup_delete_tip:"删除当前弹性伸缩组后，弹性伸缩组中的云服务器将会被同时删除，确定删除当前弹性伸缩组？",
+            autoScalingGroup_stop_tip:"停用后弹性伸缩组内的云服务器可以正常使用，但是将不会按照设定的弹性伸缩策略增加和较少云服务器。",
+            autoScalingGroup_stop_success:"停用成功",
+            autoScalingGroup_start_success:"启用成功",
+            autoScalingGroup_select_loadBalance:"选择负载均衡器",
+            autoScalingGroup_select_listener:"选择监听器",
+            loadBalance_list_name:"名称",
+            loadBalance_list_ip:"IP地址",
+            loadBalance_list_create:"创建者",
+            loadBalance_list_listener:"监听器",
+            loadBalance_listener_list_name:"名称",
+          loadBalance_listener_list_agreementAndPort:"负载均衡协议/端口",
+          loadBalance_listener_list_balanceType:"均衡方式",
+          loadBalance_listener_list_threshold:"健康阈值/不健康阈值",
+           autoScalingMachine_list_healthyStatus:"健康状态",
+           autoScalingMachine_list_operation_start:"启用",
+           autoScalingMachine_list_operation_stop:"停用",
+
+
+      });
+       KSVD.appCtx = "/mc/";
+       initAutoScalingGroupList();
+
+
+    } );
+    
+</script>
+
+    
+        <script src="/mc/js/ace/grid.locale-cn.js" type="text/javascript"></script>
+
+    
+
+    <style type="text/css">
+    .groupDetailTable tr td {
+        padding: 15px;
+    }
+
+    .groupDetailTable tr td:nth-child(odd) {
+        text-align: right;
+        font-size: 14px;
+        font-weight: 900;
+    }
+
+    .groupDetailTable tr td:nth-child(even) {
+        text-align: left;
+    }
+
+    .baseMessageDiv {
+        background-color: rgba(10, 22, 49, 1);
+        margin-bottom: 10px;
+    }
+
+    h4 {
+        margin-left: 25px;
+        margin-top: 15px;
+        display: inline-block;
+    }
+    </style>
+
+
+</head>
+
+
+
+
+
+
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+<!-- .skin-thime 为了增加权重 by ph -->
+<body class="kylin skin-thime" id="main-body" data-permission="[&quot;MON_SERVERS&quot;:&quot;true&quot;, &quot;MON_SESSIONS&quot;:&quot;true&quot;, &quot;IMAGE_OWNER&quot;:&quot;true&quot;, &quot;AL_READ&quot;:&quot;true&quot;, &quot;SP_READ&quot;:&quot;true&quot;, &quot;PROV_READ&quot;:&quot;true&quot;, &quot;GS_FULL&quot;:&quot;true&quot;, &quot;LEAF_READ&quot;:&quot;true&quot;, &quot;PROV_FULL&quot;:&quot;true&quot;, &quot;MAINT_READ&quot;:&quot;true&quot;, &quot;NP_READ&quot;:&quot;true&quot;, &quot;DP_FULL&quot;:&quot;true&quot;, &quot;SERVERS_FULL&quot;:&quot;true&quot;, &quot;VM_FULL&quot;:&quot;true&quot;, &quot;STAT_READ&quot;:&quot;true&quot;, &quot;SP_FULL&quot;:&quot;true&quot;, &quot;NP_FULL&quot;:&quot;true&quot;, &quot;MAINT_FULL&quot;:&quot;true&quot;, &quot;VM_READ&quot;:&quot;true&quot;, &quot;IMAGE_READ&quot;:&quot;true&quot;, &quot;DP_READ&quot;:&quot;true&quot;, &quot;POLICY_READ&quot;:&quot;true&quot;, &quot;LEAF_FULL&quot;:&quot;true&quot;, &quot;IMAGE_FULL&quot;:&quot;true&quot;, &quot;SERVERS_READ&quot;:&quot;true&quot;, &quot;MON_READ&quot;:&quot;true&quot;, &quot;ORG_FULL&quot;:&quot;true&quot;, &quot;POLICY_FULL&quot;:&quot;true&quot;, &quot;GS_READ&quot;:&quot;true&quot;, &quot;ORG_ADMIN&quot;:&quot;true&quot;, &quot;ORG_READ&quot;:&quot;true&quot;, &quot;AL_FULL&quot;:&quot;true&quot;, &quot;IMAGE_OPS&quot;:&quot;true&quot;]">
+
+    <input id="is_jzgk" value="false" hidden="hidden">
+
+
+<!-- Client management introduces the task-platform at this position. If the terminal is placed at the end, many JS files will be missing. Other modules will be placed at the end -->
+
+<!-- Client management ... end -->
+
+<!-- masthead -->
+
+
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script type="text/javascript">
+
+    /*validate 验证提示*/
+    var params = {
+        name : "名称",
+        nickname1 : "标题",
+        ip : "IP",
+        mask : "子网掩码",
+        gateway : "网关",
+        require : function(v){return `${v}不能为空`}, //不能为空
+        specia_character : function(v){return `${v}不能包含特殊字符`}, //不能包含特殊字符
+        legal : function(v){return `请输入合法的${v}`}, //请输入合法的{v}
+        cannot_same : function(v){return `${v}不能相同`}, //不能相同
+        mismatch : function(v){return `${v}不匹配`}, //不匹配
+        tipTitle: "提示",
+    }
+    /*重构loadmodal simplemodal
+    和 弹窗相关
+    * */
+    var loadDialog_lang = {
+        title : "提示",
+        comfirm : "确定",
+        cancel : "取消",
+        add : "添加",
+    }
+    /*loading */
+    var loading_lang = {
+        message : "拼命加载中...",
+    }
+    /*发布规则 选择客户端登陆时间段*/
+    var dateFilter_lang = {
+        login_point : "登录时间点",
+        login_period : "登录时间段",
+        login_require_point : "不可登录时间点",
+        login_require_period : "不可登录时间段",
+        time_slot : "时间段",
+        title : "客户端登录时间段"
+    }
+    if(typeof KSVD == "undefined"){
+        var KSVD = {};
+    }
+    KSVD.validateTips = Object.assign({},params);
+    KSVD.loadDialogTips = Object.assign({},loadDialog_lang);
+    KSVD.loadingTips = Object.assign({},loading_lang);
+    KSVD.dateFilterTips = Object.assign({},dateFilter_lang);
+
+</script>
+
+</body>
+</html>
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+
+modify by ph
+ 1. 删除bootstrap.min.js
+
+-->
+
+
+
+
+
+
+
+
+    <script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+
+
+
+
+
+
+    <div id="navbar" class="navbar">
+    <div class="navbar-container" id="navbar-container">
+        <div class="navbar-header pull-left">
+            <a href="/mc/reporting/dashboard" class="navbar-brand">
+                <small>
+                    <i class=""></i>
+                    
+                        <img id="KylinCloudLogo" src="/mc/images/hnkylin/Kylin.png" height="70" width="229"/>
+                    
+                </small>
+            </a>
+        </div>
+        <nav role="navigation" class="navbar-menu">
+            <ul class="nav navbar-nav">
+                
+                    <li id="nav_dashboard_li" >
+                        <a href="/mc/reporting/dashboard" title="仪表板">仪表板</a>
+                    </li>
+                
+                
+                    <li id="nav_desktop_publish_id" >
+                        
+                            <a href="/mc/image/list" title="桌面发布">桌面发布</a>
+                        
+                    </li>
+                
+                
+
+                
+                    <li id="nav_virtual_machine_id_new" >
+                        <a href="/mc/VM/desktopVms" title="桌面虚拟机">桌面虚拟机</a>
+                    </li>
+                
+
+
+                
+                    <li id="nav_serverVirtualization_id" >
+                        <a href="/mc/serverVirtualization/index" title="服务器虚拟化">服务器虚拟化</a>
+                    </li>
+                
+                
+                    <li id="nav_network_pool_id" >
+                        
+                            <a href="/mc/network/list" title="网络池">网络池</a>
+                        
+                        
+                    </li>
+                
+                
+
+
+
+
+
+                    <li id="nav_storage_pool_id" >
+                        
+                            <a href="/mc/storageNew/storageNew" title="存储池">存储池</a>
+                        
+                    </li>
+                
+                
+                    <li id="nav_physical_machine_id" >
+                        
+                            <a href="/mc/servers/clusterMasters" title="一体机">一体机</a>
+                        
+                    </li>
+
+
+
+
+
+
+
+
+                    
+                        <li id="nav_log_warning_id01" >
+                            <a href="/mc/monitoringNew/monitoringNew" title="日志告警">日志告警</a>
+                        </li>
+                    
+                
+                
+                
+                    <li id="nav_statistic_id" >
+                        
+                            <a href="/mc/statistics/userLoginInfo" title="统计报表">统计报表</a>
+                        
+                    </li>
+                
+                
+                    
+                        <li id="nav_client_management_id" >
+                            
+                                <a href="/mc/client/index" title="终端管理">终端管理</a>
+                            
+                        </li>
+                    
+                
+                <li id="nav_system_management_id" >
+                    
+                        <a href="/mc/generalSettings/showGlobalPolicy" title="系统管理">系统管理</a>
+                    
+                </li>
+            </ul>
+        </nav>
+        <div class="navbar-buttons navbar-header pull-right" role="navigation">
+            <ul class="nav navbar-nav j-fullscreen-text">
+
+                
+                    <li class="grey dropdown-modal">
+                        <a  class="dropdown-toggle" href="#" title="任务展示">
+                            <i class="ksvd-task"></i>
+                            <span class="badge badge-grey"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-check"></i>
+                                任务进展提醒
+                            </li>
+
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar">
+                                </ul>
+                            </li>
+
+                            <li class="dropdown-footer">
+                                <a href="/mc/app/taskCenter" style="cursor: pointer;" class="hide">查看完成的任务</a>
+                                <a id="task_pending_id" style="cursor: pointer;" class="hide" >
+                                    查看进行中的任务
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                
+
+                
+                    <li class="white dropdown-modal">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#" title="审批提醒">
+                            <i class="icon-approval2"></i>
+                            <span class="badge badge-light"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-check"></i>
+                                审批提醒
+                            </li>
+
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar">
+                                </ul>
+                            </li>
+
+                            <li class="dropdown-footer">
+                                <a href="/mc/app/approvalCenter" style="cursor: pointer;">查看未处理的审批</a>
+                            </li>
+                        </ul>
+                    </li>
+                
+
+                
+                    <li class="purple dropdown-modal">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="alarm"></i>
+                            <span class="badge badge-important"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-exclamation-triangle"></i>
+                                告警事件提醒
+                            </li>
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar j-alarm20200507">
+                                </ul>
+                            </li>
+                            <div style="display: inline;line-height: 3.4;">
+                                <a id="more-notification" style="position: relative;left:40px;bottom:2px;">
+                                    <u>查看更多</u>
+                                    
+                                </a>
+
+                                <a id="ignore-notification" style="position: absolute;right:40px;bottom:2px;visibility: hidden;">
+                                    <u>我知道了</u>
+                                    
+                                </a>
+                            </div>
+                        </ul>
+                    </li>
+                
+
+                <li class="light-blue dropdown-modal" >
+                    <a data-toggle="dropdown" href="#" class="dropdown-toggle">
+                        <span class="username">
+                            
+                                mcadmin
+                            
+                            <b class="arrow fa fa-angle-down"></b>
+                        </span>
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-user af-wautoi">
+                        <li>
+                            <a href="/mc/user/resetPassword/mcadmin" onclick="javascript:KSVD.loadModal(this, event, false, &#39;auto&#39;, &#39;/mc/&#39;, 450);return false;" title="重置用户 'mcadmin' 的密码">
+                                <i class="icon-resetPassowrd af-ml0i" ></i> 重置密码
+                            </a>
+                        </li>
+
+                        <li>
+                            
+                                <a href="/mc/user/logout">
+                                    <i class="icon-logout af-ml0i" ></i> 注销
+                                </a>
+                            
+                        </li>
+
+                        <li>
+                            <a href="javascript: void(0);" id="buildinfo" class="j-dialog-info-trigger" data-info="产品版本：KSVD V7 <br/>内部版本号：R023S07.48308">
+                                <i class="icon-about af-ml0i" ></i> 关于
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="swiper-tips-dialog">
+    <div class="container-box">
+        <div class="title">告警</div>
+        <div class="swiper-tips-container">
+            <div class="swiper-wrapper">
+                
+                <div class="swiper-slide swiper-no-swiping">
+                    <p class="sub-title">一体机服务器警告</p>
+                    <div class="tips-info tips-one"></div>
+                </div>
+                
+                <div class="swiper-slide swiper-no-swiping">
+                    <p class="sub-title">存储警告</p>
+                    <div class="tips-info">
+                        <span>当前未配置用户数据存储，所有数据均保存在Mstorage存储中，有存储风险。请尽快联系管理员前往存储池页面，添加用户数据存储！</span>
+                        <label>
+                            <input value="" class="remind-input" type="checkbox"/><span>下次不再提醒本条告警</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <!-- 如果需要分页器 -->
+            <div class="swiper-pagination"></div>
+        </div>
+        <div class="pagination-group">
+            <div class="pagination-prev">上一页</div>
+            <div class="pagination-next">下一页</div>
+            <div class="pagination-close">关闭</div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="loadingStatus">
+    <div class="loadEffect">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</div>
+
+<div class="expiration-tips">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    <span class="text"></span>
+    <a href="../generalSettings/showLicense">立即处理</a>
+    <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+</div>
+<div class="main-container ace-save-state" id="main-container">
+    <script type="text/javascript">
+        try {
+            ace.settings.loadState('main-container')
+        } catch (e) {
+        }
+    </script>
+    
+        <!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+ 
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+-->
+
+
+
+
+
+  
+  
+  
+  
+    <div id="sidebar" class="sidebar sidebar-style1">
+      <script type="text/javascript">
+        try{ace.settings.loadState('sidebar')}catch(e){}
+      </script>
+      
+        <ul class="nav nav-list">
+          
+            <li class="open">
+              <a href="#" class="dropdown-toggle">
+                <i class="icon-perm"></i>
+                <span class="menu-test">权限管理</span>
+                <b class="arrow fa fa-angle-down"></b>
+              </a>
+
+              <ul class="submenu">
+                
+                  
+                    <li class="">
+                      <a href="/mc/user/list">管理员账号</a>
+                      <b class="arrow"></b>
+                    </li>
+                  
+                
+                
+                  <li class="">
+                    <a href="/mc/user/showPasswordPolicy">密码策略</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+
+                <!-- ip策略调用入口 -->
+                <li class="">
+                  <a href="/mc/visitPolicy/visitPolicys">访问策略</a>
+                  <b class="arrow"></b>
+                </li>
+
+                <li class="">
+                  <a href="/mc/user/listRoles">角色管理</a>
+                  <b class="arrow"></b>
+                </li>
+              </ul>
+            </li>
+          
+          
+            <li class="open">
+              <a href="#" class="dropdown-toggle">
+                <i class="icon-sys"></i>
+                <span class="menu-test">系统配置</span>
+                <b class="arrow fa fa-angle-down"></b>
+              </a>
+              <ul class="submenu">
+                
+                  <li >
+                    <a href="/mc/generalSettings/showGlobalPolicy">常规设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li >
+                    <a href="/mc/generalSettings/videoRedirectList">重定向设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li >
+                    <a href="/mc/generalSettings/trafficServerSettings">视频缓存设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li >
+                    <a href="/mc/generalSettings/mailServerList">SMTP服务器设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li >
+                    <a href="/mc/generalSettings/welcomeMessageList">欢迎消息设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  
+                    <li >
+                      <a href="/mc/generalSettings/vdeSettings">VDE设置</a>
+                      <b class="arrow"></b>
+                    </li>
+                  
+                  
+                    <li  title="仅对服务器虚拟化有效">
+                      <a href="/mc/generalSettings/labelSettings">标签设置</a>
+
+                      <b class="arrow"></b>
+                    </li>
+                  
+                  
+                    <li  title="仅对服务器虚拟化有效">
+                      <a href="/mc/generalSettings/affinityGroup">亲和组设置</a>
+
+                      <b class="arrow"></b>
+                    </li>
+                  
+                  
+                  <li  title="仅对服务器虚拟化有效">
+                    <a href="/mc/generalSettings/dynamicSetting">动态热添加</a>
+
+                    <b class="arrow"></b>
+                  </li>
+                
+                
+
+                
+                  <li >
+                    <a href="/mc/organization/list">
+                      
+                        组织资源
+                      
+                    </a>
+                    <b class="arrow"></b>
+                  </li>
+                
+
+                
+                  <li >
+                    <a href="/mc/generalSettings/showLicense">许可</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+                
+                  <li >
+                    <a href="/mc/generalSettings/showHA">HA设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+
+                
+                  <li >
+                    <a href="/mc/zombieCloudServer/index">僵尸云服务器</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+
+                
+                  <li >
+                    <a href="/mc/serverCloudStartOrder/index">云服务器启动顺序</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+                
+                  
+                    
+                    
+                  
+                
+            </ul>
+          </li>
+          
+          
+            
+              <li class="open">
+                <a href="#" class="dropdown-toggle">
+                  <i class="icon-backup"></i>
+                  <span class="menu-test">备份管理</span>
+                  <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <ul class="submenu">
+                  <li class="">
+                    <a href="/mc/VM/backups">虚拟机备份</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="">
+                    <a href="/mc/backup/backupServer">备份服务器设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="" title="仅对服务器虚拟化有效">
+                    <a href="/mc/serverVMBackup/highSetting">备份高级设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                </ul>
+              </li>
+            
+
+            
+              <li class="open">
+                <a href="#" class="dropdown-toggle">
+                  <i class="icon-snap"></i>
+                  <span class="menu-test">快照中心</span>
+                  <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <ul class="submenu">
+                  <li class="">
+                    <a href="/mc/VM/snapStrategy">快照策略</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="">
+                    <a href="/mc/VM/snapSettings">快照设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                </ul>
+              </li>
+            
+
+
+
+
+
+            
+              <li class="open">
+                <a href="#" class="dropdown-toggle" title="仅对服务器虚拟化有效">
+                  <i class="icon-backup"></i>
+                  <span class="menu-test">负载均衡与弹性伸缩</span>
+                  <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <ul class="submenu">
+                  <li class="">
+                    <a href="/mc/serverAutoScaling/listAutoScalingStrategyPage">弹性伸缩策略</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="active">
+                    <a href="/mc/serverAutoScaling/listAutoScalingGroupPage">弹性伸缩组</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="">
+                    <a href="/mc/loadBalance/index">负载均衡</a>
+                    <b class="arrow"></b>
+                  </li>
+                </ul>
+              </li>
+            
+          
+
+          
+            
+              <li class="open">
+                <a href="#" class="dropdown-toggle" title="仅对服务器虚拟化有效">
+                  <i class="icon-backup"></i>
+                  <span class="menu-test">集群管理</span>
+                  <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <ul class="submenu">
+                  <li class="">
+                    <a href="/mc/generalSettings/drsSetting">分布式资源调度(DRS)</a>
+                    <b class="arrow"></b>
+                  </li>
+
+                  <li class="">
+                    <a href="/mc/generalSettings/dpmSetting">智能电源管理(DPM)</a>
+                    <b class="arrow"></b>
+                  </li>
+
+                </ul>
+              </li>
+            
+
+          
+          
+            <li >
+              <a href="/mc/app/fileManage"><i class="icon-filemanage"></i>文件管理</a>
+            </li>
+          
+          
+            <li >
+              <a href="/mc/app/taskCenter"><i class="icon-task"></i>任务中心</a>
+            </li>
+          
+          
+            <li >
+              <a href="/mc/app/approvalCenter"><i class="icon-approval"></i>审批中心</a>
+            </li>
+          
+          
+            <li >
+              <a href="/mc/app/util"><i class="icon-app"></i>维护实用程序</a>
+            </li>
+          
+          
+            <li >
+              <a href="/mc/recycleBin/index"><i class="icon-app"></i>回收站</a>
+            </li>
+          
+          
+          
+            <li >
+              <a href="/mc/app/oneClickDetection"><i class="icon-task"></i>一键检测</a>
+            </li>
+          
+        </ul>
+      
+
+    </div>
+  
+
+
+    
+    <div class="main-content">
+        <div class="main-content-inner">
+            
+                <div class="page-content">
+                    
+
+<div id="groupListDiv">
+    <div class="tblControls">
+
+        <div id="serverDiv">
+
+            <span class="input-icon">
+                <input placeholder="策略名称"
+                       class="nav-search-input" id="server-group-search" value=""
+                       type="text"/>
+                <i class="ace-icon fa fa-search nav-search-icon"></i>
+            </span>
+
+            
+                <button class="btn kylin-green"
+                        onclick="showCreateAutoScalingGroupPage(event)">创建
+                </button>
+
+                <button class="btn kylin-green" disabled="disabled" id="autoScalingGroupStartBtn" class="btn"
+                        onclick="autoScalingGroupStart(event);"  >启用</button>
+
+                <button class="btn kylin-green" disabled="disabled" id="autoScalingGroupStopBtn"
+                        onclick="autoScalingGroupStop(event)">停用
+                </button>
+            
+        </div>
+    </div>
+
+    <table id="grid-table"></table>
+
+    <div id="grid-pager"></div>
+</div>
+
+<div id="groupDetailDiv" style="display: none">
+    <label style="margin-bottom:20px;margin-left:20px;">
+        <a href="javascript:autoScalingGroupNavBack();" style="color:white; text-decoration:none; ">
+            <i class="glyphicon glyphicon-arrow-left"></i> 返回上一层
+        </a>  |
+        <a href="/mc/generalSettings/showGlobalPolicy"
+           style="color:white; text-decoration:none; ">系统管理</a>  &gt;
+        <a href="/mc/serverAutoScaling/listAutoScalingGroupPage"
+           style="color:white; text-decoration:none; ">弹性伸缩组</a>&gt;
+        <strong style="color: #0099ff; font-weight: normal">弹性伸缩组详情</strong>
+    </label>
+
+    <div class="baseMessageDiv">
+        <h4>基本信息</h4>
+        <table class="groupDetailTable">
+
+            <tr>
+                <td>组名称:</td>
+                <td id="groupName"></td>
+                <td>最大实例:</td>
+                <td id="maxInstance"></td>
+                <td>最小实例:</td>
+                <td id="minInstance"></td>
+                <td>初始实例:</td>
+                <td id="initInstance"></td>
+                <td>模板名称:</td>
+                <td id="tamplateName"></td>
+
+            </tr>
+
+            <tr>
+                <td>策略名称:</td>
+                <td id="strategyName"></td>
+                <td>创建时间:</td>
+                <td id="createTime"></td>
+                <td>健康检查:</td>
+                <td id="healthyCheck"></td>
+                <td>检查时间:</td>
+                <td id="healthyCheckCircle"></td>
+                <td>负载均衡:</td>
+                <td id="loadBalance"></td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+    <div>
+        <h4 id="tableTitle">云服务器概览</h4>
+        <table id="grid-table-machine"></table>
+
+    </div>
+
+</div>
+
+                </div>
+            
+        </div>
+    </div>
+</div>
+<!-- Other modules except client management are introduced into the task-platform and placed at the end -->
+
+  <div id="slideDiv" style="width:100%;position:fixed;display:none;height:310px;z-index:101;">
+  <div style="height:15%;width:100%;padding-top:10px;background-color:rgba(63, 81, 147, 1);">
+    <span id="rmDesk" style="margin-right:45px;float:right;cursor:pointer;"><i style="margin-left:10px;font-size:20px;color:white;" class="fa fa-times"></i></span>
+    <span onclick="freshGrid('','allLink')" style="margin-right:10px;float:right;margin-left:5px;cursor:pointer;"><i style="font-size:15px;color:white;top:4px;" class="glyphicon glyphicon-refresh"></i> </span>
+    <span style="margin-right:10px;float:right;"><a href="/mc/app/taskCenter" style="text-decoration: none;color:white;">查看全部任务</a></span>
+    <span style="margin-right:10px;float:left;margin-left:20px;"><a href="#" style="color:white;">任务台</a></span>
+
+  </div>
+  <div style="height:85%;width:100%;background-color:rgba(8, 14, 35, 1);">
+
+    <div style="display:inline-block;width:8%;height:90%;border-right: solid 1px #808080;margin-top:10px;" >
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="allLink" class="statusLabel" onclick="freshGrid('','allLink')"  href="javascript:void(0)" style="text-decoration: none;color:#337ab7;font-weight: bold;">全部状态</a></div>
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="pendingLink" class="statusLabel" onclick="freshGrid('pending','pendingLink')" style="text-decoration: none;color:white;font-weight: bold;" href="javascript:void(0)">进行中</a></div>
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="failedLink" class="statusLabel" onclick="freshGrid('failed','failedLink')" style="text-decoration: none;color:white;font-weight: bold;" href="javascript:void(0)">失败</a></div>
+    </div>
+    <div style="display:inline-block;width:90%;height:100%;float:right;padding-top:20px;">
+      <div  id="taskDiv" style="width:97%;overflow-x: hidden;">
+
+        <table id="desk-table"></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="/mc/js/hnkylin/taskDetailInfo.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    var timmer;
+    var plateItemFlag='';
+    var itemIdFlag='allLink';
+    jQuery(function(){
+      KSVD.updatei18nMap({
+          serverVirtaulTaskGrid_type: "类型",
+          serverVirtaulTaskGrid_createTime: "创建时间",
+          serverVirtaulTaskGrid_startTime: "开始时间",
+          serverVirtaulTaskGrid_finishTime: "结束时间",
+          serverVirtaulTaskGrid_action: "操作",
+          serverVirtaulTaskGrid_objName: "对象名称",
+          serverVirtaulTaskGrid_operUser: "操作用户",
+          serverVirtaulTaskGrid_status: "状态",
+          serverVirtaulTaskGrid_reason: "原因",
+          serverVirtaulTaskGrid_detail: "详情",
+          showAllTask: "查看全部任务",
+          allStatus: "全部状态",
+          doingStatus: "进行中",
+          failStatus: "失败",
+          successStatus: "成功",
+          completeStatus: "完成",
+          taskProgress: "任务进度",
+
+          servervirtualEdit: "云服务器编辑",
+          serverVirtaulHostMigrate: "主机位置迁移",
+          serverVirtaulHostStorageMigrate: "主机与存储迁移",
+          servervirtualVolMigrate: "存储迁移",
+          serverVirtaulClusterMigrate: "跨集群迁移",
+          servervirtualForceReboot: "强制重启",
+          servervirtualReboot: "重启",
+          servervirtualPowerOn: "开机",
+          servervirtualShutDown: "关机",
+          servervirtualResume: "唤醒",
+          servervirtualPause: "暂停",
+          servervirtualForceShutDown: "强制关机",
+          servervirtualDelete: "删除镜像数据",
+          servervirtualAutoDelete: "回收站自动删除镜像数据",
+          servervirtualManualDelete: "回收站手动删除镜像数据",
+          servervirtualDeleteSoft: "移入回收站",
+          serverVirtualDeleteFormat: "低格删除",
+          serverVirtualDeleteSaveImage: "保留镜像数据",
+          serverAdd: "新增主机",
+
+          servervirtualClone: "完整克隆",
+          servervirtualCloneLink: "链接克隆",
+          servervirtualCreate: "创建云服务器",
+          servervirtualCreateByTemplate: "基于模板创建云服务器",
+          servervirtualExport: "云服务器导出",
+          servervirtualImport: "导入云服务器",
+          servervirtualCreateServerSnap: "创建内存快照",
+          servervirtualCreateNoMemServerSnap: "创建非内存快照",
+          servervirtualSnapshotDelete: "删除快照",
+          servervirtualSnapshotApply: "恢复快照",
+          servervirtualBatchApply: "批量恢复快照",
+          servervirtualBatchCreateSnap: "批量创建快照",
+          servervirtualCreateBackUp: "创建备份",
+          servervirtualRecoverBackUp: "恢复备份",
+          servervirtualDeleteBackUp: "删除备份",
+          servervirtualDiskCopy: "磁盘文件拷贝",
+
+          aliasName: "名称",
+          description: "描述",
+          selectCluster:"计算资源",
+          vcpuSocket: "CPU个数",
+          vcpuCores: "CPU核数",
+          cpuMode: "CPU模式",
+          schedulingPriority: "调度优先级",
+          cpuLimit: "CPU限制(MHz)",
+
+          numaConfig: "虚拟NUMA",
+          memory: "内存",
+          memoryHugeConfig: "大页内存",
+          memoryBubbleConfig: "内存回收",
+
+          addDisk: "增加磁盘",
+          delDisk: "删除磁盘",
+          diskCapacity: "磁盘容量(GB)",
+          targetBus: "磁盘类型",
+          cacheType: "缓存方式",
+          provisionType: "置备方式",
+          readIOLimit: "限制I/O速率",
+          writeIOLimit: "限制I/O速率",
+          readIOPSLimit: "限制IOPS",
+          writeIOPSLimit: "限制IOPS",
+
+          addInterface: "增加网卡",
+          delInterface: "删除网卡",
+          interfaceType: "网络类型",
+          modeltype: "网卡类型",
+          poolName: "地址池",
+          virtualSwitch: "虚拟交换机",
+          portGroup: "端口组",
+          ipAddress: "IP地址",
+          mac: "MAC地址",
+          queueCount: "队列个数",
+          mtuCount: "MTU",
+          hotDrawing: "热拔",
+
+          addIso: "增加光驱",
+          delIso: "删除光驱",
+          sourceFile: "镜像文件",
+
+          editDisk: "磁盘",
+          editInterface: "网卡",
+          editIso: "光驱",
+          editUsb: "USB",
+          editPci: "PCI设备",
+          editGpu: "GPU",
+          graphicsCard: "显卡类型",
+          mouseType: "鼠标类型",
+          biosSwitch: "BIOS设置",
+          biosFile: "BIOS文件",
+          biosWaitTime: "BIOS停留时间",
+
+          addUsb: "新增USB",
+          delUsb: "删除USB",
+          hostId: "主机",
+          usbId: "USB设备",
+
+          vmBluescreen: "云服务器HA",
+          uniqbVmHA: "宿主机HA",
+          enableCpuDynamic: "启用cpu热添加",
+          enableMemDynamic: "启用内存热添加",
+          aotuMigrateSwitch: "自动迁移",
+          followHostStartAuto: "系统启动时，自动运行此云服务器",
+          bootOrder: "引导顺序",
+          remoteOpen: "开启远程控制台",
+          remotePassword: "访问密码",
+          wholeness: "完整性校验",
+          autoStartByHost: "开机自启",
+          existedTime: "有效期",
+          noTime: "无期限",
+          customizeTime: "自定义使用到",
+
+          //values
+          HOST_PASSTHROUGH: "直通模式",
+          HOST_MODEL: "主机匹配模式",
+          CUSTOM: "兼容",
+          schedulingPriorityLow: "低",
+          schedulingPriorityMiddle: "中",
+          schedulingPriorityHigh: "高",
+
+          graphicsCardQXL: "QXL高性能显卡",
+          graphicsCardVGA: "标准VGA显卡",
+          graphicsCardCirrus: "Cirrus高性能显卡",
+          virtio: "virtio类型显卡",
+
+          legacy: "LEGACY启动",
+          uefi: "UEFI启动",
+          userUpload: "自定义启动",
+
+          noConfig: "未配置",
+          reOpen: "重启",
+          byOther: "由其它服务器重建",
+
+          close: "关闭",
+          open: "开启",
+
+
+        });
+      KSVD.appCtx = "/mc/";
+
+        //固定到屏幕底部而不是页面底部
+       var winHeight=jQuery(window).height();
+       var bodyHeight=jQuery(document).height();
+       var offsetHeight=bodyHeight-winHeight;
+
+        jQuery("#slideDiv").css('bottom',0);
+
+        jQuery('.grey').click(function(){
+             var disStatus=jQuery("#slideDiv").is(":hidden");
+              clearInterval(timmer);
+             if(disStatus){
+               timmer= window.setInterval( "freshGrid()",6000);
+             }
+             jQuery("#slideDiv").slideToggle(1000);
+
+        });
+        jQuery('#rmDesk').click(function(){
+            clearInterval(timmer);
+           jQuery("#slideDiv").slideToggle(1000);
+        });
+        initList('desk');
+ });
+
+  function initList(searchType){
+
+        var parent_column = jQuery("#desk-table").closest('[class*="col-"]');
+        //resize to fit page size
+        jQuery(window).on('resize.jqGrid', function () {
+            jQuery("#desk-table").jqGrid('setGridWidth', parent_column.width());
+        });
+
+        //resize on sidebar collapse/expand
+        jQuery(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+            if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                setTimeout(function () {
+                    jQuery("#desk-table").jqGrid('setGridWidth', parent_column.width());
+                }, 20);
+            }
+        });
+
+        var col_names;
+        with (KSVD.i18n) {
+            col_names = [serverVirtaulTaskGrid_status,serverVirtaulTaskGrid_type, serverVirtaulTaskGrid_action, serverVirtaulTaskGrid_objName, serverVirtaulTaskGrid_operUser,taskProgress, serverVirtaulTaskGrid_startTime,
+                serverVirtaulTaskGrid_finishTime, serverVirtaulTaskGrid_detail, serverVirtaulTaskGrid_reason]
+        }
+
+        _tableObj=jQuery("#desk-table").jqGrid({
+            //direction: "rtl",
+            url: KSVD.appCtx + 'serverVMDetail/listTasksByServerId'+(searchType?'?searchType='+searchType:''),
+            datatype: "json",
+            colNames: col_names,
+            height:200,
+            colModel: [
+                {name: 'status', index: 'status', width:100,sortable: false,
+                    formatter: function (value, grid, rows, state) {
+                        var colorValue='';
+                        if(value == KSVD.i18n.successStatus){
+                            colorValue='green';
+                        }else if(value == KSVD.i18n.failStatus){
+                            colorValue='red';
+                        }else if(value == KSVD.i18n.doingStatus){
+                            colorValue='blue';
+                        }
+                        return '<font color="'+colorValue+'">'+value+'</font>';
+                    }
+                },
+                {name: 'type', index: 'type', width:118,sortable: false},
+                {name: 'action', index: 'action',width:180, sortable: false},
+                {name: 'objName', index: 'objName',width:200,sortable: false},
+                {name: 'operUser', index: 'operUser', width:100,sortable: false},
+                {name: 'taskProgress', index: 'taskProgress',width:240, sortable: false,formatter: function (value, grid, rows, state) {
+                    var valStr='<div id="progressBack" style="float:left;">';
+                    if(rows.status == KSVD.i18n.doingStatus){
+                        valStr+='<div id="progressDoing"></div></div><div style="width:30px;float:left;margin-left:10px;line-height:100%;">'+KSVD.i18n.doingStatus+'</div>'
+                    }else{
+                        valStr+='<div id="progressComplete"></div></div><div style="width:30px;float:left;margin-left:10px;line-height:100%;">100%</div>'
+                    }
+                    return valStr;
+                }},
+                {name: 'startTime', index: 'startTime', width:200,sortable: true},
+                {name: 'finishTime', index: 'finishTime',width:200, sortable: true},
+                {name: 'detail', index: 'detail', sortable: false,formatter: function(value, grid, rows) {
+                     var name = rows.detail;
+                     if (name == "null" || (typeof(name) == "undefined")) {
+                         name = ''
+                     }else{
+                         name=KSVD.taskDetailInfo.init(rows.objName,name);
+                     }
+                     return name;
+                 }},
+                {name: 'reason', index: 'reason', width:200,sortable: false},
+
+            ],
+            rowNum: 5,
+            viewrecords: true,
+            altRows: true,
+            pgbuttons: true,
+
+        });
+
+    }
+    function freshGrid(status,eleId){
+         if(status)
+         plateItemFlag=status;
+         if(eleId)
+         itemIdFlag=eleId;
+         var _linkObj=jQuery("#"+itemIdFlag);
+      if(itemIdFlag != 'allLink'){
+        jQuery(_linkObj).css('color','#337ab7');
+        jQuery(_linkObj).parent().siblings().find('a').css('color','white');
+      }else{
+        plateItemFlag='';
+        jQuery(".statusLabel:first").css('color','#337ab7');
+        jQuery(".statusLabel:first").parent().siblings().find('a').css('color','white');
+      }
+        var queryData = {
+            status: plateItemFlag
+        }
+        //_tableObj.jqGrid('clearGridData');
+        _tableObj.jqGrid('setGridParam', {
+            postData: queryData
+        }).trigger("reloadGrid");
+    }
+   //发起任务弹框
+  function showDiaForTask(){
+     var disStatus=jQuery("#slideDiv").is(":hidden");
+      freshGrid(plateItemFlag);
+      clearInterval(timmer);
+     timmer= window.setInterval( "freshGrid()",6000);
+     if(disStatus){
+         jQuery("#slideDiv").slideToggle(1000);
+     }
+  }
+
+</script>
+
+
+
+<!-- Other modules ... end -->
+
+</body>
+</html>

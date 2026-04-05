@@ -27,7 +27,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const spec = await req.app.locals.driver.createDesktopSpec(req.body);
-    res.status(201).json(spec);
+    res.json(spec);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

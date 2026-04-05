@@ -1,0 +1,206 @@
+=== mc.js中所有URL路径 ===
+
+=== mc.js中所有$.ajax/$.post/$.get ===
+
+=== 所有GSP视图中的AJAX URL ===
+
+=== GSP中的g:remoteLink/g:formRemote action ===
+action="addBackup
+action="addBackupServer
+action="addGroupServer
+action="addMacAddressPool
+action="addMailServer
+action="addNic
+action="addPolicyAssignment
+action="addPortGroup
+action="addPortMirroring
+action="addSecurityGroup
+action="addSecurityGroupRule
+action="addSubNet
+action="addUSBFromUser
+action="addVideoRedirect
+action="addVlanPool
+action="addWelcomeMessage
+action="advancedSetting
+action="affinityGroup
+action="alarmEvents
+action="alarmSettings
+action="alarmStatisticsInfo
+action="approvalCenter
+action="appSessions
+action="auditEvents
+action="authenticate
+action="backups
+action="backupServer
+action="batchUpdateAdvanceConfig
+action="batchUpdateKsvdUser
+action="bindIP
+action="branchServers
+action="branchSessions
+action="builtinRule
+action="changePassword
+action="charts
+action="checkForUpdates
+action="checkinImage
+action="checkoutImage
+action="clientAuditEvents
+action="clientStateInfo
+action="clusterMasters
+action="configBMC
+action="configHugePages
+action="configuration
+action="confirmDeleteFile
+action="create
+action="createAuthProvider
+action="createClone
+action="createImage
+action="createImport
+action="createKsvdUser
+action="createMigrate
+action="createNic
+action="createPolicyDetail
+action="createRole
+action="createSnapPolicy
+action="createsnapshot
+action="createStorageResource
+action="createUSBFilter
+action="createVirtualAppGroup
+action="createVirtualSwitch
+action="customApp
+action="dashboard
+action="dataCopyAudit
+action="dataStore
+action="delete
+action="deleteCluster
+action="deleteCustomImage
+action="deleteDeployment
+action="deleteServer
+action="deleteUDSFilter
+action="desktopVms
+action="dpmSetting
+action="drsSetting
+action="dynamicSetting
+action="edit
+action="editDeployments
+action="editGlobalPolicyLEAF
+action="editKsvdUser
+action="editList
+action="editMaxSess
+action="editOrg
+action="editPolicyAssignment
+action="editResource
+action="editRole
+action="editServer
+action="editSnapPolicy
+action="editSpecialUSBFilter
+action="editUDSFilters
+action="editVirtualStorageSettings
+action="faultTypeInfo
+action="fileManage
+action="fileManagerSet
+action="${formAction}
+action="gpu
+action="highSetting
+action="importAppLayer
+action="importCertFiles
+action="importExistingImages
+action="importImage
+
+=== Grails controller中的action列表 ===
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/org/codehaus/groovy/grails/scaffolding/AbstractGrailsTemplateGenerator$GrailsControllerType.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/org/codehaus/groovy/grails/webflow/engine/builder/ControllerDelegate.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_undertakenTaskObjMap_closure36$_closure46.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_approvalObjMap_closure37$_closure47.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure32.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/org/codehaus/groovy/grails/scaffolding/AbstractGrailsTemplateGenerator$GrailsControllerType.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/org/codehaus/groovy/grails/webflow/engine/builder/ControllerDelegate.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_undertakenTaskObjMap_closure36$_closure46.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_approvalObjMap_closure37$_closure47.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure32.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_approvalObjMap_closure37.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure1.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure33.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure10$_closure38.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppRestController$_closure1.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure10.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure34.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure11$_closure39.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppRestController$_closure2.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure11.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppRestController$_closure3.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure12.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure8.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure13$_closure40.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppRestController$_closure4.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure13.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppRestController$_closure5.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure14.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppRestController$_closure6.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure15.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppRestController$_closure7.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure16.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppRestController$_closure8.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/com/hnkylin/mc/app/AppController$_closure17.class
+
+=== URL映射 ===
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure22.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure10.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure11.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure12.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure13.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure14.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure15.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure16.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure17.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure18.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure23.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure24.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure19.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure2.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure25.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure26.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure20.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure21.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure27.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure28.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure29.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure34$_closure35.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure3.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure30.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure31.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure32.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure33.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure34.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure4.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure5.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure6.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure7.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure8.class
+/usr/lib/ksvd/etc/apache-tomcat/webapps/mc/WEB-INF/classes/UrlMappings$__clinit__closure1$_closure9.class
+
+=== JS文件中所有createLink ===
+createLink(uri: '/')
+createLink(uri: \'/\')
+createLink(uri:'/')
+
+=== GSP中所有createLink ===
+createLink(action: 'authors')}
+createLink(action: 'changelogs')}
+createLink(action: 'currenttables')}
+createLink(action: 'dbdoc_stylesheet_css')}
+createLink(action: 'globalnav')}
+createLink(action: 'overview-summary')}
+createLink(action: 'pending')}
+createLink(action: 'pendingsql')}
+createLink(action: 'recent')}
+createLink(controller: 'image', action: 'uploadIso')}
+createLink(controller:'image', action:'uploadIso')}
+createLink(controller: 'serverVirtualization', action: 'uploadBios')}
+createLink(controller: 'serverVirtualization', action: 'uploadDisk')}
+createLink:"${createLink(controller: 'image', action: 'uploadIso')}
+createLinkTo(dir: '/')}
+createLink(uri: '/')}
+createLink(uri:'/')}

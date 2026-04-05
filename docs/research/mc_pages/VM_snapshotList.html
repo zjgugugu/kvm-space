@@ -1,0 +1,150 @@
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+ 
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+-->
+
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+    <div id="diag_snap_edit_create_id" style="display: none">
+        <div class="form-group" style="margin-bottom: 50px;">
+            <label class="col-sm-2 control-label no-padding-right ksvdlabel" style="text-align: right;padding-top: 7px;" for="snapName_label"><i class="reqAnno"></i>快照名</label>
+
+            <div class="col-sm-10">
+                <input type="text" id="input_snapName_id" name="snapName_label" placeholder="快照名" value="" maxlength="255" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2 control-label no-padding-right ksvdlabel" style="text-align: right;" for="snapDes_lable">描述</label>
+
+            <div class="col-sm-10">
+                <textarea id="input_snapDes_id" name="snapDes_lable" placeholder="描述" rows="2" cols="40" maxlength="255" ></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="" style="margin: 0px;padding: 0px;">
+        
+        
+    </div>
+
+    <input type="hidden" value="noresizableFlag"/>
+    <input type="hidden" id="user_name_id" value=""/>
+    <input type="hidden" id="org_name_id" value=""/>
+    <input type="hidden" id="image_name_id" value=""/>
+
+    <div id="snap_list_div_id">
+        <style>
+.widget-box .widget-header {
+	margin: 0px !important;
+	padding-left: 12px;
+}
+
+.tree-container {
+	max-width: none !important;
+	max-height: 100%;
+}
+
+.tree-container p {
+	margin: 0px !important;
+}
+
+.tree-selected > .tree-item-name > .tree-label {
+	font-weight : 700;
+}
+</style>
+<script type="text/javascript">
+
+	jQuery(document).ready(function() {
+		KSVD.snap.initSnapshotList();
+	});
+
+</script>
+
+<div class="row">
+	<div class="col-xs-12">
+		<div class="widget-box widget-color-gray">
+			<div class="widget-header">
+				<h4 class="widget-title lighter smaller">
+					快照列表
+				</h4>
+				<div class="widget-toolbar">
+					<a id="create_id" href="#" data-action="" onclick="KSVD.snap.createSnap(this, event);" title="创建虚拟机快照">
+						<i class="ace-icon fa fa-plus black"></i>
+					</a>
+					<a id="edit_id"  href="#" data-action="" onclick="KSVD.snap.editSnap(this, event);" title="编辑虚拟机快照">
+						<i class="ace-icon fa fa-edit black"></i>
+					</a>
+					<a id="apply_id" href="#" data-action="" onclick="KSVD.snap.applySnap(this, event);" title="应用虚拟机快照">
+						<i class="ace-icon fa fa-cloud-upload black"></i>
+					</a>
+					<a id="delete_id" href="#" data-action="" onclick="KSVD.snap.deleteSnap(this, event);" title="删除虚拟机快照">
+						<i class="ace-icon fa fa-trash black"></i>
+					</a>
+				</div>
+			</div>
+
+			<div class="widget-body">
+				<div class="widget-main tree-container" style="height: 180px;">
+					<div id="tree-empty" class="center hidden" style="height: 180px;">
+						<p style="padding: 80px">
+							当前没有任何快照，请点击右上角的<i class="fa fa-plus blue"></i>添加新快照
+						</p>
+					</div>
+					<ul id="snapshot_list_tree"></ul>
+				</div>
+
+				<div id="hint-icon" class="hidden center">
+					<label style="width: 14px;height: 14px; background: #4d98ff;margin-bottom: -2px;"></label><label>正常</label>
+					<label style="width: 14px;height: 14px; background: #ff4d4d;margin-bottom: -2px;margin-left: 40px;"></label><label>丢失</label>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-xs-12">
+		<div class="widget-box widget-color-gray">
+			<div class="widget-header">
+				<h4 class="widget-title lighter smaller">
+					快照详情
+				</h4>
+			</div>
+
+			<div class="widget-body">
+				<div id="snapshot_list_id" class="snap-detail center hidden" style="height: 40px;">
+					<p id="detail_text_id" style="padding: 0px; margin-bottom: -1px; margin-top: -1px;">
+						
+					</p>
+					<div id="descript_text_id" class="center">
+						
+					</div>
+				</div>
+
+				<div id="snapshot_list_empty_id" class="snap-detail center hidden" style="height: 40px;">
+					<p style="padding-top: 9px">
+						当前没有任何快照，请点击右上角的<i class="fa fa-plus blue"></i>添加新快照
+					</p>
+				</div>
+
+				<div id="snapshot_list_noselect_id" class="snap-detail center hidden" style="height: 40px;">
+					<p style="padding-top: 9px">
+						当前没有选择任何快照，请先选择一个快照
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+    </div>
+</body>
+</html>

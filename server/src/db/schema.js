@@ -1,4 +1,4 @@
-// 数据库初始化 - 完整表结构（对标麒麟信安云V7R023全功能）
+// 数据库初始化 - 完整表结构
 
 function initSchema(db) {
   db.exec(`
@@ -119,7 +119,7 @@ function initSchema(db) {
       owner TEXT DEFAULT '',
       description TEXT DEFAULT '',
       vnc_port INTEGER DEFAULT 0,
-      -- 高级配置 (对标KSVD V7)
+      -- 高级配置
       cpu_mode TEXT DEFAULT 'host-passthrough',
       cpu_pinning TEXT DEFAULT '',
       cpu_hotplug INTEGER DEFAULT 0,
@@ -523,11 +523,20 @@ function initDefaultData(db) {
   const bcrypt = require('bcryptjs');
   const { v4: uuidv4 } = require('uuid');
 
-  // 检查是否已有数据
+  // 确保 root 用户始终存在
+  const rootExists = db.prepare('SELECT id FROM users WHERE username = ?').get('root');
+  if (!rootExists) {
+    db.prepare(`INSERT INTO users (id, username, password_hash, display_name, role, status) VALUES (?, ?, ?, ?, ?, ?)`).run(uuidv4(), 'root', bcrypt.hashSync('root', 10), '超级管理员', 'sysadmin', 'active');
+  }
+
+  // 检查是否已有其他默认数据
   const existing = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
   if (existing) return;
 
   const hash = bcrypt.hashSync('admin123', 10);
+
+  // 超级管理员 root/root
+  db.prepare(`INSERT INTO users (id, username, password_hash, display_name, role, status) VALUES (?, ?, ?, ?, ?, ?)`).run(uuidv4(), 'root', bcrypt.hashSync('root', 10), '超级管理员', 'sysadmin', 'active');
 
   // 三权分立默认账号
   db.prepare(`INSERT INTO users (id, username, password_hash, display_name, role, status) VALUES (?, ?, ?, ?, ?, ?)`).run(uuidv4(), 'admin', hash, '系统管理员', 'sysadmin', 'active');
@@ -560,7 +569,7 @@ function initDefaultData(db) {
     { key: 'default_protocol', value: 'UDAP', description: '默认远程协议' },
     { key: 'watermark_enabled', value: 'false', description: '全局水印开关' },
     { key: 'screen_record_enabled', value: 'false', description: '全局录屏开关' },
-    // ===== 对标KSVD V7 全局策略 =====
+    // ===== 全局策略 =====
     { key: 'ksm_enabled', value: 'false', description: '启用KSM内存超配(内核相同页合并)' },
     { key: 'secure_udap', value: 'false', description: '启用安全UDAP连接(SSL加密桌面协议)' },
     { key: 'cache_io_enabled', value: 'false', description: '启用缓存I/O(本地镜像缓存)' },

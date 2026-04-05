@@ -128,7 +128,7 @@
         </el-table>
       </el-tab-pane>
 
-      <!-- 常规设置 (对标KSVD全局策略) -->
+      <!-- 常规设置 (全局策略) -->
       <el-tab-pane label="常规设置" name="policies">
         <div style="max-width: 700px;">
           <h4 style="margin: 0 0 16px;">全局策略配置</h4>
@@ -264,12 +264,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import api from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+const route = useRoute()
 const loading = ref(false)
-const activeTab = ref('admins')
+const activeTab = ref(route.meta.defaultTab || 'admins')
+watch(() => route.meta.defaultTab, (t) => { if (t) activeTab.value = t })
 const configs = ref([]), info = ref({})
 const editingKey = ref(''), editValue = ref('')
 const admins = ref([])

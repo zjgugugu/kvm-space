@@ -1,0 +1,14 @@
+{
+  "name": "cockpit-server",
+  "version": "1.0.0",
+  "description": "总控虚拟化界面 - Cockpit风格",
+  "main": "src/app.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "sql.js": "^1.6.2",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "uuid": "^8.3.2"
+  }
+}

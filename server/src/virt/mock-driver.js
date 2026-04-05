@@ -1,5 +1,5 @@
 // Mock 驱动 - 全模拟模式，用于 Windows 开发调试
-// 覆盖麒麟信安云V7R023全功能，所有操作真实修改 SQLite 数据
+// 覆盖全功能，所有操作真实修改 SQLite 数据
 
 const { v4: uuidv4 } = require('uuid');
 const VirtDriver = require('./driver');
@@ -25,9 +25,9 @@ class MockDriver extends VirtDriver {
 
     // ===== 宿主机 =====
     const hosts = [
-      { id: uuidv4(), name: 'host-node-01', ip: '192.168.100.11', bmc_ip: '192.168.101.11', role: 'CM_VDI', cpu_model: 'Intel Xeon Gold 6248', cpu_total: 32, cpu_used: 12, mem_total: 65536, mem_used: 24576, disk_total: 2048, disk_used: 680, net_speed: 10000, status: 'online', arch: 'x86_64', os: 'Kylin Linux V10 SP1', kernel: '4.19.90-24.4.v2101.ky10.x86_64', uptime: 864000, vm_count: 3 },
-      { id: uuidv4(), name: 'host-node-02', ip: '192.168.100.12', bmc_ip: '192.168.101.12', role: 'VDI', cpu_model: 'Intel Xeon Gold 6248', cpu_total: 32, cpu_used: 18, mem_total: 65536, mem_used: 38400, disk_total: 2048, disk_used: 920, net_speed: 10000, status: 'online', arch: 'x86_64', os: 'Kylin Linux V10 SP1', kernel: '4.19.90-24.4.v2101.ky10.x86_64', uptime: 864000, vm_count: 2 },
-      { id: uuidv4(), name: 'host-node-03', ip: '192.168.100.13', bmc_ip: '192.168.101.13', role: 'VDI', cpu_model: 'Kunpeng 920', cpu_total: 64, cpu_used: 8, mem_total: 131072, mem_used: 16384, disk_total: 4096, disk_used: 512, net_speed: 25000, status: 'online', arch: 'aarch64', os: 'Kylin Linux V10 SP1 ARM', kernel: '4.19.90-24.4.v2101.ky10.aarch64', uptime: 432000, vm_count: 1 },
+      { id: uuidv4(), name: 'host-node-01', ip: '192.168.100.11', bmc_ip: '192.168.101.11', role: 'CM_VDI', cpu_model: 'Intel Xeon Gold 6248', cpu_total: 32, cpu_used: 12, mem_total: 65536, mem_used: 24576, disk_total: 2048, disk_used: 680, net_speed: 10000, status: 'online', arch: 'x86_64', os: 'Linux V10 SP1', kernel: '4.19.90-24.4.v2101.x86_64', uptime: 864000, vm_count: 3 },
+      { id: uuidv4(), name: 'host-node-02', ip: '192.168.100.12', bmc_ip: '192.168.101.12', role: 'VDI', cpu_model: 'Intel Xeon Gold 6248', cpu_total: 32, cpu_used: 18, mem_total: 65536, mem_used: 38400, disk_total: 2048, disk_used: 920, net_speed: 10000, status: 'online', arch: 'x86_64', os: 'Linux V10 SP1', kernel: '4.19.90-24.4.v2101.x86_64', uptime: 864000, vm_count: 2 },
+      { id: uuidv4(), name: 'host-node-03', ip: '192.168.100.13', bmc_ip: '192.168.101.13', role: 'VDI', cpu_model: 'Kunpeng 920', cpu_total: 64, cpu_used: 8, mem_total: 131072, mem_used: 16384, disk_total: 4096, disk_used: 512, net_speed: 25000, status: 'online', arch: 'aarch64', os: 'Linux V10 SP1 ARM', kernel: '4.19.90-24.4.v2101.aarch64', uptime: 432000, vm_count: 1 },
     ];
     const insertHost = this.db.prepare(`INSERT INTO hosts (id,name,ip,bmc_ip,role,cpu_model,cpu_total,cpu_used,mem_total,mem_used,disk_total,disk_used,net_speed,status,arch,os,kernel,uptime,vm_count) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     for (const h of hosts) {
@@ -37,11 +37,11 @@ class MockDriver extends VirtDriver {
     // ===== 黄金镜像/模板 =====
     const templates = [
       { id: uuidv4(), name: 'win10-desktop', title: 'Windows 10 桌面版', os_type: 'windows', os_version: 'Windows 10 Enterprise LTSC', arch: 'x86_64', cpu: 4, memory: 4096, disk: 60, status: 'published', run_mode: 'VDI', version: 3 },
-      { id: uuidv4(), name: 'kylin-v10-desktop', title: '银河麒麟 V10 桌面版', os_type: 'linux', os_version: 'Kylin V10 SP1', arch: 'x86_64', cpu: 2, memory: 2048, disk: 40, status: 'published', run_mode: 'VDI', version: 5 },
-      { id: uuidv4(), name: 'kylin-v10-arm', title: '银河麒麟 V10 ARM版', os_type: 'linux', os_version: 'Kylin V10 SP1 ARM', arch: 'aarch64', cpu: 2, memory: 2048, disk: 40, status: 'published', run_mode: 'VDI', version: 2 },
+      { id: uuidv4(), name: 'linux-v10-desktop', title: 'Linux V10 桌面版', os_type: 'linux', os_version: 'Linux V10 SP1', arch: 'x86_64', cpu: 2, memory: 2048, disk: 40, status: 'published', run_mode: 'VDI', version: 5 },
+      { id: uuidv4(), name: 'linux-v10-arm', title: 'Linux V10 ARM版', os_type: 'linux', os_version: 'Linux V10 SP1 ARM', arch: 'aarch64', cpu: 2, memory: 2048, disk: 40, status: 'published', run_mode: 'VDI', version: 2 },
       { id: uuidv4(), name: 'uos-desktop', title: 'UOS 桌面版', os_type: 'linux', os_version: 'UOS Desktop V20', arch: 'x86_64', cpu: 2, memory: 4096, disk: 50, status: 'published', run_mode: 'VDI', version: 1 },
       { id: uuidv4(), name: 'centos79-server', title: 'CentOS 7.9 服务器', os_type: 'linux', os_version: 'CentOS 7.9', arch: 'x86_64', cpu: 4, memory: 8192, disk: 100, status: 'published', run_mode: 'VDI', version: 2 },
-      { id: uuidv4(), name: 'kylin-v10-draft', title: '银河麒麟测试镜像', os_type: 'linux', os_version: 'Kylin V10', arch: 'x86_64', cpu: 2, memory: 2048, disk: 40, status: 'maintaining', run_mode: 'VDI', version: 1 },
+      { id: uuidv4(), name: 'linux-v10-draft', title: 'Linux测试镜像', os_type: 'linux', os_version: 'Linux V10', arch: 'x86_64', cpu: 2, memory: 2048, disk: 40, status: 'maintaining', run_mode: 'VDI', version: 1 },
     ];
     const insertTpl = this.db.prepare(`INSERT INTO templates (id,name,title,os_type,os_version,arch,cpu,memory,disk,status,run_mode,version,description) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     for (const t of templates) {
@@ -62,7 +62,7 @@ class MockDriver extends VirtDriver {
 
     // ===== 发布规则 =====
     const rules = [
-      { id: uuidv4(), name: '研发部-麒麟桌面', template_id: templates[1].id, spec_id: specs[1].id, target_type: 'group', target_name: '研发部', desktop_type: 'static', snapshot_enabled: 1, max_snapshots: 5 },
+      { id: uuidv4(), name: '研发部-Linux桌面', template_id: templates[1].id, spec_id: specs[1].id, target_type: 'group', target_name: '研发部', desktop_type: 'static', snapshot_enabled: 1, max_snapshots: 5 },
       { id: uuidv4(), name: '行政部-Win10桌面', template_id: templates[0].id, spec_id: specs[0].id, target_type: 'group', target_name: '行政部', desktop_type: 'dynamic', snapshot_enabled: 0 },
       { id: uuidv4(), name: 'GPU设计桌面', template_id: templates[0].id, spec_id: specs[2].id, target_type: 'user', target_name: '设计师A', desktop_type: 'static', snapshot_enabled: 1, max_snapshots: 3 },
     ];
@@ -111,12 +111,12 @@ class MockDriver extends VirtDriver {
     // ===== 虚拟机 =====
     const vms = [
       { id: uuidv4(), name: 'desktop-zhangsan', host_id: hosts[0].id, template_id: templates[0].id, spec_id: specs[0].id, cpu: 4, max_cpu: 4, memory: 4096, max_memory: 8192, disk: 60, status: 'running', ip: '192.168.200.101', mac: randomMAC(), os_type: 'windows', os_version: 'Windows 10', owner: '张三', vnc_port: 5901 },
-      { id: uuidv4(), name: 'desktop-lisi', host_id: hosts[0].id, template_id: templates[1].id, spec_id: specs[0].id, cpu: 2, max_cpu: 4, memory: 2048, max_memory: 4096, disk: 40, status: 'running', ip: '192.168.200.102', mac: randomMAC(), os_type: 'linux', os_version: 'Kylin V10', owner: '李四', vnc_port: 5902 },
+      { id: uuidv4(), name: 'desktop-lisi', host_id: hosts[0].id, template_id: templates[1].id, spec_id: specs[0].id, cpu: 2, max_cpu: 4, memory: 2048, max_memory: 4096, disk: 40, status: 'running', ip: '192.168.200.102', mac: randomMAC(), os_type: 'linux', os_version: 'Linux V10', owner: '李四', vnc_port: 5902 },
       { id: uuidv4(), name: 'desktop-wangwu', host_id: hosts[1].id, template_id: templates[0].id, spec_id: specs[1].id, cpu: 4, max_cpu: 8, memory: 8192, max_memory: 16384, disk: 60, status: 'stopped', ip: '192.168.200.103', mac: randomMAC(), os_type: 'windows', os_version: 'Windows 10', owner: '王五', vnc_port: 0 },
       { id: uuidv4(), name: 'server-web-01', host_id: hosts[1].id, template_id: templates[4].id, spec_id: specs[1].id, cpu: 8, max_cpu: 8, memory: 16384, max_memory: 16384, disk: 200, status: 'running', ip: '192.168.200.201', mac: randomMAC(), os_type: 'linux', os_version: 'CentOS 7.9', owner: 'admin', vnc_port: 5903 },
-      { id: uuidv4(), name: 'desktop-zhaoliu', host_id: hosts[2].id, template_id: templates[2].id, spec_id: specs[0].id, cpu: 2, max_cpu: 4, memory: 2048, max_memory: 4096, disk: 40, status: 'running', ip: '192.168.200.104', mac: randomMAC(), os_type: 'linux', os_version: 'Kylin V10 ARM', owner: '赵六', vnc_port: 5904 },
+      { id: uuidv4(), name: 'desktop-zhaoliu', host_id: hosts[2].id, template_id: templates[2].id, spec_id: specs[0].id, cpu: 2, max_cpu: 4, memory: 2048, max_memory: 4096, disk: 40, status: 'running', ip: '192.168.200.104', mac: randomMAC(), os_type: 'linux', os_version: 'Linux V10 ARM', owner: '赵六', vnc_port: 5904 },
       { id: uuidv4(), name: 'desktop-sunqi', host_id: hosts[0].id, template_id: templates[3].id, spec_id: specs[3].id, cpu: 1, max_cpu: 2, memory: 1024, max_memory: 2048, disk: 30, status: 'suspended', ip: '192.168.200.105', mac: randomMAC(), os_type: 'linux', os_version: 'UOS V20', owner: '孙七', vnc_port: 5905 },
-      { id: uuidv4(), name: 'desktop-deleted', host_id: hosts[0].id, template_id: templates[1].id, spec_id: specs[0].id, cpu: 2, max_cpu: 4, memory: 2048, max_memory: 4096, disk: 40, status: 'stopped', ip: '192.168.200.106', mac: randomMAC(), os_type: 'linux', os_version: 'Kylin V10', owner: '已离职员工', vnc_port: 0, deleted: 1 },
+      { id: uuidv4(), name: 'desktop-deleted', host_id: hosts[0].id, template_id: templates[1].id, spec_id: specs[0].id, cpu: 2, max_cpu: 4, memory: 2048, max_memory: 4096, disk: 40, status: 'stopped', ip: '192.168.200.106', mac: randomMAC(), os_type: 'linux', os_version: 'Linux V10', owner: '已离职员工', vnc_port: 0, deleted: 1 },
     ];
     const insertVM = this.db.prepare(`INSERT INTO vms (id,name,host_id,template_id,spec_id,cpu,max_cpu,memory,max_memory,disk,status,ip,mac,os_type,os_version,owner,vnc_port,deleted,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))`);
     for (const v of vms) {
@@ -190,7 +190,7 @@ class MockDriver extends VirtDriver {
   async addHost(config) {
     const id = uuidv4();
     this.db.prepare(`INSERT INTO hosts (id,name,ip,bmc_ip,role,cpu_model,cpu_total,mem_total,disk_total,status,arch,os) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(
-      id, config.name, config.ip, config.bmc_ip || '', config.role || 'VDI', config.cpu_model || 'Unknown', config.cpu_total || 16, config.mem_total || 32768, config.disk_total || 1024, 'online', config.arch || 'x86_64', config.os || 'Kylin Linux V10');
+      id, config.name, config.ip, config.bmc_ip || '', config.role || 'VDI', config.cpu_model || 'Unknown', config.cpu_total || 16, config.mem_total || 32768, config.disk_total || 1024, 'online', config.arch || 'x86_64', config.os || 'Linux');
     this._addEvent('host', id, config.name, '', 'info', 'host_add', '添加主机', `添加主机 ${config.name} (${config.ip})`, 'admin');
     return this.getHost(id);
   }

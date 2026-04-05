@@ -19,13 +19,89 @@ class LibvirtDriver extends MockDriver {
   constructor(db) {
     super(db);
     this.mode = 'libvirt';
+    // 运行时检测的系统信息（init 时填充）
+    this._arch = 'x86_64';
+    this._emulator = '/usr/bin/qemu-system-x86_64';
+    this._efiLoader = '';
+    this._machineType = 'pc-q35-6.2';
+    this._qemuUser = 'qemu:qemu';
   }
 
   async init() {
     // 不调用 super.init() 避免插入 mock 数据
-    // 仅确保目录存在
+    // 检测系统架构和关键路径
+    await this._detectSystem();
     this._ensureDirs();
     await this._syncLocalHost();
+  }
+
+  // 检测系统架构、QEMU 路径、EFI 固件
+  async _detectSystem() {
+    try {
+      const { stdout: arch } = await this._exec('uname', ['-m']);
+      this._arch = arch.trim();
+    } catch (e) { /* x86_64 fallback */ }
+
+    // 查找 QEMU emulator
+    const emulatorCandidates = this._arch === 'aarch64'
+      ? ['/usr/bin/qemu-kvm', '/usr/libexec/qemu-kvm', '/usr/bin/qemu-system-aarch64']
+      : ['/usr/bin/qemu-kvm', '/usr/libexec/qemu-kvm', '/usr/bin/qemu-system-x86_64'];
+    for (const p of emulatorCandidates) {
+      try {
+        require('fs').accessSync(p, require('fs').constants.X_OK);
+        this._emulator = p;
+        break;
+      } catch (e) { /* try next */ }
+    }
+
+    // EFI loader
+    if (this._arch === 'aarch64') {
+      const efiCandidates = [
+        '/usr/share/edk2.git/aarch64/QEMU_EFI-pflash.raw',
+        '/usr/share/AAVMF/AAVMF_CODE.fd',
+        '/usr/share/edk2/aarch64/QEMU_EFI-pflash.raw',
+      ];
+      for (const p of efiCandidates) {
+        if (fs.existsSync(p)) { this._efiLoader = p; break; }
+      }
+      this._machineType = 'virt';
+    } else {
+      const efiCandidates = [
+        '/usr/share/OVMF/OVMF_CODE.fd',
+        '/usr/share/edk2/ovmf/OVMF_CODE.fd',
+      ];
+      for (const p of efiCandidates) {
+        if (fs.existsSync(p)) { this._efiLoader = p; break; }
+      }
+      this._machineType = 'pc-q35-6.2';
+    }
+
+    // 检测 qemu 运行用户 - 优先从 libvirt qemu.conf 读取
+    try {
+      const qemuConf = fs.readFileSync('/etc/libvirt/qemu.conf', 'utf8');
+      const userMatch = qemuConf.match(/^\s*user\s*=\s*"([^"]+)"/m);
+      const groupMatch = qemuConf.match(/^\s*group\s*=\s*"([^"]+)"/m);
+      if (userMatch) {
+        const qUser = userMatch[1];
+        const qGroup = groupMatch ? groupMatch[1] : qUser;
+        this._qemuUser = `${qUser}:${qGroup}`;
+      }
+    } catch (e) {
+      // qemu.conf 不存在，检测系统用户
+      try {
+        await this._exec('id', ['qemu']);
+        this._qemuUser = 'qemu:qemu';
+      } catch (e2) {
+        try {
+          await this._exec('id', ['libvirt-qemu']);
+          this._qemuUser = 'libvirt-qemu:kvm';
+        } catch (e3) {
+          this._qemuUser = 'root:root';
+        }
+      }
+    }
+
+    console.log(`[LibvirtDriver] 系统检测: arch=${this._arch} emulator=${this._emulator} efi=${this._efiLoader} qemuUser=${this._qemuUser} machine=${this._machineType}`);
   }
 
   // ===========================
@@ -36,9 +112,17 @@ class LibvirtDriver extends MockDriver {
     for (const dir of [VM_IMAGES_DIR, TEMPLATE_IMAGES_DIR]) {
       try {
         fs.mkdirSync(dir, { recursive: true, mode: 0o775 });
-        // 确保 libvirt-qemu 可以访问
-        require('child_process').execFileSync('chown', ['libvirt-qemu:kvm', dir]);
+        try { require('child_process').execFileSync('chown', [this._qemuUser, dir]); } catch (e) { /* ignore */ }
       } catch (e) { /* ignore */ }
+    }
+  }
+
+  async _chownForQemu(filePath) {
+    try {
+      await this._exec('chown', [this._qemuUser, filePath]);
+    } catch (e) {
+      // 兜底：确保 qemu 可以读
+      try { await this._exec('chmod', ['666', filePath]); } catch (e2) { /* ignore */ }
     }
   }
 
@@ -215,6 +299,15 @@ class LibvirtDriver extends MockDriver {
   // ===========================
 
   async createVM(config) {
+    // 自动设置架构匹配当前主机
+    config.arch = this._arch;
+
+    // 自动分配 host_id（如果未指定，分配给第一台主机）
+    if (!config.host_id) {
+      const host = this.db.prepare("SELECT id FROM hosts WHERE status = 'online' LIMIT 1").get();
+      if (host) config.host_id = host.id;
+    }
+
     // 1. 先在DB创建记录（复用MockDriver逻辑）
     const vm = await super.createVM(config);
 
@@ -222,7 +315,7 @@ class LibvirtDriver extends MockDriver {
     const diskPath = path.join(VM_IMAGES_DIR, `${vm.id}-sys.qcow2`);
     try {
       await this._exec('qemu-img', ['create', '-f', 'qcow2', diskPath, `${config.disk || 40}G`]);
-      await this._exec('chown', ['libvirt-qemu:kvm', diskPath]);
+      await this._chownForQemu(diskPath);
       await this._exec('chmod', ['660', diskPath]);
     } catch (err) {
       console.error('[LibvirtDriver] 创建磁盘失败:', err.message);
@@ -234,11 +327,17 @@ class LibvirtDriver extends MockDriver {
     fs.writeFileSync(xmlPath, xml);
     try {
       await this._virsh(['define', xmlPath]);
-      console.log(`[LibvirtDriver] 虚拟机 ${vm.name} 已定义`);
+      console.log(`[LibvirtDriver] 虚拟机 ${vm.name} (${vm.id}) 已定义`);
     } catch (err) {
       console.error('[LibvirtDriver] 定义虚拟机失败:', err.message);
     } finally {
       try { fs.unlinkSync(xmlPath); } catch (e) { /* ignore */ }
+    }
+
+    // 更新 host 的 VM 计数
+    if (config.host_id) {
+      const vmCount = this.db.prepare("SELECT COUNT(*) as c FROM vms WHERE host_id = ? AND deleted = 0").get(config.host_id);
+      this.db.prepare('UPDATE hosts SET vm_count = ? WHERE id = ?').run(vmCount ? vmCount.c : 0, config.host_id);
     }
 
     return vm;
@@ -247,47 +346,118 @@ class LibvirtDriver extends MockDriver {
   _generateVMXml(vm, diskPath) {
     const mac = vm.mac || '52:54:00:' + Array.from({ length: 3 }, () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0')).join(':');
     const cpuMode = vm.cpu_mode || 'host-passthrough';
-    const biosType = vm.bios_type || 'seabios';
-    const videoType = vm.video_type || 'qxl';
-    const videoRam = vm.video_ram || 32;
     const diskCache = vm.disk_cache || 'writeback';
     const bootOrder = (vm.boot_order || 'hd').split(',').map(b => b.trim());
+    const isAarch64 = this._arch === 'aarch64';
 
-    // UEFI loader
-    const osBlock = biosType === 'uefi'
-      ? `  <os>
-    <type arch='x86_64' machine='pc-q35-6.2'>hvm</type>
-    <loader readonly='yes' type='pflash'>/usr/share/OVMF/OVMF_CODE.fd</loader>
-    <nvram>/var/lib/libvirt/qemu/nvram/${vm.name}_VARS.fd</nvram>
+    // ===== OS block =====
+    let osBlock;
+    if (isAarch64) {
+      // aarch64 强制使用 UEFI
+      osBlock = `  <os>
+    <type arch='aarch64' machine='${this._machineType}'>hvm</type>
+    <loader readonly='yes' type='rom'>${this._efiLoader}</loader>
 ${bootOrder.map(b => `    <boot dev='${b}'/>`).join('\n')}
-  </os>`
-      : `  <os>
-    <type arch='x86_64' machine='pc-q35-6.2'>hvm</type>
+    <bootmenu enable='yes' timeout='0'/>
+  </os>`;
+    } else {
+      const biosType = vm.bios_type || 'seabios';
+      if (biosType === 'uefi' && this._efiLoader) {
+        osBlock = `  <os>
+    <type arch='x86_64' machine='${this._machineType}'>hvm</type>
+    <loader readonly='yes' type='pflash'>${this._efiLoader}</loader>
 ${bootOrder.map(b => `    <boot dev='${b}'/>`).join('\n')}
   </os>`;
+      } else {
+        osBlock = `  <os>
+    <type arch='x86_64' machine='${this._machineType}'>hvm</type>
+${bootOrder.map(b => `    <boot dev='${b}'/>`).join('\n')}
+  </os>`;
+      }
+    }
 
-    // CPU block
-    const cpuBlock = `  <cpu mode='${cpuMode}' check='none'/>`;
+    // ===== Features =====
+    let featuresBlock;
+    if (isAarch64) {
+      featuresBlock = `  <features>
+    <apic/>
+    <gic version='3'/>
+  </features>`;
+    } else {
+      featuresBlock = `  <features>
+    <acpi/>
+    <apic/>
+  </features>`;
+    }
 
-    // Hugepages
-    const hugepagesBlock = vm.hugepages ? `  <memoryBacking>\n    <hugepages/>\n  </memoryBacking>` : '';
+    // ===== CPU =====
+    const cpuBlock = isAarch64
+      ? `  <cpu mode='${cpuMode}' check='none'>
+    <topology sockets='1' cores='${vm.max_cpu || vm.cpu}' threads='1'/>
+  </cpu>`
+      : `  <cpu mode='${cpuMode}' check='none'/>`;
 
-    // Video
-    const videoBlock = videoType === 'qxl'
-      ? `    <video>\n      <model type='qxl' ram='${videoRam * 1024}' vram='${videoRam * 1024}' vgamem='16384' heads='1' primary='yes'/>\n    </video>`
-      : `    <video>\n      <model type='${videoType}' heads='1' primary='yes'/>\n    </video>`;
+    // ===== Hugepages =====
+    const useHugepages = vm.hugepages && vm.hugepages !== '0' && vm.hugepages !== 0;
+    const hugepagesBlock = useHugepages ? `  <memoryBacking>\n    <hugepages/>\n  </memoryBacking>` : '';
+
+    // ===== Video - aarch64 只支持 virtio =====
+    const videoType = isAarch64 ? 'virtio' : (vm.video_type || 'qxl');
+    const videoRam = vm.video_ram || 16384;
+    let videoBlock;
+    if (videoType === 'qxl') {
+      videoBlock = `    <video>\n      <model type='qxl' ram='${videoRam * 1024}' vram='${videoRam * 1024}' vgamem='16384' heads='1' primary='yes'/>\n    </video>`;
+    } else {
+      videoBlock = `    <video>\n      <model type='virtio' vram='16384' heads='1' primary='yes'/>\n    </video>`;
+    }
+
+    // ===== Controllers (aarch64 needs pcie-root-port) =====
+    let controllerBlock = '';
+    if (isAarch64) {
+      controllerBlock = `    <controller type='pci' index='0' model='pcie-root'/>
+    <controller type='pci' index='1' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='1' port='0x8'/>
+    </controller>
+    <controller type='pci' index='2' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='2' port='0x9'/>
+    </controller>
+    <controller type='pci' index='3' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='3' port='0xa'/>
+    </controller>
+    <controller type='pci' index='4' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='4' port='0xb'/>
+    </controller>
+    <controller type='usb' index='0' model='qemu-xhci'/>
+    <controller type='virtio-serial' index='0'/>`;
+    }
+
+    // ===== Network: 使用 libvirt default 网络 =====
+    const networkBlock = `    <interface type='network'>
+      <mac address='${mac}'/>
+      <source network='default'/>
+      <model type='virtio'/>
+    </interface>`;
+
+    // ===== Input devices for aarch64 =====
+    let inputBlock = '';
+    if (isAarch64) {
+      inputBlock = `    <input type='mouse' bus='usb'/>
+    <input type='keyboard' bus='usb'/>
+    <input type='tablet' bus='usb'/>`;
+    }
 
     return `<domain type='kvm'>
-  <name>${vm.name}</name>
+  <name>${vm.id}</name>
   <uuid>${vm.id}</uuid>
   <memory unit='MiB'>${vm.max_memory || vm.memory}</memory>
   <currentMemory unit='MiB'>${vm.memory}</currentMemory>
   <vcpu placement='static' current='${vm.cpu}'>${vm.max_cpu || vm.cpu}</vcpu>
 ${osBlock}
-  <features>
-    <acpi/>
-    <apic/>
-  </features>
+${featuresBlock}
 ${cpuBlock}
 ${hugepagesBlock}
   <clock offset='utc'>
@@ -299,18 +469,16 @@ ${hugepagesBlock}
   <on_reboot>restart</on_reboot>
   <on_crash>destroy</on_crash>
   <devices>
-    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <emulator>${this._emulator}</emulator>
+${controllerBlock}
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2' cache='${diskCache}'/>
       <source file='${diskPath}'/>
       <target dev='vda' bus='virtio'/>
     </disk>
-    <interface type='network'>
-      <mac address='${mac}'/>
-      <source network='default'/>
-      <model type='virtio'/>
-    </interface>
-    <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0'>
+${networkBlock}
+${inputBlock}
+    <graphics type='vnc' port='-1' autoport='yes' listen='0.0.0.0' keymap='en-us'>
       <listen type='address' address='0.0.0.0'/>
     </graphics>
 ${videoBlock}
@@ -330,12 +498,16 @@ ${videoBlock}
 
     // 尝试真实启动
     try {
-      // 检查是否已 define
+      // 检查是否已 define（域名=UUID）
       try {
-        await this._virsh(['dominfo', vm.name]);
+        await this._virsh(['dominfo', vm.id]);
       } catch (e) {
         // 未定义，尝试重新定义
         const diskPath = path.join(VM_IMAGES_DIR, `${vm.id}-sys.qcow2`);
+        if (!fs.existsSync(diskPath)) {
+          await this._exec('qemu-img', ['create', '-f', 'qcow2', diskPath, `${vm.disk || 40}G`]);
+          await this._chownForQemu(diskPath);
+        }
         const xml = this._generateVMXml(vm, diskPath);
         const xmlPath = `/tmp/kvm-cloud-vm-${vm.id}.xml`;
         fs.writeFileSync(xmlPath, xml);
@@ -343,12 +515,12 @@ ${videoBlock}
         try { fs.unlinkSync(xmlPath); } catch (e2) { /* ignore */ }
       }
 
-      await this._virsh(['start', vm.name]);
+      await this._virsh(['start', vm.id]);
 
       // 获取 VNC 端口
       let vncPort = 0;
       try {
-        const { stdout } = await this._virsh(['vncdisplay', vm.name]);
+        const { stdout } = await this._virsh(['vncdisplay', vm.id]);
         // 输出格式: :1  → 5901
         const match = stdout.match(/:(\d+)/);
         if (match) vncPort = 5900 + parseInt(match[1]);
@@ -370,19 +542,19 @@ ${videoBlock}
     if (vm.status === 'stopped') throw new Error('虚拟机已关闭');
 
     try {
-      await this._virsh(['shutdown', vm.name]);
+      await this._virsh(['shutdown', vm.id]);
       // 等待关机（最多30秒）
       let stopped = false;
       for (let i = 0; i < 15; i++) {
         await new Promise(r => setTimeout(r, 2000));
         try {
-          const { stdout } = await this._virsh(['domstate', vm.name]);
+          const { stdout } = await this._virsh(['domstate', vm.id]);
           if (stdout.includes('shut off')) { stopped = true; break; }
         } catch (e) { stopped = true; break; }
       }
       if (!stopped) {
         // 超时则强制关闭
-        try { await this._virsh(['destroy', vm.name]); } catch (e) { /* ignore */ }
+        try { await this._virsh(['destroy', vm.id]); } catch (e) { /* ignore */ }
       }
     } catch (err) {
       // 可能VM在libvirt中不存在，仅更新DB
@@ -399,7 +571,7 @@ ${videoBlock}
     if (!vm) throw new Error('虚拟机不存在');
 
     try {
-      await this._virsh(['destroy', vm.name]);
+      await this._virsh(['destroy', vm.id]);
     } catch (err) {
       console.warn('[LibvirtDriver] forceStopVM virsh 失败:', err.message);
     }
@@ -415,7 +587,7 @@ ${videoBlock}
     if (vm.status !== 'running') throw new Error('虚拟机未运行');
 
     try {
-      await this._virsh(['reboot', vm.name]);
+      await this._virsh(['reboot', vm.id]);
     } catch (err) {
       console.warn('[LibvirtDriver] rebootVM virsh 失败:', err.message);
     }
@@ -430,7 +602,7 @@ ${videoBlock}
     if (!vm) throw new Error('虚拟机不存在');
 
     try {
-      await this._virsh(['reset', vm.name]);
+      await this._virsh(['reset', vm.id]);
     } catch (err) {
       console.warn('[LibvirtDriver] forceRebootVM virsh 失败:', err.message);
     }
@@ -446,7 +618,7 @@ ${videoBlock}
     if (vm.status !== 'running') throw new Error('只有运行中的虚拟机可以挂起');
 
     try {
-      await this._virsh(['suspend', vm.name]);
+      await this._virsh(['suspend', vm.id]);
     } catch (err) {
       console.warn('[LibvirtDriver] suspendVM virsh 失败:', err.message);
     }
@@ -462,7 +634,7 @@ ${videoBlock}
     if (vm.status !== 'suspended') throw new Error('虚拟机未处于挂起状态');
 
     try {
-      await this._virsh(['resume', vm.name]);
+      await this._virsh(['resume', vm.id]);
     } catch (err) {
       console.warn('[LibvirtDriver] resumeVM virsh 失败:', err.message);
     }
@@ -484,10 +656,10 @@ ${videoBlock}
     if (permanent || vm.deleted === 1) {
       // 永久删除：清理 libvirt 定义和磁盘
       try {
-        await this._virsh(['undefine', vm.name, '--remove-all-storage']);
+        await this._virsh(['undefine', vm.id, '--remove-all-storage']);
       } catch (err) {
         // 可能未在 libvirt 注册，只清理本地文件
-        try { await this._virsh(['undefine', vm.name]); } catch (e) { /* ignore */ }
+        try { await this._virsh(['undefine', vm.id]); } catch (e) { /* ignore */ }
       }
 
       // 清理本地磁盘文件
@@ -513,7 +685,7 @@ ${videoBlock}
     // 尝试 virsh 创建快照
     let realSize = 0;
     try {
-      const args = ['snapshot-create-as', vm.name, '--name', name];
+      const args = ['snapshot-create-as', vm.id, '--name', name];
       if (description) args.push('--description', description);
       // 关机状态用 disk-only 快照
       if (vm.status !== 'running') {
@@ -524,7 +696,7 @@ ${videoBlock}
 
       // 获取快照磁盘大小
       try {
-        const { stdout } = await this._virsh(['snapshot-info', vm.name, name]);
+        const { stdout } = await this._virsh(['snapshot-info', vm.id, name]);
         // 无直接大小，用磁盘文件大小估算
       } catch (e) { /* ignore */ }
     } catch (err) {
@@ -542,7 +714,7 @@ ${videoBlock}
     if (vm && vm.status === 'running') throw new Error('请先关闭虚拟机再恢复快照');
 
     try {
-      await this._virsh(['snapshot-revert', vm.name, snap.name], 60000);
+      await this._virsh(['snapshot-revert', vm.id, snap.name], 60000);
       console.log(`[LibvirtDriver] 快照 ${snap.name} 恢复成功`);
     } catch (err) {
       console.warn('[LibvirtDriver] virsh snapshot-revert 失败:', err.message);
@@ -557,7 +729,7 @@ ${videoBlock}
     const vm = this.db.prepare('SELECT * FROM vms WHERE id = ?').get(vmId);
 
     try {
-      await this._virsh(['snapshot-delete', vm.name, snap.name], 60000);
+      await this._virsh(['snapshot-delete', vm.id, snap.name], 60000);
       console.log(`[LibvirtDriver] 快照 ${snap.name} 删除成功`);
     } catch (err) {
       console.warn('[LibvirtDriver] virsh snapshot-delete 失败:', err.message);
@@ -583,7 +755,7 @@ ${videoBlock}
     }
 
     try {
-      const { stdout } = await this._virsh(['domstats', vm.name, '--cpu-total', '--balloon', '--block', '--interface']);
+      const { stdout } = await this._virsh(['domstats', vm.id, '--cpu-total', '--balloon', '--block', '--interface']);
       const stats = {};
       for (const line of stdout.split('\n')) {
         const m = line.match(/^\s+(.+?)=(.+)$/);
@@ -648,7 +820,7 @@ ${videoBlock}
     const diskPath = path.join(VM_IMAGES_DIR, `${vmId}-${disk.id}.qcow2`);
     try {
       await this._exec('qemu-img', ['create', '-f', 'qcow2', diskPath, `${config.size || 20}G`]);
-      await this._exec('chown', ['libvirt-qemu:kvm', diskPath]);
+      await this._chownForQemu(diskPath);
       await this._exec('chmod', ['660', diskPath]);
 
       // 如果VM运行中，热挂载
@@ -656,7 +828,7 @@ ${videoBlock}
         // 查找下一个可用的 vd? 设备名
         const diskCount = this.db.prepare('SELECT COUNT(*) as c FROM vm_disks WHERE vm_id = ?').get(vmId);
         const devChar = String.fromCharCode(97 + (diskCount ? diskCount.c : 1)); // vdb, vdc...
-        await this._virsh(['attach-disk', vm.name, diskPath, `vd${devChar}`,
+        await this._virsh(['attach-disk', vm.id, diskPath, `vd${devChar}`,
           '--driver', 'qemu', '--subdriver', 'qcow2', '--targetbus', 'virtio', '--persistent']);
         console.log(`[LibvirtDriver] 热添加磁盘 vd${devChar} 到 ${vm.name}`);
       }
@@ -681,35 +853,103 @@ ${videoBlock}
     // 同步 libvirt VM 状态到 DB
     await this._syncVMStates();
 
+    // 计算真实CPU使用量（running VM的vCPU总和）
+    const runningCpu = this.db.prepare("SELECT COALESCE(SUM(cpu), 0) as total FROM vms WHERE status = 'running' AND deleted = 0").get();
+    if (runningCpu) {
+      const host = this.db.prepare("SELECT id FROM hosts LIMIT 1").get();
+      if (host) {
+        this.db.prepare('UPDATE hosts SET cpu_used = ? WHERE id = ?').run(runningCpu.total, host.id);
+      }
+    }
+
     return super.getDashboardOverview();
   }
 
   // 同步 virsh list 的 VM 状态到数据库
   async _syncVMStates() {
     try {
-      const { stdout } = await this._virsh(['list', '--all', '--name']);
-      const virshNames = stdout.split('\n').filter(n => n.trim());
+      // 用 virsh list --all --uuid 获取所有域的UUID
+      const { stdout } = await this._virsh(['list', '--all', '--uuid']);
+      const virshUUIDs = stdout.split('\n').map(n => n.trim()).filter(Boolean);
 
       // 对在DB中标记为running但virsh中不存在的VM，更新状态
       const runningVMs = this.db.prepare("SELECT * FROM vms WHERE status = 'running' AND deleted = 0").all();
       for (const vm of runningVMs) {
-        if (!virshNames.includes(vm.name)) {
+        if (!virshUUIDs.includes(vm.id)) {
           // 检查是否在 virsh 中
           try {
-            const { stdout: state } = await this._virsh(['domstate', vm.name]);
+            const { stdout: state } = await this._virsh(['domstate', vm.id]);
             if (state.includes('shut off')) {
               this.db.prepare("UPDATE vms SET status = 'stopped', vnc_port = 0 WHERE id = ?").run(vm.id);
             } else if (state.includes('paused')) {
               this.db.prepare("UPDATE vms SET status = 'suspended' WHERE id = ?").run(vm.id);
             }
           } catch (e) {
-            // 在 virsh 中不存在，不自动改状态（可能是仅DB记录）
+            // 在 virsh 中不存在，标记为 stopped
+            this.db.prepare("UPDATE vms SET status = 'stopped', vnc_port = 0 WHERE id = ?").run(vm.id);
           }
+        }
+      }
+
+      // 对在virsh中running但DB中不是running的VM，同步状态
+      const allDbVMs = this.db.prepare("SELECT * FROM vms WHERE deleted = 0").all();
+      for (const vm of allDbVMs) {
+        if (virshUUIDs.includes(vm.id)) {
+          try {
+            const { stdout: state } = await this._virsh(['domstate', vm.id]);
+            if (state.includes('running') && vm.status !== 'running') {
+              let vncPort = 0;
+              try {
+                const { stdout: vnc } = await this._virsh(['vncdisplay', vm.id]);
+                const match = vnc.match(/:(\d+)/);
+                if (match) vncPort = 5900 + parseInt(match[1]);
+              } catch (e) { /* ignore */ }
+              this.db.prepare("UPDATE vms SET status = 'running', vnc_port = ? WHERE id = ?").run(vncPort, vm.id);
+            } else if (state.includes('shut off') && vm.status === 'running') {
+              this.db.prepare("UPDATE vms SET status = 'stopped', vnc_port = 0 WHERE id = ?").run(vm.id);
+            }
+          } catch (e) { /* ignore */ }
         }
       }
     } catch (e) {
       // virsh 不可用，跳过同步
     }
+  }
+
+  // ===== 模板版本管理 =====
+  async listTemplateVersions(templateId) {
+    return this.db.prepare('SELECT * FROM template_versions WHERE template_id = ? ORDER BY created_at DESC').all(templateId);
+  }
+
+  async createTemplateVersion(templateId, description) {
+    const id = require('crypto').randomUUID();
+    const tpl = this.db.prepare('SELECT * FROM templates WHERE id = ?').get(templateId);
+    if (!tpl) throw new Error('模板不存在');
+    const version = (tpl.version || 0) + 1;
+    const snapName = 'v' + version + '_' + Date.now();
+    this.db.prepare('INSERT INTO template_versions (id, template_id, version, snapshot_name, description, created_by, created_at) VALUES (?,?,?,?,?,?,datetime(\'now\'))')
+      .run(id, templateId, version, snapName, description || '', 'admin');
+    this.db.prepare('UPDATE templates SET version = ? WHERE id = ?').run(version, templateId);
+    return { id, template_id: templateId, version, snapshot_name: snapName };
+  }
+
+  async rollbackTemplateVersion(templateId, versionId) {
+    const ver = this.db.prepare('SELECT * FROM template_versions WHERE id = ? AND template_id = ?').get(versionId, templateId);
+    if (!ver) throw new Error('版本不存在');
+    this.db.prepare('UPDATE templates SET version = ? WHERE id = ?').run(ver.version, templateId);
+    return { success: true, version: ver.version };
+  }
+
+  async deleteTemplateVersion(templateId, versionId) {
+    this.db.prepare('DELETE FROM template_versions WHERE id = ? AND template_id = ?').run(versionId, templateId);
+    return { success: true };
+  }
+
+  // ===== 模板删除 =====
+  async deleteTemplate(id) {
+    this.db.prepare('DELETE FROM template_versions WHERE template_id = ?').run(id);
+    this.db.prepare('DELETE FROM templates WHERE id = ?').run(id);
+    return { success: true };
   }
 }
 

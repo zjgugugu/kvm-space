@@ -1,0 +1,184 @@
+========================================
+ 麒麟信安MC全功能测试 2026年 04月 05日 星期日 01:24:10 CST
+========================================
+
+【一、登录测试】
+  ✗ 登录失败 (HTTP 302), flag=10
+  loginCheck响应: {"flag":10,"msg":"","url":""}
+  successSession响应: 
+
+【二、Dashboard / 监控】
+  ✗ Dashboard主页 (monitoring/dashboard) [HTTP 302]
+  ✗ 统计图表页 (monitoring/charts) [HTTP 302]
+  ~ Dashboard数据(AJAX) [HTML/Other 1048B]
+  ~ VM状态统计 [HTML/Other 1056B]
+  ~ 在线趋势数据 [HTML/Other 1052B]
+  ~ 用户统计 [HTML/Other 1058B]
+  ~ 服务器状态 [HTML/Other 1054B]
+  ~ 资源使用 [HTML/Other 1056B]
+  ~ 最近告警 [HTML/Other 1054B]
+  ~ 用户在线排名 [HTML/Other 1052B]
+  ~ 终端系统类型 [HTML/Other 1062B]
+
+【三、桌面发布 - 黄金镜像】
+  ✗ 黄金镜像列表页 (image/list) [HTTP 302]
+  ~ 镜像列表(AJAX) [HTML/Other 1038B]
+  ~ 镜像详情(AJAX) [HTML/Other 1042B]
+  ✗ 创建镜像页 (image/create) [HTTP 302]
+
+【四、桌面发布 - 应用程序层】
+  ✗ 应用程序层页 (app/appLayer) [HTTP 404]
+
+【五、桌面发布 - 桌面池/发布规则】
+  ✗ 桌面池列表 (VM/desktopPoolList) [HTTP 404]
+  ~ 桌面池数据(AJAX) [HTML/Other 1044B]
+  ✗ 发布规则页 (VM/publishRule) [HTTP 404]
+
+【六、桌面发布 - 软件库】
+  ✗ 软件库页 (app/softwareLibrary) [HTTP 404]
+  ✗ 软件发布页 (app/softwarePublish) [HTTP 404]
+
+【七、桌面发布 - 桌面规格】
+  ✗ 桌面规格列表 (policy/desktopSpec) [HTTP 404]
+  ~ 规格列表(AJAX) [HTML/Other 1052B]
+
+【八、虚拟机管理】
+  ✗ 虚拟机列表页 (VM/vmList) [HTTP 404]
+  ~ VM列表(AJAX) [HTML/Other 1026B]
+  ~ VM状态计数(AJAX) [HTML/Other 1040B]
+  ✗ VM详情页 (VM/vmDetail) [HTTP 404]
+  ✗ VM备份页 (VM/vmBackup) [HTTP 404]
+  ✗ VM快照页 (VM/vmSnapshot) [HTTP 404]
+  ✗ VM会话页 (VM/vmSession) [HTTP 404]
+
+【九、云服务器】
+  ✗ 云服务器列表 (VM/serverList) [HTTP 404]
+  ~ 云服务器列表(AJAX) [HTML/Other 1034B]
+
+【十、主机管理】
+  ✗ 主机列表页 (host/list) [HTTP 404]
+  ~ 主机列表(AJAX) [HTML/Other 1034B]
+  ~ 主机状态(AJAX) [HTML/Other 1038B]
+  ✗ 主机详情页 (host/detail) [HTTP 404]
+  ✗ GPU列表页 (host/gpuList) [HTTP 404]
+  ✗ USB设备页 (host/usbList) [HTTP 404]
+  ✗ PCI设备页 (host/pciList) [HTTP 404]
+
+【十一、网络管理】
+  ✗ 虚拟交换机列表 (virtualSwitch/list) [HTTP 404]
+  ~ 交换机列表(AJAX) [HTML/Other 1044B]
+  ✗ 安全组页 (network/securityGroup) [HTTP 302]
+  ~ 安全组列表(AJAX) [HTML/Other 1058B]
+  ✗ MAC地址池 (MACAddressPool/list) [HTTP 302]
+  ~ MAC池列表(AJAX) [HTML/Other 1046B]
+  ✗ 子网管理页 (network/subnetList) [HTTP 404]
+
+【十二、存储管理】
+  ✗ 分布式存储页 (storage/distributedStorage) [HTTP 404]
+  ~ 分布式存储(AJAX) [HTML/Other 1068B]
+  ✗ 数据存储页 (storage/dataStorage) [HTTP 404]
+  ~ 数据存储(AJAX) [HTML/Other 1054B]
+  ✗ 集中存储页 (storage/centralStorage) [HTTP 404]
+  ✗ FCSAN页 (storage/fcsan) [HTTP 404]
+  ✗ IPSAN页 (storage/ipsan) [HTTP 404]
+  ✗ NAS页 (storage/nas) [HTTP 404]
+
+【十三、备份管理】
+  ✗ 备份服务器列表 (backup/serverList) [HTTP 404]
+  ~ 备份服务器(AJAX) [HTML/Other 1042B]
+  ✗ VM备份列表 (backup/vmBackupList) [HTTP 404]
+  ✗ 云服务器备份列表 (backup/serverBackupList) [HTTP 404]
+
+【十四、快照策略】
+  ✗ 快照策略列表 (VM/snapshotPolicyList) [HTTP 404]
+  ~ 快照策略(AJAX) [HTML/Other 1050B]
+
+【十五、用户管理】
+  ✗ 用户列表页 (user/list) [HTTP 302]
+  ✗ 用户列表(AJAX) [Empty response]
+  ✗ 用户组页 (user/groupList) [HTTP 404]
+  ~ 用户组(AJAX) [HTML/Other 1036B]
+  ✗ LDAP服务器页 (auth/ldapServer) [HTTP 404]
+  ✗ AD域页 (auth/adDomain) [HTTP 404]
+
+【十六、日志管理】
+  ✗ 服务器事件日志 (app/serverEvent) [HTTP 404]
+  ~ 服务器事件(AJAX) [HTML/Other 1046B]
+  ✗ 虚拟机事件日志 (app/vmEvent) [HTTP 404]
+  ~ VM事件(AJAX) [HTML/Other 1038B]
+  ✗ 服务器虚拟化事件 (app/serverVirtualEvent) [HTTP 404]
+  ✗ 审核事件 (app/auditEvent) [HTTP 302]
+  ~ 审核事件(AJAX) [HTML/Other 1044B]
+  ✗ VDE事件 (app/vdeEvent) [HTTP 404]
+  ✗ 终端审核事件 (app/terminalAuditEvent) [HTTP 404]
+  ✗ 存储日志 (app/storageLog) [HTTP 404]
+
+【十七、告警管理】
+  ✗ 告警事件页 (app/alertEvent) [HTTP 404]
+  ~ 告警列表(AJAX) [HTML/Other 1044B]
+  ✗ 告警设置页 (app/alertSetting) [HTTP 404]
+  ~ 告警设置(AJAX) [HTML/Other 1048B]
+
+【十八、录屏审计】
+  ✗ 录屏列表 (app/recordingList) [HTTP 404]
+  ✗ 录屏标签 (app/recordingLabel) [HTTP 404]
+
+【十九、终端管理】
+  ✗ 终端列表 (client/list) [HTTP 302]
+  ✗ 终端列表(AJAX) [Empty response]
+  ✗ 终端任务列表 (client/taskList) [HTTP 404]
+
+【二十、系统管理】
+  ✗ 管理员账号 (user/adminList) [HTTP 404]
+  ~ 管理员列表(AJAX) [HTML/Other 1036B]
+  ✗ 密码策略 (app/passwordPolicy) [HTTP 404]
+  ~ 密码策略(AJAX) [HTML/Other 1044B]
+  ✗ 访问策略 (app/accessPolicy) [HTTP 404]
+  ~ 访问策略(AJAX) [HTML/Other 1040B]
+  ✗ 角色管理 (app/roleManagement) [HTTP 404]
+
+【二十一、系统配置】
+  ✗ 全局策略 (app/globalPolicy) [HTTP 404]
+  ~ 全局策略(AJAX) [HTML/Other 1040B]
+  ✗ SMTP设置 (app/smtpSetting) [HTTP 404]
+  ✗ HA设置 (app/haSetting) [HTTP 404]
+  ✗ 许可证 (app/licenseSetting) [HTTP 404]
+  ✗ 标签设置 (app/labelSetting) [HTTP 404]
+  ✗ 亲和组 (app/affinityGroup) [HTTP 404]
+  ✗ 动态扩展 (app/dynamicScaling) [HTTP 404]
+  ✗ 组织管理 (app/orgManagement) [HTTP 404]
+
+【二十二、任务中心/审批中心】
+  ✗ 任务中心 (app/taskCenter) [HTTP 302]
+  ~ 任务列表(AJAX) [HTML/Other 1032B]
+  ✗ 审批中心 (app/approvalCenter) [HTTP 302]
+  ~ 审批列表(AJAX) [HTML/Other 1040B]
+
+【二十三、维护工具】
+  ✗ 调试日志 (app/debugLog) [HTTP 404]
+  ✗ 一键检测 (app/oneKeyDetection) [HTTP 404]
+  ✗ 系统升级 (app/systemUpgrade) [HTTP 404]
+
+【二十四、回收站】
+  ✗ 回收站 (VM/recycleBin) [HTTP 404]
+  ~ 回收站列表(AJAX) [HTML/Other 1042B]
+
+【二十五、统计报表】
+  ✗ 用户登录统计 (app/userLoginStats) [HTTP 404]
+  ✗ VM使用统计 (app/vmUsageStats) [HTTP 404]
+  ✗ 服务器统计 (app/serverStats) [HTTP 404]
+  ✗ 存储统计 (app/storageStats) [HTTP 404]
+  ✗ 故障统计 (app/faultStats) [HTTP 404]
+  ✗ 终端统计 (app/clientStats) [HTTP 404]
+  ✗ 告警统计 (app/alarmStats) [HTTP 404]
+  ✗ 审计统计 (app/auditStats) [HTTP 404]
+  ✗ 使用时长统计 (app/usageTimeStats) [HTTP 404]
+
+【二十六、文件管理】
+  ✗ ISO管理 (app/isoManagement) [HTTP 404]
+
+========================================
+汇总: 共150项, 通过0项, 失败108项, 部分42项
+========================================
+
+详细结果已保存到 /tmp/mc_test_results.txt

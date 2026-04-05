@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const policy = await req.app.locals.driver.createSnapshotPolicy(req.body);
-    res.status(201).json(policy);
+    res.json(policy);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

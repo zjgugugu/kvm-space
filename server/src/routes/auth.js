@@ -49,23 +49,33 @@ router.get('/me', (req, res) => {
 
 // 修改密码
 router.put('/password', (req, res) => {
-  const { old_password, new_password } = req.body;
-  const db = req.app.locals.db;
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  try {
+    const { old_password, new_password } = req.body;
+    if (!old_password || !new_password) {
+      return res.status(400).json({ error: '请输入原密码和新密码' });
+    }
+    const db = req.app.locals.db;
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: '用户不存在' });
+    }
 
-  if (!bcrypt.compareSync(old_password, user.password_hash)) {
-    return res.status(400).json({ error: '原密码错误' });
+    if (!bcrypt.compareSync(old_password, user.password_hash)) {
+      return res.status(400).json({ error: '原密码错误' });
+    }
+
+    const hash = bcrypt.hashSync(new_password, 10);
+    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, user.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  const hash = bcrypt.hashSync(new_password, 10);
-  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, user.id);
-  res.json({ success: true });
 });
 
 // JWT 验证中间件
 function authMiddleware(req, res, next) {
   // 登录接口不需要验证
-  if (req.path === '/api/auth/login') return next();
+  if (req.path === '/api/auth/login' || req.path === '/login') return next();
 
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

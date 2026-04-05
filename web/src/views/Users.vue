@@ -122,7 +122,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import api from '../api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -130,7 +131,9 @@ const loading = ref(false), saving = ref(false), dialogVisible = ref(false), edi
 const importVisible = ref(false), importText = ref('')
 const groupDialogVisible = ref(false), editingGroup = ref(null)
 const groupForm = reactive({ name: '', description: '' })
-const tab = ref('users')
+const route = useRoute()
+const tab = ref(route.meta.defaultTab || 'users')
+watch(() => route.meta.defaultTab, (t) => { if (t) tab.value = t })
 const users = ref([]), groups = ref([])
 const search = ref(''), roleFilter = ref('')
 const form = reactive({ username: '', display_name: '', password: '', role: 'user', department: '', email: '' })

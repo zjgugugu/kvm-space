@@ -1,4 +1,4 @@
-// 系统配置管理 API (对标KSVD V7 系统管理)
+// 系统配置管理 API
 const express = require('express');
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.get('/config', async (req, res) => {
   }
 });
 
-// 获取全局策略列表（对标KSVD常规设置30+项）
+// 获取全局策略列表
 router.get('/policies', async (req, res) => {
   try {
     const db = req.app.locals.db;

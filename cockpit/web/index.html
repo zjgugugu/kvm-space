@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>总控虚拟化界面</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif; background: #0a0f26; color: #fff; min-height: 100vh; }
+    [v-cloak] { display: none; }
+
+    /* 登录页 */
+    .login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #0a0f26 0%, #1a2340 100%); }
+    .login-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 40px; width: 400px; }
+    .login-box h1 { text-align: center; margin-bottom: 30px; font-size: 22px; color: #409eff; }
+    .login-box .el-input { margin-bottom: 16px; }
+    .login-box .el-button { width: 100%; }
+
+    /* 主布局 */
+    .app-header { background: #090f26; height: 60px; display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid #2a3456; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .app-header .logo { color: #409eff; font-size: 18px; font-weight: bold; letter-spacing: 2px; }
+    .app-header .nav-tabs { display: flex; margin-left: 40px; gap: 4px; }
+    .app-header .nav-tab { padding: 8px 20px; cursor: pointer; border-radius: 4px 4px 0 0; color: #8892b0; font-size: 14px; transition: all 0.3s; }
+    .app-header .nav-tab:hover { color: #fff; background: rgba(64,158,255,0.1); }
+    .app-header .nav-tab.active { color: #fff; background: #409eff; }
+    .app-header .user-info { margin-left: auto; color: #8892b0; font-size: 14px; }
+    .app-header .user-info span { margin-left: 8px; color: #409eff; cursor: pointer; }
+
+    .app-body { margin-top: 60px; display: flex; min-height: calc(100vh - 60px); }
+
+    /* 左侧菜单（存储维护模块） */
+    .side-menu { width: 200px; background: #090f26; border-right: 1px solid #2a3456; padding-top: 16px; }
+    .side-menu .menu-item { padding: 12px 24px; color: #8892b0; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .side-menu .menu-item:hover { color: #fff; background: rgba(64,158,255,0.1); }
+    .side-menu .menu-item.active { color: #409eff; background: rgba(64,158,255,0.15); border-left: 3px solid #409eff; }
+
+    .main-content { flex: 1; padding: 24px; background: #0d1333; overflow-y: auto; }
+
+    /* 集群状态表 */
+    .container-box { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 24px; }
+    .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #2a3456; }
+    .section-title h2 { font-size: 18px; color: #fff; }
+    .section-title .actions { display: flex; gap: 8px; }
+
+    /* 部署向导 */
+    .deploy-guide { text-align: center; padding: 60px 0; }
+    .deploy-guide h1 { font-size: 28px; margin-bottom: 40px; color: #409eff; }
+    .deploy-options { display: flex; justify-content: center; gap: 60px; }
+    .deploy-option { cursor: pointer; padding: 40px; background: rgba(255,255,255,0.05); border: 2px solid rgba(64,158,255,0.3); border-radius: 12px; transition: all 0.3s; width: 240px; }
+    .deploy-option:hover { border-color: #409eff; background: rgba(64,158,255,0.1); transform: translateY(-4px); }
+    .deploy-option i { font-size: 64px; color: #409eff; display: block; margin-bottom: 16px; }
+    .deploy-option h3 { font-size: 18px; color: #fff; }
+    .deploy-option p { color: #8892b0; margin-top: 8px; font-size: 13px; }
+
+    /* 步骤条 */
+    .step-content { padding: 24px 0; }
+
+    /* 角色标签 */
+    .role-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .role-cm-vdi { background: rgba(64,158,255,0.2); color: #409eff; }
+    .role-cm { background: rgba(103,194,58,0.2); color: #67c23a; }
+    .role-vdi { background: rgba(230,162,60,0.2); color: #e6a23c; }
+    .role-arbiter { background: rgba(144,147,153,0.2); color: #909399; }
+
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .status-active { background: #67c23a; }
+    .status-inactive { background: #909399; }
+
+    /* 高级设置弹窗 */
+    .setting-form .el-form-item { margin-bottom: 18px; }
+    .setting-section { margin-bottom: 24px; }
+    .setting-section h3 { font-size: 16px; margin-bottom: 12px; color: #409eff; border-left: 3px solid #409eff; padding-left: 8px; }
+
+    /* 存储表格 */
+    .storage-section { margin-top: 24px; }
+    .brick-status { display: flex; align-items: center; gap: 4px; }
+    .brick-status svg { width: 14px; height: 14px; }
+
+    /* 覆盖Element深色主题 */
+    .el-table { background-color: transparent !important; color: #ccc !important; }
+    .el-table th { background-color: rgba(255,255,255,0.05) !important; color: #fff !important; }
+    .el-table tr { background-color: transparent !important; }
+    .el-table tr:hover > td { background-color: rgba(64,158,255,0.08) !important; }
+    .el-table td { border-bottom: 1px solid #2a3456 !important; }
+    .el-table::before, .el-table::after { background: transparent !important; }
+    .el-table th.is-leaf { border-bottom-color: #2a3456 !important; }
+
+    .el-dialog { background: #1a2340 !important; }
+    .el-dialog__title { color: #fff !important; }
+    .el-dialog__body { color: #ccc !important; }
+
+    .el-steps { background: transparent; }
+    .el-step__title.is-process { color: #409eff !important; }
+    .el-step__title.is-finish { color: #67c23a !important; }
+    .el-step__title.is-wait { color: #666 !important; }
+
+    .el-form-item__label { color: #ccc !important; }
+
+    .el-menu { border-right: none !important; }
+    .el-loading-mask { background: rgba(0,0,0,0.5) !important; }
+  </style>
+</head>
+<body>
+  <div id="app" v-cloak>
+    <!-- 登录页 -->
+    <div v-if="!token" class="login-page">
+      <div class="login-box">
+        <h1>🖥 总控虚拟化界面</h1>
+        <el-input v-model="loginForm.username" placeholder="用户名" prefix-icon="el-icon-user"></el-input>
+        <el-input v-model="loginForm.password" placeholder="密码" type="password" show-password prefix-icon="el-icon-lock" @keyup.enter.native="doLogin"></el-input>
+        <el-button type="primary" :loading="loginLoading" @click="doLogin">登 录</el-button>
+      </div>
+    </div>
+
+    <!-- 主界面 -->
+    <div v-else>
+      <div class="app-header">
+        <div class="logo">麒麟信安 · 总控虚拟化</div>
+        <div class="nav-tabs">
+          <div class="nav-tab" :class="{ active: currentModule === 'virtualization' }" @click="currentModule = 'virtualization'">虚拟化</div>
+          <div class="nav-tab" :class="{ active: currentModule === 'maintain' }" @click="currentModule = 'maintain'">存储维护</div>
+        </div>
+        <div class="user-info">
+          {{ sysInfo.hostname }} ({{ sysInfo.ip }})
+          <span @click="logout">退出</span>
+        </div>
+      </div>
+
+      <div class="app-body">
+        <!-- 存储维护模块左侧菜单 -->
+        <div v-if="currentModule === 'maintain'" class="side-menu">
+          <div class="menu-item" :class="{ active: maintainTab === i }" v-for="(tab, i) in maintainTabs" :key="i" @click="maintainTab = i">
+            <i :class="tab.icon"></i>
+            <span>{{ tab.label }}</span>
+          </div>
+        </div>
+
+        <div class="main-content">
+          <!-- ====== 虚拟化模块 ====== -->
+          <div v-if="currentModule === 'virtualization'">
+            <!-- 未部署：部署向导 -->
+            <div v-if="clusterStatus === 0">
+              <div v-if="!deployMode" class="deploy-guide">
+                <h1>选择部署方式</h1>
+                <div class="deploy-options">
+                  <div class="deploy-option" @click="startDeploy('standalone')">
+                    <i class="el-icon-monitor"></i>
+                    <h3>单机部署</h3>
+                    <p>适用于单台服务器环境</p>
+                  </div>
+                  <div class="deploy-option" @click="startDeploy('cluster')">
+                    <i class="el-icon-s-platform"></i>
+                    <h3>集群部署</h3>
+                    <p>多节点高可用集群</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 部署步骤 -->
+              <div v-else class="container-box">
+                <div class="section-title">
+                  <h2>{{ deployMode === 'standalone' ? '单机部署' : '集群部署' }}</h2>
+                </div>
+                <el-steps :active="deployStep" align-center style="margin-bottom: 24px;">
+                  <el-step v-for="(step, i) in currentSteps" :key="i" :title="step"></el-step>
+                </el-steps>
+                <div class="step-content">
+                  <!-- Step 0: 属性/类型 -->
+                  <div v-if="deployStep === 0">
+                    <el-form label-width="120px" style="max-width: 600px; margin: 0 auto;">
+                      <el-form-item label="节点名称">
+                        <el-input v-model="deployForm.hostname" placeholder="如 node1"></el-input>
+                      </el-form-item>
+                      <el-form-item label="管理IP">
+                        <el-input v-model="deployForm.ip" placeholder="如 10.126.33.238"></el-input>
+                      </el-form-item>
+                      <el-form-item label="节点角色">
+                        <el-select v-model="deployForm.role" style="width: 100%">
+                          <el-option label="管理_计算（CM_VDI）" value="CM_VDI"></el-option>
+                          <el-option label="管理（CM_Only）" value="CM_Only"></el-option>
+                          <el-option label="计算（VDI_Only）" value="VDI_Only"></el-option>
+                          <el-option label="仲裁（Arbiter）" value="Arbiter"></el-option>
+                        </el-select>
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                  <!-- Step 1: 存储模式 -->
+                  <div v-if="deployStep === 1">
+                    <el-form label-width="120px" style="max-width: 600px; margin: 0 auto;">
+                      <el-form-item label="存储模式">
+                        <el-radio-group v-model="deployForm.storage_mode">
+                          <el-radio label="GlusterFS">GlusterFS 分布式存储</el-radio>
+                          <el-radio label="NFS">NFS 网络存储</el-radio>
+                          <el-radio label="CIFS">CIFS 共享存储</el-radio>
+                        </el-radio-group>
+                      </el-form-item>
+                    </el-form>
+                  </div>
+                  <!-- Step 2(cluster): 添加主机 / Step 2(standalone): 主机配置 -->
+                  <div v-if="deployStep === 2">
+                    <div v-if="deployMode === 'cluster'">
+                      <el-form label-width="120px" style="max-width: 600px; margin: 0 auto;">
+                        <el-form-item label="主机IP">
+                          <el-input v-model="addHostForm.ip" placeholder="输入主机 IP"></el-input>
+                        </el-form-item>
+                        <el-form-item label="主机密码">
+                          <el-input v-model="addHostForm.password" type="password" show-password placeholder="SSH密码"></el-input>
+                        </el-form-item>
+                        <el-form-item>
+                          <el-button type="primary" @click="addClusterHost">添加主机</el-button>
+                        </el-form-item>
+                      </el-form>
+                      <el-table :data="deployForm.hosts" style="margin-top: 16px;">
+                        <el-table-column prop="ip" label="IP" align="center"></el-table-column>
+                        <el-table-column prop="hostname" label="主机名" align="center"></el-table-column>
+                        <el-table-column prop="role" label="角色" align="center"></el-table-column>
+                        <el-table-column label="操作" align="center" width="80">
+                          <template slot-scope="scope">
+                            <el-button type="text" size="small" @click="deployForm.hosts.splice(scope.$index, 1)">移除</el-button>
+                          </template>
+                        </el-table-column>
+                      </el-table>
+                    </div>
+                    <div v-else>
+                      <p style="text-align: center; color: #8892b0; padding: 20px;">主机配置将使用部署向导自动完成</p>
+                    </div>
+                  </div>
+                  <!-- Final step: 部署状态 -->
+                  <div v-if="deployStep === currentSteps.length - 1">
+                    <div style="text-align: center; padding: 40px;">
+                      <i v-if="deploying" class="el-icon-loading" style="font-size: 48px; color: #409eff;"></i>
+                      <i v-else class="el-icon-circle-check" style="font-size: 48px; color: #67c23a;"></i>
+                      <p style="margin-top: 16px; font-size: 16px;">{{ deploying ? '正在部署...' : '部署完成！' }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div style="text-align: center; padding: 16px 0;">
+                  <el-button v-if="deployStep > 0" @click="deployStep--">上一步</el-button>
+                  <el-button v-if="deployStep < currentSteps.length - 1" type="primary" @click="deployStep++">下一步</el-button>
+                  <el-button v-if="deployStep === currentSteps.length - 2" type="success" @click="executeDeploy">开始部署</el-button>
+                  <el-button @click="deployMode = null; deployStep = 0;">取消</el-button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 已部署：集群管理表 -->
+            <div v-else>
+              <div class="container-box">
+                <div class="section-title">
+                  <h2>集群状态</h2>
+                  <div class="actions">
+                    <el-popover placement="bottom" width="150" trigger="click">
+                      <div style="text-align: center; cursor: pointer;">
+                        <p @click="clusterAction('shutdown')" style="font-size: 14px; padding: 6px;">集群一键关机</p>
+                        <p @click="clusterAction('reboot')" style="font-size: 14px; padding: 6px;">集群一键重启</p>
+                      </div>
+                      <el-button slot="reference" icon="el-icon-switch-button" size="small">电源</el-button>
+                    </el-popover>
+                    <el-button icon="el-icon-refresh" size="small" @click="loadClusterStatus">刷新</el-button>
+                    <el-button type="primary" size="small" @click="settingDialogVisible = true">设置</el-button>
+                    <el-button size="small" @click="loginMC">登录管理控制台</el-button>
+                  </div>
+                </div>
+                <el-table :data="clusterNodes" style="width: 100%;">
+                  <el-table-column prop="ip" label="节点" align="center"></el-table-column>
+                  <el-table-column label="状态" align="center" width="100">
+                    <template slot-scope="scope">
+                      <span>
+                        <span class="status-dot" :class="scope.row.status === 'active' ? 'status-active' : 'status-inactive'"></span>
+                        {{ scope.row.status === 'active' ? '在线' : '离线' }}
+                      </span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="角色" align="center">
+                    <template slot-scope="scope">
+                      <span class="role-tag" :class="'role-' + scope.row.role.toLowerCase().replace('_', '-')">{{ roleMap[scope.row.role] || scope.row.role }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column label="管理存储位置" align="center" width="120">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.is_docker_node === 1" style="color: #67c23a;">✓</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+
+              <!-- 存储状态 -->
+              <div class="container-box storage-section" v-if="managerStorage">
+                <div class="section-title">
+                  <h2>管理存储 ({{ clusterData.storage_type }})</h2>
+                </div>
+                <el-descriptions :column="3" border size="small" :labelStyle="{color: '#ccc', background: 'rgba(255,255,255,0.05)'}" :contentStyle="{color: '#fff', background: 'transparent'}">
+                  <el-descriptions-item label="卷名">{{ managerStorage.volume_name }}</el-descriptions-item>
+                  <el-descriptions-item label="状态">
+                    <el-tag :type="managerStorage.status === 'Started' ? 'success' : 'danger'" size="small">{{ managerStorage.status }}</el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="存储类型">{{ clusterData.storage_type }}</el-descriptions-item>
+                  <el-descriptions-item v-if="managerStorage.nfs_server" label="NFS服务器">{{ managerStorage.nfs_server }}</el-descriptions-item>
+                  <el-descriptions-item v-if="managerStorage.nfs_share_dir" label="NFS共享目录">{{ managerStorage.nfs_share_dir }}</el-descriptions-item>
+                  <el-descriptions-item v-if="managerStorage.nfs_status" label="NFS状态">
+                    <el-tag :type="managerStorage.nfs_status === 'connected' ? 'success' : 'danger'" size="small">{{ managerStorage.nfs_status }}</el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item v-if="managerStorage.cifs_server" label="CIFS服务器">{{ managerStorage.cifs_server }}</el-descriptions-item>
+                  <el-descriptions-item v-if="managerStorage.cifs_share_dir" label="CIFS共享目录">{{ managerStorage.cifs_share_dir }}</el-descriptions-item>
+                  <el-descriptions-item v-if="managerStorage.cifs_status" label="CIFS状态">
+                    <el-tag :type="managerStorage.cifs_status === 'connected' ? 'success' : 'danger'" size="small">{{ managerStorage.cifs_status }}</el-tag>
+                  </el-descriptions-item>
+                </el-descriptions>
+                <!-- Brick 信息 -->
+                <el-table v-if="managerStorage.brick && managerStorage.brick.length" :data="managerStorage.brick" style="margin-top: 12px;">
+                  <el-table-column prop="ip" label="主机IP" align="center"></el-table-column>
+                  <el-table-column prop="name" label="Docker IP" align="center"></el-table-column>
+                  <el-table-column prop="director" label="Brick路径" align="center"></el-table-column>
+                  <el-table-column label="状态" align="center" width="80">
+                    <template slot-scope="scope">
+                      <el-tag :type="scope.row.status === 'Y' ? 'success' : 'danger'" size="mini">{{ scope.row.status === 'Y' ? '正常' : '异常' }}</el-tag>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ====== 存储维护模块 ====== -->
+          <div v-if="currentModule === 'maintain'">
+            <!-- 脑裂恢复 -->
+            <div v-if="maintainTab === 0" class="container-box">
+              <div class="section-title"><h2>脑裂恢复</h2></div>
+              <el-alert title="脑裂恢复功能用于修复GlusterFS存储脑裂问题" type="info" :closable="false" style="margin-bottom: 16px;"></el-alert>
+              <el-button type="primary" @click="scanSplitBrain">扫描脑裂文件</el-button>
+              <el-table :data="splitBrainFiles" style="margin-top: 16px;" v-if="splitBrainFiles.length">
+                <el-table-column prop="path" label="文件路径" align="center"></el-table-column>
+                <el-table-column prop="status" label="状态" align="center" width="100"></el-table-column>
+              </el-table>
+              <el-empty v-else description="暂无脑裂文件" :image-size="100" style="padding: 40px;"></el-empty>
+            </div>
+            <!-- 备份管理 -->
+            <div v-if="maintainTab === 1" class="container-box">
+              <div class="section-title">
+                <h2>备份管理</h2>
+                <el-button type="primary" size="small" @click="createBackup">创建备份</el-button>
+              </div>
+              <el-table :data="maintainBackups">
+                <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
+                <el-table-column prop="message" label="说明" align="center"></el-table-column>
+                <el-table-column prop="status" label="状态" align="center" width="100">
+                  <template slot-scope="scope">
+                    <el-tag :type="scope.row.status === 'completed' ? 'success' : 'info'" size="small">{{ scope.row.status }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="created_at" label="创建时间" align="center" width="180"></el-table-column>
+              </el-table>
+              <el-empty v-if="!maintainBackups.length" description="暂无备份记录" :image-size="100"></el-empty>
+            </div>
+            <!-- 日志记录 -->
+            <div v-if="maintainTab === 2" class="container-box">
+              <div class="section-title"><h2>日志记录</h2></div>
+              <el-table :data="maintainLogs">
+                <el-table-column prop="level" label="级别" width="80" align="center">
+                  <template slot-scope="scope">
+                    <el-tag :type="{info:'info',warn:'warning',error:'danger'}[scope.row.level] || 'info'" size="mini">{{ scope.row.level }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="type" label="类型" width="120" align="center"></el-table-column>
+                <el-table-column prop="message" label="内容" align="center"></el-table-column>
+                <el-table-column prop="created_at" label="时间" width="180" align="center"></el-table-column>
+              </el-table>
+              <el-empty v-if="!maintainLogs.length" description="暂无日志" :image-size="100"></el-empty>
+            </div>
+            <!-- 网络监测 -->
+            <div v-if="maintainTab === 3" class="container-box">
+              <div class="section-title">
+                <h2>网络监测</h2>
+                <el-button type="primary" size="small" @click="runNetworkDetect">检测网络</el-button>
+              </div>
+              <el-table :data="networkDetectResults">
+                <el-table-column prop="ip" label="IP" align="center"></el-table-column>
+                <el-table-column prop="hostname" label="主机名" align="center"></el-table-column>
+                <el-table-column label="可达" align="center" width="80">
+                  <template slot-scope="scope">
+                    <el-tag :type="scope.row.reachable ? 'success' : 'danger'" size="mini">{{ scope.row.reachable ? '是' : '否' }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="latency" label="延迟(ms)" align="center" width="100"></el-table-column>
+              </el-table>
+              <el-empty v-if="!networkDetectResults.length" description="点击'检测网络'开始" :image-size="100"></el-empty>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 高级设置弹窗 -->
+      <el-dialog title="高级设置" :visible.sync="settingDialogVisible" width="700px" append-to-body>
+        <el-tabs v-model="settingTab">
+          <el-tab-pane label="服务器角色" name="roles">
+            <el-table :data="clusterNodes" size="small">
+              <el-table-column prop="ip" label="节点" align="center"></el-table-column>
+              <el-table-column label="角色" align="center">
+                <template slot-scope="scope">
+                  <el-select v-model="scope.row.role" size="small">
+                    <el-option label="管理_计算（CM_VDI）" value="CM_VDI"></el-option>
+                    <el-option label="管理（CM_Only）" value="CM_Only"></el-option>
+                    <el-option label="计算（VDI_Only）" value="VDI_Only"></el-option>
+                    <el-option label="仲裁（Arbiter）" value="Arbiter"></el-option>
+                    <el-option label="网关（Gateway）" value="Gateway"></el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
+          <el-tab-pane label="NTP服务器" name="ntp">
+            <el-form label-width="120px" class="setting-form">
+              <el-form-item label="NTP服务器">
+                <el-input v-model="settingForm.ntp_server"></el-input>
+              </el-form-item>
+              <el-form-item label="同步间隔(分)">
+                <el-input-number v-model="settingForm.ntp_interval" :min="1" :max="1440"></el-input-number>
+              </el-form-item>
+            </el-form>
+          </el-tab-pane>
+          <el-tab-pane label="集中存储" name="center">
+            <el-form label-width="120px" class="setting-form">
+              <el-form-item label="服务器地址">
+                <el-input v-model="settingForm.center_ip"></el-input>
+              </el-form-item>
+              <el-form-item label="用户名">
+                <el-input v-model="settingForm.center_user"></el-input>
+              </el-form-item>
+              <el-form-item label="密码">
+                <el-input v-model="settingForm.center_pass" type="password" show-password></el-input>
+              </el-form-item>
+              <el-form-item label="同步时间">
+                <el-time-picker v-model="settingForm.center_sync_time" format="HH:mm" value-format="HH:mm"></el-time-picker>
+              </el-form-item>
+            </el-form>
+          </el-tab-pane>
+          <el-tab-pane label="NFS配置" name="nfs">
+            <el-form label-width="120px" class="setting-form">
+              <el-form-item label="NFS服务器IP">
+                <el-input v-model="settingForm.nfs_ip"></el-input>
+              </el-form-item>
+              <el-form-item label="共享目录">
+                <el-input v-model="settingForm.nfs_dir"></el-input>
+              </el-form-item>
+              <el-form-item label="NFS版本">
+                <el-select v-model="settingForm.nfs_version">
+                  <el-option label="NFSv3" value="3"></el-option>
+                  <el-option label="NFSv4" value="4"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-form>
+          </el-tab-pane>
+          <el-tab-pane label="CIFS配置" name="cifs">
+            <el-form label-width="120px" class="setting-form">
+              <el-form-item label="CIFS服务器IP">
+                <el-input v-model="settingForm.cifs_ip"></el-input>
+              </el-form-item>
+              <el-form-item label="共享目录">
+                <el-input v-model="settingForm.cifs_dir"></el-input>
+              </el-form-item>
+              <el-form-item label="用户名">
+                <el-input v-model="settingForm.cifs_user"></el-input>
+              </el-form-item>
+              <el-form-item label="密码">
+                <el-input v-model="settingForm.cifs_pass" type="password" show-password></el-input>
+              </el-form-item>
+              <el-form-item label="域">
+                <el-input v-model="settingForm.cifs_domain"></el-input>
+              </el-form-item>
+              <el-form-item label="SMB版本">
+                <el-select v-model="settingForm.cifs_version">
+                  <el-option label="2.0" value="2.0"></el-option>
+                  <el-option label="3.0" value="3.0"></el-option>
+                </el-select>
+              </el-form-item>
+            </el-form>
+          </el-tab-pane>
+          <el-tab-pane label="管理网络" name="network">
+            <el-descriptions :column="2" border size="small" :labelStyle="{color: '#ccc', background: 'rgba(255,255,255,0.05)'}" :contentStyle="{color: '#fff', background: 'transparent'}">
+              <el-descriptions-item label="主机名">{{ networkInfo.hostname }}</el-descriptions-item>
+              <el-descriptions-item label="IP 地址">{{ networkInfo.ip }}</el-descriptions-item>
+              <el-descriptions-item label="子网掩码">{{ networkInfo.mask }}</el-descriptions-item>
+              <el-descriptions-item label="默认网关">{{ networkInfo.gateway }}</el-descriptions-item>
+            </el-descriptions>
+          </el-tab-pane>
+        </el-tabs>
+        <div slot="footer">
+          <el-button @click="settingDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="saveSetting">保存</el-button>
+        </div>
+      </el-dialog>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/vue@2.7.16/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+  <script>
+    var BASE = window.location.origin;
+
+    function api(method, url, data) {
+      var token = localStorage.getItem('cockpit_token');
+      var opts = {
+        method: method,
+        headers: { 'Content-Type': 'application/json' }
+      };
+      if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+      if (data) opts.body = JSON.stringify(data);
+      return fetch(BASE + url, opts).then(function (r) {
+        if (r.status === 401) {
+          localStorage.removeItem('cockpit_token');
+          location.reload();
+          throw new Error('未登录');
+        }
+        return r.json();
+      });
+    }
+
+    new Vue({
+      el: '#app',
+      data: function () {
+        return {
+          token: localStorage.getItem('cockpit_token') || '',
+          loginForm: { username: 'root', password: '' },
+          loginLoading: false,
+          currentModule: 'virtualization',
+          sysInfo: {},
+
+          // 集群状态
+          clusterStatus: -1,
+          clusterData: {},
+          clusterNodes: [],
+          managerStorage: null,
+
+          // 部署
+          deployMode: null,
+          deployStep: 0,
+          deploying: false,
+          deployForm: { hostname: '', ip: '', role: 'CM_VDI', storage_mode: 'GlusterFS', hosts: [] },
+          addHostForm: { ip: '', password: '' },
+
+          // 设置弹窗
+          settingDialogVisible: false,
+          settingTab: 'roles',
+          settingForm: {
+            ntp_server: '', ntp_interval: 5,
+            center_ip: '', center_user: '', center_pass: '', center_sync_time: '00:00',
+            nfs_ip: '', nfs_dir: '', nfs_version: '4',
+            cifs_ip: '', cifs_dir: '', cifs_user: '', cifs_pass: '', cifs_domain: '', cifs_version: '2.0'
+          },
+          networkInfo: {},
+
+          // 存储维护
+          maintainTab: 0,
+          maintainTabs: [
+            { label: '脑裂恢复', icon: 'el-icon-first-aid-kit' },
+            { label: '备份管理', icon: 'el-icon-folder' },
+            { label: '日志记录', icon: 'el-icon-document' },
+            { label: '网络监测', icon: 'el-icon-connection' }
+          ],
+          splitBrainFiles: [],
+          maintainBackups: [],
+          maintainLogs: [],
+          networkDetectResults: [],
+
+          // 角色映射
+          roleMap: {
+            CM_VDI: '管理_计算（CM_VDI）',
+            CM_Only: '管理（CM）',
+            VDI_Only: '计算（VDI）',
+            Arbiter: '仲裁（Arbiter）',
+            Gateway: '网关（Gateway）'
+          }
+        };
+      },
+      computed: {
+        currentSteps: function () {
+          if (this.deployMode === 'standalone') return ['单机属性', '存储模式', '主机配置', '部署状态'];
+          return ['类型选择', '存储模式', '添加主机', '部署检测', '存储配置', '部署状态'];
+        }
+      },
+      created: function () {
+        if (this.token) {
+          this.loadSysInfo();
+          this.loadClusterStatus();
+        }
+      },
+      methods: {
+        doLogin: function () {
+          var self = this;
+          self.loginLoading = true;
+          api('POST', '/api/auth/login', self.loginForm).then(function (res) {
+            if (res.token) {
+              localStorage.setItem('cockpit_token', res.token);
+              self.token = res.token;
+              self.loadSysInfo();
+              self.loadClusterStatus();
+            } else {
+              self.$message.error(res.error || '登录失败');
+            }
+          }).catch(function () {
+            self.$message.error('连接失败');
+          }).finally(function () {
+            self.loginLoading = false;
+          });
+        },
+        logout: function () {
+          localStorage.removeItem('cockpit_token');
+          this.token = '';
+        },
+        loadSysInfo: function () {
+          var self = this;
+          api('GET', '/api/info').then(function (r) { self.sysInfo = r; });
+        },
+        loadClusterStatus: function () {
+          var self = this;
+          api('GET', '/api/cluster/status').then(function (r) {
+            self.clusterStatus = r.cluster_status || 0;
+            if (r.cluster_status === 1) {
+              self.clusterData = r;
+              self.clusterNodes = r.service_status || [];
+              self.managerStorage = r.manager_storage_status || null;
+            }
+          }).catch(function () {
+            self.clusterStatus = 0;
+          });
+        },
+        startDeploy: function (mode) {
+          this.deployMode = mode;
+          this.deployStep = 0;
+          if (this.sysInfo.hostname) this.deployForm.hostname = this.sysInfo.hostname;
+          if (this.sysInfo.ip) this.deployForm.ip = this.sysInfo.ip;
+        },
+        addClusterHost: function () {
+          if (!this.addHostForm.ip) return this.$message.warning('请输入IP');
+          this.deployForm.hosts.push({
+            ip: this.addHostForm.ip,
+            hostname: 'node' + (this.deployForm.hosts.length + 1),
+            role: 'CM_VDI'
+          });
+          this.addHostForm = { ip: '', password: '' };
+        },
+        executeDeploy: function () {
+          var self = this;
+          self.deploying = true;
+          self.deployStep = self.currentSteps.length - 1;
+          var nodes = self.deployMode === 'standalone'
+            ? [{ name: self.deployForm.hostname, ip: self.deployForm.ip, role: self.deployForm.role }]
+            : self.deployForm.hosts;
+          api('POST', '/api/cluster/deploy', {
+            type: self.deployMode === 'standalone' ? 1 : 2,
+            storage_mode: self.deployForm.storage_mode,
+            nodes: nodes
+          }).then(function () {
+            self.deploying = false;
+            self.$message.success('部署完成');
+            setTimeout(function () { self.loadClusterStatus(); }, 1500);
+          }).catch(function () {
+            self.deploying = false;
+            self.$message.error('部署失败');
+          });
+        },
+        loginMC: function () {
+          var ip = this.clusterNodes.length > 0 ? this.clusterNodes[0].ip : this.sysInfo.ip;
+          window.open('https://' + ip + ':8443/mc/');
+        },
+        clusterAction: function (action) {
+          var self = this;
+          self.$confirm('确定要' + (action === 'shutdown' ? '关机' : '重启') + '集群？', '确认', { type: 'warning' }).then(function () {
+            api('POST', '/api/cluster/' + action).then(function () {
+              self.$message.success('指令已发送');
+            });
+          }).catch(function () {});
+        },
+        saveSetting: function () {
+          var self = this;
+          var tab = self.settingTab;
+          var promise;
+          if (tab === 'ntp') {
+            promise = api('PUT', '/api/config/ntp', { server: self.settingForm.ntp_server, time_update_interval: self.settingForm.ntp_interval });
+          } else if (tab === 'center') {
+            promise = api('PUT', '/api/config/center-cluster', { ip: self.settingForm.center_ip, user_name: self.settingForm.center_user, password: self.settingForm.center_pass, data_sync_time: self.settingForm.center_sync_time });
+          } else if (tab === 'nfs') {
+            promise = api('PUT', '/api/config/nfs', { ip: self.settingForm.nfs_ip, share_dir: self.settingForm.nfs_dir, version: self.settingForm.nfs_version });
+          } else if (tab === 'cifs') {
+            promise = api('PUT', '/api/config/cifs', { ip: self.settingForm.cifs_ip, share_dir: self.settingForm.cifs_dir, user_name: self.settingForm.cifs_user, password: self.settingForm.cifs_pass, domain: self.settingForm.cifs_domain, version: self.settingForm.cifs_version });
+          } else if (tab === 'roles') {
+            var updates = self.clusterNodes.map(function (n) { return { id: n.id || 0, role: n.role }; });
+            promise = api('PUT', '/api/config/roles', { updates: updates });
+          } else {
+            self.settingDialogVisible = false;
+            return;
+          }
+          promise.then(function () {
+            self.$message.success('保存成功');
+            self.settingDialogVisible = false;
+            self.loadClusterStatus();
+          }).catch(function () {
+            self.$message.error('保存失败');
+          });
+        },
+        scanSplitBrain: function () {
+          var self = this;
+          api('POST', '/api/maintain/recovery/scan').then(function (r) {
+            self.splitBrainFiles = r.files || [];
+            self.$message.success('扫描完成');
+          });
+        },
+        createBackup: function () {
+          var self = this;
+          api('POST', '/api/maintain/backups').then(function () {
+            self.$message.success('备份创建成功');
+            self.loadMaintainBackups();
+          });
+        },
+        loadMaintainBackups: function () {
+          var self = this;
+          api('GET', '/api/maintain/backups').then(function (r) { self.maintainBackups = r.data || []; });
+        },
+        loadMaintainLogs: function () {
+          var self = this;
+          api('GET', '/api/maintain/logs').then(function (r) { self.maintainLogs = r.data || []; });
+        },
+        runNetworkDetect: function () {
+          var self = this;
+          api('GET', '/api/maintain/network-detect').then(function (r) {
+            self.networkDetectResults = r.data || [];
+          });
+        }
+      },
+      watch: {
+        currentModule: function (val) {
+          if (val === 'maintain') {
+            this.loadMaintainBackups();
+            this.loadMaintainLogs();
+          }
+        },
+        settingDialogVisible: function (val) {
+          if (val) {
+            var self = this;
+            // 加载配置
+            api('GET', '/api/config/ntp').then(function (r) {
+              if (r.data) { self.settingForm.ntp_server = r.data.server; self.settingForm.ntp_interval = r.data.time_update_interval; }
+            });
+            api('GET', '/api/config/nfs').then(function (r) {
+              if (r.data && r.data.ip) { self.settingForm.nfs_ip = r.data.ip; self.settingForm.nfs_dir = r.data.share_dir; self.settingForm.nfs_version = r.data.version; }
+            });
+            api('GET', '/api/config/cifs').then(function (r) {
+              if (r.data && r.data.ip) { self.settingForm.cifs_ip = r.data.ip; self.settingForm.cifs_dir = r.data.share_dir; self.settingForm.cifs_user = r.data.user_name; self.settingForm.cifs_domain = r.data.domain || ''; self.settingForm.cifs_version = r.data.version; }
+            });
+            api('GET', '/api/config/center-cluster').then(function (r) {
+              if (r.data && r.data.ip) { self.settingForm.center_ip = r.data.ip; self.settingForm.center_user = r.data.user_name; self.settingForm.center_sync_time = r.data.data_sync_time; }
+            });
+            api('GET', '/api/config/network').then(function (r) {
+              self.networkInfo = r.data || {};
+            });
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

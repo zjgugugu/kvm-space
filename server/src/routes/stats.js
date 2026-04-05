@@ -1,4 +1,4 @@
-// 平台统计 API（供报表页面使用, 对标KSVD 6大类20+报表）
+// 平台统计 API（供报表页面使用, 6大类20+报表）
 const express = require('express');
 const router = express.Router();
 

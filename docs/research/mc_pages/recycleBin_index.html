@@ -1,0 +1,2717 @@
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+
+将thin-main.gsp与main.gsp合并——modify by ph
+1. 删除所有css引入，放在一级模块gsp中维护
+2. 删除所有js引入， 放在一级模块gsp中维护
+
+ PS: CSS,JS代码请放入if (filterPaths) 语句中
+
+-->
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="description" content="Kylin MC"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <title>桌面磁盘</title>
+    <link rel="shortcut icon" href="/mc/favicon.ico" type="image/ico"/>
+    
+    
+    
+    
+    
+
+        <!-- bootstrap & fontawesome -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css"
+              href="/mc/font-awesome/4.5.0/css/font-awesome.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/jquery-ui.min.css"/>
+
+        <!-- ace styles -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace.min.css"
+              class="ace-main-stylesheet" id="main-ace-style"/>
+        <!--[if lte IE 9]>
+        <link rel="stylesheet" type="text/css"  href="/mc/css/ace/ace-part2.min.css" class="ace-main-stylesheet" />
+    <![endif]-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-skins.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-rtl.min.css"/>
+        <!--[if lte IE 9]>
+        <link rel="stylesheet" type="text/css"   href="/mc/css/ace/ace-ie.min.css"/>
+    <![endif]-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/gpl/jquery.cluetip.css"/>
+
+        <!-- 引入mc工具类 -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/mc/mc_util_simple.css"/>
+        <!-- page specific plugin styles -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+        <!-- 引入共用样式，以覆盖/全局使用-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/mc/common-style.css"/>
+
+
+        <!--[if !IE]> -->
+        <script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+        <!-- <![endif]-->
+        <!--[if IE]>
+        <script src="/mc/js/ace/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+        <![endif]-->
+        <script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/jquery-ui.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/jquery.jqGrid.min.js" type="text/javascript"></script>
+
+        <!-- ace scripts -->
+        <script src="/mc/js/ace/ace-elements.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/ace.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/gpl/jquery/jquery.jgrowl_minimized.js" type="text/javascript"></script>
+
+        <!-- mc.js 初始化时会调用，不引入会导致发布规则编辑页面报错 -->
+        <script src="/mc/js/gpl/jquery/jquery.cluetip.js" type="text/javascript"></script>
+
+        <script src="/mc/js/gpl/jquery/jquery.hoverIntent.js" type="text/javascript"></script>
+
+
+        <script src="/mc/js/hnkylin/mc.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/notify.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/task.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/approvalNotify.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/common/common.js" type="text/javascript"></script>
+
+    
+
+    
+    <link rel="stylesheet" type="text/css" href="/mc/css/mc/task_platform.css" />
+
+    <link rel="stylesheet" type="text/css" href="/mc/css/lib/swiper.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+    <script src="/mc/js/../mc/lib/swiper.min.js" type="text/javascript"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+        
+            <script src="/mc/js/gpl/Datejs/date-zh-CN.js" type="text/javascript"></script>
+
+        
+        <script type="text/javascript">
+
+      jQuery(document).ready(function() {
+        KSVD.updatei18nMap({
+          titleConfirm: "确认",
+          titleInfo: "提示",
+          titleWarn: "警告",
+          titleError: "错误",
+          OK: "确定",
+          cancel: "取消",
+          urgent: "紧急", // 紧急
+        });
+        KSVD.appCtx = "/mc/";
+        KSVD.initSideBar();
+        KSVD.notify.init();
+        KSVD.task.init();
+        KSVD.approvalNotify.init();
+        KSVD.initGlobalSettings();
+        KSVD.errorStr = "错误";
+      });
+        
+</script>
+
+    
+
+    
+    
+    
+    <script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+
+        {
+            const $ = jQuery;
+            $(function () {
+                const body = $('body');
+                // 注册关于
+                body.on('click', '.j-dialog-info-trigger', function () {
+                    KSVD.dialogFormat('alert', 'dialog-info', $(this).attr('data-info'), null, null);
+                });
+            });
+        }
+    
+</script>
+
+
+    
+    
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="layout" content="main"/>
+    
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/jquery-ui.min.css" />
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-datepicker3.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/daterangepicker.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ui.jqgrid.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/chosen.min.css"/>
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ace.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-skins.min.css"/>
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-duallistbox.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-multiselect.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/bootstrap-switch-v4.0.0-alpha.1/bootstrap-switch.min.css"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+
+<link rel="stylesheet" type="text/css" href="/mc/css/mc/mc_global.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/mc/common-style.css" />
+
+
+
+</head>
+
+
+
+
+
+
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+<!-- .skin-thime 为了增加权重 by ph -->
+<body class="kylin skin-thime" id="main-body" data-permission="[&quot;MON_SERVERS&quot;:&quot;true&quot;, &quot;MON_SESSIONS&quot;:&quot;true&quot;, &quot;IMAGE_OWNER&quot;:&quot;true&quot;, &quot;AL_READ&quot;:&quot;true&quot;, &quot;SP_READ&quot;:&quot;true&quot;, &quot;PROV_READ&quot;:&quot;true&quot;, &quot;GS_FULL&quot;:&quot;true&quot;, &quot;LEAF_READ&quot;:&quot;true&quot;, &quot;PROV_FULL&quot;:&quot;true&quot;, &quot;MAINT_READ&quot;:&quot;true&quot;, &quot;NP_READ&quot;:&quot;true&quot;, &quot;DP_FULL&quot;:&quot;true&quot;, &quot;SERVERS_FULL&quot;:&quot;true&quot;, &quot;VM_FULL&quot;:&quot;true&quot;, &quot;STAT_READ&quot;:&quot;true&quot;, &quot;SP_FULL&quot;:&quot;true&quot;, &quot;NP_FULL&quot;:&quot;true&quot;, &quot;MAINT_FULL&quot;:&quot;true&quot;, &quot;VM_READ&quot;:&quot;true&quot;, &quot;IMAGE_READ&quot;:&quot;true&quot;, &quot;DP_READ&quot;:&quot;true&quot;, &quot;POLICY_READ&quot;:&quot;true&quot;, &quot;LEAF_FULL&quot;:&quot;true&quot;, &quot;IMAGE_FULL&quot;:&quot;true&quot;, &quot;SERVERS_READ&quot;:&quot;true&quot;, &quot;MON_READ&quot;:&quot;true&quot;, &quot;ORG_FULL&quot;:&quot;true&quot;, &quot;POLICY_FULL&quot;:&quot;true&quot;, &quot;GS_READ&quot;:&quot;true&quot;, &quot;ORG_ADMIN&quot;:&quot;true&quot;, &quot;ORG_READ&quot;:&quot;true&quot;, &quot;AL_FULL&quot;:&quot;true&quot;, &quot;IMAGE_OPS&quot;:&quot;true&quot;]">
+
+    <input id="is_jzgk" value="false" hidden="hidden">
+
+
+<!-- Client management introduces the task-platform at this position. If the terminal is placed at the end, many JS files will be missing. Other modules will be placed at the end -->
+
+<!-- Client management ... end -->
+
+<!-- masthead -->
+
+
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script type="text/javascript">
+
+    /*validate 验证提示*/
+    var params = {
+        name : "名称",
+        nickname1 : "标题",
+        ip : "IP",
+        mask : "子网掩码",
+        gateway : "网关",
+        require : function(v){return `${v}不能为空`}, //不能为空
+        specia_character : function(v){return `${v}不能包含特殊字符`}, //不能包含特殊字符
+        legal : function(v){return `请输入合法的${v}`}, //请输入合法的{v}
+        cannot_same : function(v){return `${v}不能相同`}, //不能相同
+        mismatch : function(v){return `${v}不匹配`}, //不匹配
+        tipTitle: "提示",
+    }
+    /*重构loadmodal simplemodal
+    和 弹窗相关
+    * */
+    var loadDialog_lang = {
+        title : "提示",
+        comfirm : "确定",
+        cancel : "取消",
+        add : "添加",
+    }
+    /*loading */
+    var loading_lang = {
+        message : "拼命加载中...",
+    }
+    /*发布规则 选择客户端登陆时间段*/
+    var dateFilter_lang = {
+        login_point : "登录时间点",
+        login_period : "登录时间段",
+        login_require_point : "不可登录时间点",
+        login_require_period : "不可登录时间段",
+        time_slot : "时间段",
+        title : "客户端登录时间段"
+    }
+    if(typeof KSVD == "undefined"){
+        var KSVD = {};
+    }
+    KSVD.validateTips = Object.assign({},params);
+    KSVD.loadDialogTips = Object.assign({},loadDialog_lang);
+    KSVD.loadingTips = Object.assign({},loading_lang);
+    KSVD.dateFilterTips = Object.assign({},dateFilter_lang);
+
+</script>
+
+</body>
+</html>
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+
+modify by ph
+ 1. 删除bootstrap.min.js
+
+-->
+
+
+
+
+
+
+
+
+    <script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+
+
+
+
+
+
+    <div id="navbar" class="navbar">
+    <div class="navbar-container" id="navbar-container">
+        <div class="navbar-header pull-left">
+            <a href="/mc/reporting/dashboard" class="navbar-brand">
+                <small>
+                    <i class=""></i>
+                    
+                        <img id="KylinCloudLogo" src="/mc/images/hnkylin/Kylin.png" height="70" width="229"/>
+                    
+                </small>
+            </a>
+        </div>
+        <nav role="navigation" class="navbar-menu">
+            <ul class="nav navbar-nav">
+                
+                    <li id="nav_dashboard_li" >
+                        <a href="/mc/reporting/dashboard" title="仪表板">仪表板</a>
+                    </li>
+                
+                
+                    <li id="nav_desktop_publish_id" >
+                        
+                            <a href="/mc/image/list" title="桌面发布">桌面发布</a>
+                        
+                    </li>
+                
+                
+
+                
+                    <li id="nav_virtual_machine_id_new" >
+                        <a href="/mc/VM/desktopVms" title="桌面虚拟机">桌面虚拟机</a>
+                    </li>
+                
+
+
+                
+                    <li id="nav_serverVirtualization_id" >
+                        <a href="/mc/serverVirtualization/index" title="服务器虚拟化">服务器虚拟化</a>
+                    </li>
+                
+                
+                    <li id="nav_network_pool_id" >
+                        
+                            <a href="/mc/network/list" title="网络池">网络池</a>
+                        
+                        
+                    </li>
+                
+                
+
+
+
+
+
+                    <li id="nav_storage_pool_id" >
+                        
+                            <a href="/mc/storageNew/storageNew" title="存储池">存储池</a>
+                        
+                    </li>
+                
+                
+                    <li id="nav_physical_machine_id" >
+                        
+                            <a href="/mc/servers/clusterMasters" title="一体机">一体机</a>
+                        
+                    </li>
+
+
+
+
+
+
+
+
+                    
+                        <li id="nav_log_warning_id01" >
+                            <a href="/mc/monitoringNew/monitoringNew" title="日志告警">日志告警</a>
+                        </li>
+                    
+                
+                
+                
+                    <li id="nav_statistic_id" >
+                        
+                            <a href="/mc/statistics/userLoginInfo" title="统计报表">统计报表</a>
+                        
+                    </li>
+                
+                
+                    
+                        <li id="nav_client_management_id" >
+                            
+                                <a href="/mc/client/index" title="终端管理">终端管理</a>
+                            
+                        </li>
+                    
+                
+                <li id="nav_system_management_id" class="active">
+                    
+                        <a href="/mc/generalSettings/showGlobalPolicy" title="系统管理">系统管理</a>
+                    
+                </li>
+            </ul>
+        </nav>
+        <div class="navbar-buttons navbar-header pull-right" role="navigation">
+            <ul class="nav navbar-nav j-fullscreen-text">
+
+                
+                    <li class="grey dropdown-modal">
+                        <a  class="dropdown-toggle" href="#" title="任务展示">
+                            <i class="ksvd-task"></i>
+                            <span class="badge badge-grey"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-check"></i>
+                                任务进展提醒
+                            </li>
+
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar">
+                                </ul>
+                            </li>
+
+                            <li class="dropdown-footer">
+                                <a href="/mc/app/taskCenter" style="cursor: pointer;" class="hide">查看完成的任务</a>
+                                <a id="task_pending_id" style="cursor: pointer;" class="hide" >
+                                    查看进行中的任务
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                
+
+                
+                    <li class="white dropdown-modal">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#" title="审批提醒">
+                            <i class="icon-approval2"></i>
+                            <span class="badge badge-light"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-check"></i>
+                                审批提醒
+                            </li>
+
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar">
+                                </ul>
+                            </li>
+
+                            <li class="dropdown-footer">
+                                <a href="/mc/app/approvalCenter" style="cursor: pointer;">查看未处理的审批</a>
+                            </li>
+                        </ul>
+                    </li>
+                
+
+                
+                    <li class="purple dropdown-modal">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="alarm"></i>
+                            <span class="badge badge-important"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-exclamation-triangle"></i>
+                                告警事件提醒
+                            </li>
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar j-alarm20200507">
+                                </ul>
+                            </li>
+                            <div style="display: inline;line-height: 3.4;">
+                                <a id="more-notification" style="position: relative;left:40px;bottom:2px;">
+                                    <u>查看更多</u>
+                                    
+                                </a>
+
+                                <a id="ignore-notification" style="position: absolute;right:40px;bottom:2px;visibility: hidden;">
+                                    <u>我知道了</u>
+                                    
+                                </a>
+                            </div>
+                        </ul>
+                    </li>
+                
+
+                <li class="light-blue dropdown-modal" >
+                    <a data-toggle="dropdown" href="#" class="dropdown-toggle">
+                        <span class="username">
+                            
+                                mcadmin
+                            
+                            <b class="arrow fa fa-angle-down"></b>
+                        </span>
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-user af-wautoi">
+                        <li>
+                            <a href="/mc/user/resetPassword/mcadmin" onclick="javascript:KSVD.loadModal(this, event, false, &#39;auto&#39;, &#39;/mc/&#39;, 450);return false;" title="重置用户 'mcadmin' 的密码">
+                                <i class="icon-resetPassowrd af-ml0i" ></i> 重置密码
+                            </a>
+                        </li>
+
+                        <li>
+                            
+                                <a href="/mc/user/logout">
+                                    <i class="icon-logout af-ml0i" ></i> 注销
+                                </a>
+                            
+                        </li>
+
+                        <li>
+                            <a href="javascript: void(0);" id="buildinfo" class="j-dialog-info-trigger" data-info="产品版本：KSVD V7 <br/>内部版本号：R023S07.48308">
+                                <i class="icon-about af-ml0i" ></i> 关于
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="swiper-tips-dialog">
+    <div class="container-box">
+        <div class="title">告警</div>
+        <div class="swiper-tips-container">
+            <div class="swiper-wrapper">
+                
+                <div class="swiper-slide swiper-no-swiping">
+                    <p class="sub-title">一体机服务器警告</p>
+                    <div class="tips-info tips-one"></div>
+                </div>
+                
+                <div class="swiper-slide swiper-no-swiping">
+                    <p class="sub-title">存储警告</p>
+                    <div class="tips-info">
+                        <span>当前未配置用户数据存储，所有数据均保存在Mstorage存储中，有存储风险。请尽快联系管理员前往存储池页面，添加用户数据存储！</span>
+                        <label>
+                            <input value="" class="remind-input" type="checkbox"/><span>下次不再提醒本条告警</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <!-- 如果需要分页器 -->
+            <div class="swiper-pagination"></div>
+        </div>
+        <div class="pagination-group">
+            <div class="pagination-prev">上一页</div>
+            <div class="pagination-next">下一页</div>
+            <div class="pagination-close">关闭</div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="loadingStatus">
+    <div class="loadEffect">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</div>
+
+<div class="expiration-tips">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    <span class="text"></span>
+    <a href="../generalSettings/showLicense">立即处理</a>
+    <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+</div>
+<div class="main-container ace-save-state" id="main-container">
+    <script type="text/javascript">
+        try {
+            ace.settings.loadState('main-container')
+        } catch (e) {
+        }
+    </script>
+    
+        <!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+ 
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+-->
+
+
+
+
+
+  
+  
+  
+  
+    <div id="sidebar" class="sidebar sidebar-style1">
+      <script type="text/javascript">
+        try{ace.settings.loadState('sidebar')}catch(e){}
+      </script>
+      
+        <ul class="nav nav-list">
+          
+            <li class="open">
+              <a href="#" class="dropdown-toggle">
+                <i class="icon-perm"></i>
+                <span class="menu-test">权限管理</span>
+                <b class="arrow fa fa-angle-down"></b>
+              </a>
+
+              <ul class="submenu">
+                
+                  
+                    <li class="">
+                      <a href="/mc/user/list">管理员账号</a>
+                      <b class="arrow"></b>
+                    </li>
+                  
+                
+                
+                  <li class="">
+                    <a href="/mc/user/showPasswordPolicy">密码策略</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+
+                <!-- ip策略调用入口 -->
+                <li class="">
+                  <a href="/mc/visitPolicy/visitPolicys">访问策略</a>
+                  <b class="arrow"></b>
+                </li>
+
+                <li class="">
+                  <a href="/mc/user/listRoles">角色管理</a>
+                  <b class="arrow"></b>
+                </li>
+              </ul>
+            </li>
+          
+          
+            <li class="open">
+              <a href="#" class="dropdown-toggle">
+                <i class="icon-sys"></i>
+                <span class="menu-test">系统配置</span>
+                <b class="arrow fa fa-angle-down"></b>
+              </a>
+              <ul class="submenu">
+                
+                  <li >
+                    <a href="/mc/generalSettings/showGlobalPolicy">常规设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li >
+                    <a href="/mc/generalSettings/videoRedirectList">重定向设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li >
+                    <a href="/mc/generalSettings/trafficServerSettings">视频缓存设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li >
+                    <a href="/mc/generalSettings/mailServerList">SMTP服务器设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li >
+                    <a href="/mc/generalSettings/welcomeMessageList">欢迎消息设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  
+                    <li >
+                      <a href="/mc/generalSettings/vdeSettings">VDE设置</a>
+                      <b class="arrow"></b>
+                    </li>
+                  
+                  
+                    <li  title="仅对服务器虚拟化有效">
+                      <a href="/mc/generalSettings/labelSettings">标签设置</a>
+
+                      <b class="arrow"></b>
+                    </li>
+                  
+                  
+                    <li  title="仅对服务器虚拟化有效">
+                      <a href="/mc/generalSettings/affinityGroup">亲和组设置</a>
+
+                      <b class="arrow"></b>
+                    </li>
+                  
+                  
+                  <li  title="仅对服务器虚拟化有效">
+                    <a href="/mc/generalSettings/dynamicSetting">动态热添加</a>
+
+                    <b class="arrow"></b>
+                  </li>
+                
+                
+
+                
+                  <li >
+                    <a href="/mc/organization/list">
+                      
+                        组织资源
+                      
+                    </a>
+                    <b class="arrow"></b>
+                  </li>
+                
+
+                
+                  <li >
+                    <a href="/mc/generalSettings/showLicense">许可</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+                
+                  <li >
+                    <a href="/mc/generalSettings/showHA">HA设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+
+                
+                  <li >
+                    <a href="/mc/zombieCloudServer/index">僵尸云服务器</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+
+                
+                  <li >
+                    <a href="/mc/serverCloudStartOrder/index">云服务器启动顺序</a>
+                    <b class="arrow"></b>
+                  </li>
+                
+                
+                  
+                    
+                    
+                  
+                
+            </ul>
+          </li>
+          
+          
+            
+              <li class="open">
+                <a href="#" class="dropdown-toggle">
+                  <i class="icon-backup"></i>
+                  <span class="menu-test">备份管理</span>
+                  <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <ul class="submenu">
+                  <li class="">
+                    <a href="/mc/VM/backups">虚拟机备份</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="">
+                    <a href="/mc/backup/backupServer">备份服务器设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="" title="仅对服务器虚拟化有效">
+                    <a href="/mc/serverVMBackup/highSetting">备份高级设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                </ul>
+              </li>
+            
+
+            
+              <li class="open">
+                <a href="#" class="dropdown-toggle">
+                  <i class="icon-snap"></i>
+                  <span class="menu-test">快照中心</span>
+                  <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <ul class="submenu">
+                  <li class="">
+                    <a href="/mc/VM/snapStrategy">快照策略</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="">
+                    <a href="/mc/VM/snapSettings">快照设置</a>
+                    <b class="arrow"></b>
+                  </li>
+                </ul>
+              </li>
+            
+
+
+
+
+
+            
+              <li class="open">
+                <a href="#" class="dropdown-toggle" title="仅对服务器虚拟化有效">
+                  <i class="icon-backup"></i>
+                  <span class="menu-test">负载均衡与弹性伸缩</span>
+                  <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <ul class="submenu">
+                  <li class="">
+                    <a href="/mc/serverAutoScaling/listAutoScalingStrategyPage">弹性伸缩策略</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="">
+                    <a href="/mc/serverAutoScaling/listAutoScalingGroupPage">弹性伸缩组</a>
+                    <b class="arrow"></b>
+                  </li>
+                  <li class="">
+                    <a href="/mc/loadBalance/index">负载均衡</a>
+                    <b class="arrow"></b>
+                  </li>
+                </ul>
+              </li>
+            
+          
+
+          
+            
+              <li class="open">
+                <a href="#" class="dropdown-toggle" title="仅对服务器虚拟化有效">
+                  <i class="icon-backup"></i>
+                  <span class="menu-test">集群管理</span>
+                  <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <ul class="submenu">
+                  <li class="">
+                    <a href="/mc/generalSettings/drsSetting">分布式资源调度(DRS)</a>
+                    <b class="arrow"></b>
+                  </li>
+
+                  <li class="">
+                    <a href="/mc/generalSettings/dpmSetting">智能电源管理(DPM)</a>
+                    <b class="arrow"></b>
+                  </li>
+
+                </ul>
+              </li>
+            
+
+          
+          
+            <li >
+              <a href="/mc/app/fileManage"><i class="icon-filemanage"></i>文件管理</a>
+            </li>
+          
+          
+            <li >
+              <a href="/mc/app/taskCenter"><i class="icon-task"></i>任务中心</a>
+            </li>
+          
+          
+            <li >
+              <a href="/mc/app/approvalCenter"><i class="icon-approval"></i>审批中心</a>
+            </li>
+          
+          
+            <li >
+              <a href="/mc/app/util"><i class="icon-app"></i>维护实用程序</a>
+            </li>
+          
+          
+            <li class="active">
+              <a href="/mc/recycleBin/index"><i class="icon-app"></i>回收站</a>
+            </li>
+          
+          
+          
+            <li >
+              <a href="/mc/app/oneClickDetection"><i class="icon-task"></i>一键检测</a>
+            </li>
+          
+        </ul>
+      
+
+    </div>
+  
+
+
+    
+    <div class="main-content">
+        <div class="main-content-inner">
+            
+                <div class="page-content">
+                    
+<div class="icon-dialog-content ldap-default">
+    <div class="sub-title"></div>
+    <div class="sub-info"></div>
+    <div class="sub-content">
+        <div class="pass">
+            <p class="flex">请输入管理员密码：<input type="password" name="password" maxlength="32" id="manage_password" value="" /></p>
+            <p class="tip">tip</p>
+        </div>
+    </div>
+</div>
+
+<div class="icon-dialog-content ldap-failure">
+    <div class="sub-title"></div>
+    <div class="sub-info"></div>
+</div>
+<div class="icon-dialog-content ldap-success">
+    <div class="sub-title"></div>
+    <div class="sub-info"></div>
+</div>
+<div class="icon-dialog-content ldap-warning">
+    <div class="sub-title"></div>
+    <div class="sub-info"></div>
+</div>
+
+
+
+<style type="text/css">
+    .common-dialog-confirm {
+        z-index: 200;
+        display: block;
+        position: fixed;
+        transform: translate(-50%, -50%);
+        left: 50%;
+        top: 50%;
+        /*min-height: 300px;*/
+        width: 400px;
+        max-height: 400px;
+        color: #222222;
+        border-radius: 6px;
+        background-color: #FFF;
+        padding: 0;
+        border: 1px solid #DDD;
+        box-shadow: 0 2px 4px rgba(0,0,0,.2);
+        overflow: hidden;
+        outline: 0;
+    }
+    .common-dialog-confirm-title {
+        display: block;
+        width: auto;
+        height: 15px;
+        height: auto;
+        font-size: 14px;
+        font-weight: 700;
+        width: 350px;
+        margin-left: 20px;
+        color: #333333;
+    }
+
+    .common-dialog-confirm-content {
+        display: block;
+        width: auto;
+        min-height: 15px;
+        max-height: none;
+        width: 350px;
+        height: auto;
+        font-size: 12px;
+        font-weight: 400;
+        margin-right: 20px;
+        margin-left: 20px;
+        color: #7F7F7F;
+    }
+    /*复制ui-dialog 样式*/
+    .common-dialog-confirm {
+        color: #222222;
+        border-radius:6px;
+    }
+
+    .common-dialog-confirm .ui-dialog-content {
+        padding-top: 12px;
+        padding-bottom: 0;
+    }
+
+    .common-dialog-confirm .ui-dialog-buttonpane {
+        background-color: transparent !important;
+        margin-top: 0;
+        padding: 24px .4em !important;
+        border: none !important;
+    }
+
+    .common-dialog-confirm .ui-dialog-buttonpane .ui-dialog-buttonset {
+        float: none !important;
+        text-align: center;
+    }
+
+    .common-dialog-confirm .ui-dialog-buttonpane .ui-dialog-buttonset button {
+        margin-right: 0;
+    }
+
+    .common-dialog-confirm .ui-dialog-buttonpane .ui-dialog-buttonset button + button {
+        margin-left: 24px;
+    }
+
+    .common-dialog-confirm .ui-dialog-titlebar {
+        background-color: transparent !important;
+    }
+
+    .common-dialog-confirm .form-group > label[class*="col-"] {
+        margin-bottom: 2px;
+    }
+
+    .common-dialog-confirm .widget-header {
+        background: none !important;
+        padding-left: 0;
+        margin: 0 20px;
+    }
+
+    .common-dialog-confirm .ui-dialog-buttonpane button {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+    /* 提示弹框title居中 */
+    .common-dialog-confirm .widget-header h4{padding-right:0;}
+    .common-dialog-confirm .ui-dialog-title .widget-header {
+        font-size: 16px;
+        color: #222222;
+        border-bottom:none;/* 去除分隔线 */
+    }
+
+    .common-dialog-confirm .ui-dialog-title .widget-header h4.smaller {
+        /* 新建虚拟交换机，调整顶部title */
+        /*margin: 17px 0;*/
+        font-size: 16px;
+        line-height: 20px;
+    }
+
+    .common-dialog-confirm .ui-dialog-titlebar-close {
+        opacity: 1 !important;
+        color: #222222;
+        right: 10px !important;
+    }
+    .common-dialog-confirm .ui-dialog-titlebar-close::before,
+    .common-dialog-confirm .ui-dialog-titlebar-close::after{
+        content: '';
+        display: block;
+        position: absolute;
+        top: 10px;
+        left: 0;
+        width: 15px;
+        height: 2px;
+        background-color: #222222;
+    }
+    .common-dialog-confirm .ui-dialog-titlebar-close::before {
+        transform: rotate(45deg);
+    }
+
+    .common-dialog-confirm .ui-dialog-titlebar-close::after {
+        transform: rotate(-45deg);
+    }
+
+    .common-dialog-confirm .form-group {
+        margin-bottom: 20px;
+    }
+
+    .common-dialog-confirm .form-group input[type=text] {
+        width: 270px;
+        height: 30px;
+    }
+
+    .common-dialog-confirm .control-label {
+        padding-right: 0;
+    }
+
+    .common-dialog-confirm .ui-button-text-only .ui-button-text {
+        padding: 0;
+    }
+</style>
+
+<div class="common-dialog-confirm" id="common-dialog-confirm" style="display: none;">
+    <div class="ui-dialog-titlebar ui-widget-header">
+        <span class="ui-dialog-title">
+            <div class="widget-header">
+                <h4 id="dialog-confirm-header">确认</h4>
+            </div>
+        </span>
+
+        <div class="ui-dialog-content ui-widget-content common-dialog-confirm-title">
+            <span id="dialog-confirm-title"></span>
+        </div>
+        <div id="dialog-confirm-warning"></div>
+        <div class="ui-dialog-content ui-widget-content common-dialog-confirm-content">
+            <span id="dialog-confirm-content"></span>
+        </div>
+        <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+            <div class="ui-dialog-buttonset">
+                <p type="button" id="confirm-dialog-submit" class="btn kylin-blue" role="button">
+                    <span class="ui-button-text">确认</span>
+                </p>
+                <p type="button" id="confirm-dialog-cancel" class="btn btn-cancel-dialog" role="button">
+                    <span class="ui-button-text">取消</span>
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    jQuery(document).ready(function(){
+        KSVD.openConfirmDialog = function (event, params) {
+            if (event) {
+                // Prevent href from firing
+                if (event.preventDefault) {
+                    event.preventDefault();
+                }
+                else {
+                    // for IE
+                    event.returnValue = false;
+                }
+            }
+            var onsubmit = null;
+            var oncancel = null;
+            if(params.header){
+                jQuery("#dialog-confirm-header").html(params.header);
+            }
+            if(params.title){
+                jQuery("#dialog-confirm-title").html(params.title);
+            }
+            if(params.content){
+                jQuery("#dialog-confirm-content").html(params.content);
+            }
+            if(params.onsubmit){
+                onsubmit = params.onsubmit;
+            }
+            if(params.oncancel){
+                oncancel = params.oncancel;
+            }
+            jQuery("#common-dialog-confirm").show();
+            // 解绑之前所有监听事件，防止事件多次触发
+            jQuery("#confirm-dialog-submit").unbind();
+            jQuery("#confirm-dialog-submit").on("click", function () {
+                jQuery("#common-dialog-confirm").hide();
+                jQuery("#dialog-confirm-warning").empty();
+                if (onsubmit) {
+                    onsubmit();
+                }
+            });
+            jQuery("#confirm-dialog-cancel").unbind();
+            jQuery("#confirm-dialog-cancel").on("click", function () {
+                jQuery("#common-dialog-confirm").hide();
+                if(oncancel){
+                    oncancel();
+                }
+            });
+        };
+    });
+
+</script>
+<style type="text/css">
+    .dialog-verify-password {
+        z-index: 200;
+        display: block;
+        position: fixed;
+        transform: translate(-50%, -50%);
+        left: 50%;
+        top: 50%;
+        /*min-height: 300px;*/
+        width: 400px;
+        max-height: 400px;
+        color: #222222;
+        border-radius: 6px;
+        background-color: #FFF;
+        padding: 0;
+        border: 1px solid #DDD;
+        box-shadow: 0 2px 4px rgba(0,0,0,.2);
+        overflow: hidden;
+        outline: 0;
+    }
+    .dialog-verify-password-title {
+        display: block;
+        width: auto;
+        height: 15px;
+        height: auto;
+        font-size: 14px;
+        font-weight: 700;
+        width: 350px;
+        margin-left: 20px;
+        color: #333333;
+    }
+
+    .dialog-verify-password-content {
+        display: block;
+        width: auto;
+        min-height: 15px;
+        max-height: none;
+        width: 350px;
+        height: auto;
+        font-size: 12px;
+        font-weight: 400;
+        margin-right: 20px;
+        margin-left: 20px;
+        color: #7F7F7F;
+    }
+    /*复制ui-dialog 样式*/
+    .dialog-verify-password {
+        color: #222222;
+        border-radius:6px;
+    }
+
+    .dialog-verify-password .ui-dialog-content {
+        padding-top: 12px;
+        padding-bottom: 0;
+    }
+
+    .dialog-verify-password .ui-dialog-buttonpane {
+        background-color: transparent !important;
+        margin-top: 0;
+        padding: 24px .4em !important;
+        border: none !important;
+    }
+
+    .dialog-verify-password .ui-dialog-buttonpane .ui-dialog-buttonset {
+        float: none !important;
+        text-align: center;
+    }
+
+    .dialog-verify-password .ui-dialog-buttonpane .ui-dialog-buttonset button {
+        margin-right: 0;
+    }
+
+    .dialog-verify-password .ui-dialog-buttonpane .ui-dialog-buttonset button + button {
+        margin-left: 24px;
+    }
+
+    .dialog-verify-password .ui-dialog-titlebar {
+        background-color: transparent !important;
+    }
+
+    .dialog-verify-password .form-group > label[class*="col-"] {
+        margin-bottom: 2px;
+    }
+
+    .dialog-verify-password .widget-header {
+        background: none !important;
+        padding-left: 0;
+        margin: 0 20px;
+    }
+
+    .dialog-verify-password .ui-dialog-buttonpane button {
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+    /* 提示弹框title居中 */
+    .dialog-verify-password .widget-header h4{padding-right:0;}
+    .dialog-verify-password .ui-dialog-title .widget-header {
+        font-size: 16px;
+        color: #222222;
+        border-bottom:none;/* 去除分隔线 */
+    }
+
+    .dialog-verify-password .ui-dialog-title .widget-header h4.smaller {
+        /* 新建虚拟交换机，调整顶部title */
+        /*margin: 17px 0;*/
+        font-size: 16px;
+        line-height: 20px;
+    }
+
+    .dialog-verify-password .ui-dialog-titlebar-close {
+        opacity: 1 !important;
+        color: #222222;
+        right: 10px !important;
+    }
+    .dialog-verify-password .ui-dialog-titlebar-close::before,
+    .dialog-verify-password .ui-dialog-titlebar-close::after{
+        content: '';
+        display: block;
+        position: absolute;
+        top: 10px;
+        left: 0;
+        width: 15px;
+        height: 2px;
+        background-color: #222222;
+    }
+    .dialog-verify-password .ui-dialog-titlebar-close::before {
+        transform: rotate(45deg);
+    }
+
+    .dialog-verify-password .ui-dialog-titlebar-close::after {
+        transform: rotate(-45deg);
+    }
+
+    .dialog-verify-password .form-group {
+        margin-bottom: 20px;
+    }
+
+    .dialog-verify-password .form-group input[type=text] {
+        width: 270px;
+        height: 30px;
+    }
+
+    .dialog-verify-password .control-label {
+        padding-right: 0;
+    }
+
+    .dialog-verify-password .ui-button-text-only .ui-button-text {
+        padding: 0;
+    }
+
+</style>
+
+<div class="dialog-verify-password" id="dialog-confirm-password" style="display: none;">
+    <div class="ui-dialog-titlebar ui-widget-header">
+        <span class="ui-dialog-title">
+            <div class="widget-header">
+                <h4 id="dialog-verify-header">确认</h4>
+            </div>
+        </span>
+
+        <div class="ui-dialog-content ui-widget-content dialog-verify-password-title">
+            <span id="dialog-verify-title"></span>
+        </div>
+        <div id="dialog-verify-warning"></div>
+        <div class="ui-dialog-content ui-widget-content dialog-verify-password-content">
+            <span id="dialog-verify-content"></span>
+        </div>
+        <div class="ui-dialog-content ui-widget-content dialog-verify-password-content">
+            <p><span>
+                请输入管理员密码：<input type="password" name="password" maxlength="32" value="" id="password" />
+            </span></p>
+        </div>
+        <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+            <div class="ui-dialog-buttonset">
+                <button type="button" id="verify-password-submit" class="btn kylin-blue" role="button">
+                    <span class="ui-button-text">确认</span>
+                </button>
+                <button type="button" id="verify-password-cancel" class="btn btn-cancel-dialog" role="button">
+                    <span class="ui-button-text">取消</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    jQuery(document).ready(function(){
+        KSVD.verifyPassword = function (event, params) {
+            if (event) {
+                // Prevent href from firing
+                if (event.preventDefault) {
+                    event.preventDefault();
+                }
+                else {
+                    // for IE
+                    event.returnValue = false;
+                }
+            }
+            var onsuccess = null;
+            var oncancel = null;
+            if(params.header){
+                jQuery("#dialog-verify-header").html(params.header);
+            }
+            if(params.title){
+                jQuery("#dialog-verify-title").html(params.title);
+            }
+            if(params.content){
+                jQuery("#dialog-verify-content").html(params.content);
+            }
+            if(params.onsuccess){
+                onsuccess = params.onsuccess;
+            }
+            if(params.oncancel){
+                oncancel = params.oncancel;
+            }
+            jQuery("#dialog-confirm-password").show();
+            jQuery("#verify-password-submit").unbind();
+            jQuery("#verify-password-submit").on("click", function () {
+                jQuery("#dialog-verify-warning").empty();
+                jQuery.ajax({
+                    url: KSVD.appCtx + "user/verifyPassword",
+                    data: "password=" + jQuery("#password").val(),
+                    type: 'post',
+                    dataType: 'json',
+                    traditional: true,
+                    success: function (resp) {
+                        if (resp.status) {
+                            jQuery("#dialog-confirm-password").hide();
+                            if(onsuccess){
+                                onsuccess();
+                            }
+                        } else {
+                            var warnHtml = '<ul class="alert alert-danger list-unstyled"><li><i class="ace-icon fa fa-times red"></i>' + resp.message + '</li></ul>';
+                            jQuery("#dialog-verify-warning").empty();
+                            jQuery("#dialog-verify-warning").append(warnHtml);
+                        }
+                        jQuery("#password").val("");
+                    }
+                });
+            });
+            jQuery("#verify-password-cancel").unbind();
+            jQuery("#verify-password-cancel").on("click", function () {
+                jQuery("#dialog-confirm-password").hide();
+                jQuery("#password").val("");
+                if(oncancel){
+                    oncancel();
+                }
+            });
+        };
+    });
+
+</script>
+<div>
+    <div class="tblControls">
+        <ul class="nav nav-tabs" id="myTab">
+            <li class="active" type="server">
+                <a href="#"
+                   onclick="changeTab('server')">云服务器</a>
+            </li>
+            <li type="desktop">
+                <a href="#"
+                   onclick="changeTab('desktop')">桌面虚拟机</a>
+            </li>
+            <li type="desktopDisk">
+                <a href="#"
+                   onclick="changeTab('desktopDisk')">桌面磁盘</a>
+            </li>
+
+
+
+        </ul>
+    </div>
+</div>
+
+
+
+<div id="serverOperateButtons" style="overflow: hidden">
+    <div style="float:right">
+        <span class="input-icon" style="margin-right: 80px;">
+            <input placeholder="名称"
+                   class="nav-search-input" id="snap_strategy_search_id_server" value="" maxlength="20"
+                   type="text">
+            <i class="ace-icon fa fa-search nav-search-icon"></i>
+        </span>
+        <button class="btn kylin-blue"
+                onclick="openRecycleSetting(event)">回收站设置</button>
+        <button id="serverRecycleRecoverBtn" class="btn kylin-blue" disabled="disabled"
+                onclick="recoverServerRecycleMachineMany(event)">恢复</button>
+        <button id="serverRecycleDeleteBtn" class="btn kylin-red" disabled="disabled"
+                onclick="deleteServerRecycleMachineMany(event)">删除</button>
+    </div>
+</div>
+
+<div id="desktopOperateButtons" style="display: none; overflow: hidden">
+    <div style="float:right;">
+        <span class="input-icon" style="margin-right: 80px;">
+            <input placeholder="名称"
+                   class="nav-search-input" id="snap_strategy_search_id_desktop" value="" maxlength="20"
+                   type="text">
+            <i class="ace-icon fa fa-search nav-search-icon"></i>
+        </span>
+        <button class="btn kylin-blue"
+                onclick="openRecycleSetting(event)">回收站设置</button>
+        <button id="desktopRecycleRecoverBtn" class="btn kylin-blue" disabled="disabled"
+                onclick="recoverRecycleBinMachineMany(event)">恢复</button>
+        <button id="desktopRecycleDeleteBtn" class="btn kylin-red" disabled="disabled"
+                onclick="deleteRecycleBinMachineMany(event)">删除</button>
+    </div>
+</div>
+
+
+
+
+
+<input id="current_tab" type="text" value="desktop" style="display: none">
+
+<div id="serverTableDiv">
+    <table id="grid-table-recycle-server"></table>
+    <div id="grid-pager-recycle-server"></div>
+</div>
+
+<div id="desktopTableDiv" style="display: none;">
+    <table id="grid-table-recycle-desktop"></table>
+    <div id="grid-pager-recycle-desktop"></div>
+</div>
+<div id="desktopDiskDiv" style="display: none;width:100%;
+height: 100%" >
+    <html>
+<head>
+    
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="layout" content="main"/>
+    
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/jquery-ui.min.css" />
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-datepicker3.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/daterangepicker.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ui.jqgrid.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/chosen.min.css"/>
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ace.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-skins.min.css"/>
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-duallistbox.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-multiselect.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/bootstrap-switch-v4.0.0-alpha.1/bootstrap-switch.min.css"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+
+<link rel="stylesheet" type="text/css" href="/mc/css/mc/mc_global.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/css/mc/common-style.css" />
+
+
+</head>
+
+<body>
+<iframe id="systemManage" style="width: 100%;height: 100%;"
+        src="/mc/reporting/dist/index.html?version=00003" local_path="/recycle-bin/index/" frameborder="0"></iframe>
+</body>
+</html>
+</div>
+
+
+<script src="/mc/js/ace/ace-extra.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+
+
+<script src="/mc/js/ace/jquery-ui.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/jquery.jqGrid.min.js" type="text/javascript"></script>
+
+
+
+
+    <script src="/mc/js/ace/grid.locale-cn.js" type="text/javascript"></script>
+
+
+<script src="/mc/js/ace/chosen.jquery.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/wizard.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/tree.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootstrap-treeview.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/spin.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootbox.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/moment.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootstrap-datetimepicker.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/jquery.validate.min.js" type="text/javascript"></script>
+
+
+
+
+<script src="/mc/js/ace/ace-elements.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/ace.min.js" type="text/javascript"></script>
+
+
+<script src="/mc/js/ace/jquery.bootstrap-duallistbox.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/bootstrap-multiselect.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/../bootstrap-switch-v4.0.0-alpha.1/bootstrap-switch.min.js" type="text/javascript"></script>
+
+
+
+
+
+
+<script src="/mc/js/../mc/lib/echarts.js" type="text/javascript"></script>
+
+
+
+
+<script src="/mc/js/hnkylin/mc.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/notify.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/task.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/approvalNotify.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/common/common.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+
+// 记录jQuery
+(function use$(){
+    window.origin$ = window.$;
+    window.$ = jQuery;
+}());
+
+
+KSVD.appCtx = "/mc/";
+window.addEventListener('DOMContentLoaded', () => {
+    KSVD.updatei18nMap({
+          titleConfirm: "确认",
+          titleInfo: "提示",
+          titleWarn: "警告",
+          titleError: "错误",
+          OK: "确定",
+          cancel: "取消"
+        });
+     // KSVD.appCtx = "/mc/";
+     KSVD.initSideBar();
+     KSVD.notify.init();
+     KSVD.task.init();
+     KSVD.approvalNotify.init();
+     KSVD.initGlobalSettings();
+     KSVD.errorStr = "错误";
+});
+
+{
+    const $ = jQuery;
+    $(function(){
+        const body = $('body');
+        var clickEvents = $._data($("body")[0], "events")
+        //判断是否已经绑定数据
+        var selectorEventsBol = clickEvents&&clickEvents.click&&clickEvents.click[0].selector == ".j-dialog-info-trigger"
+        // if(selectorEventsBol) return
+        // // 注册关于
+        // body.on('click', '.j-dialog-info-trigger', function () {
+        //     KSVD.dialogFormat('alert','dialog-info',$(this).attr('data-info'),null,null);
+        // });
+    });
+}
+
+</script>
+
+<script src="/mc/js/../mc/common/module-servers.js" type="text/javascript"></script>
+
+
+
+<script type="text/javascript">
+
+// 框架相关的翻译 by ph
+
+!function($, window){
+'use strict'
+
+
+getFE().translate.library = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        language: "chinese",
+        modifySuccess: "修改成功，请稍后查看", // 修改成功，请稍后查看
+        noData: "暂无数据", // 暂无数据
+        name: "名称", // 名称
+        operation: "操作", // 操作
+        operationFailed: "操作失败", // 操作失败
+        minute: "分", // 分
+        hour: "时", // 时
+        day: "天", // 天
+        confirm: "确认", // 确认
+        cancel: "取消", // 取消
+        tip: "提示", // 提示
+        warn: "警告", // 警告
+        error: "错误", // 错误
+        save: "保存", // 保存
+        requestFailTip: "发送请求失败，请稍后再试", // 发送请求失败，请稍后再试
+        add: "新增", // 新增
+        delete: "删除", // 删除
+
+        // 桌面规格应用管控
+        applicationControl: "应用管控", // 应用管控
+        tip1: "禁止以下应用规则", // 禁止以下应用规则
+        tip2: "仅允许以下应用规则", // 仅允许以下应用规则
+        edit: "编辑", // 编辑
+        deleteBatch: "批量删除", // 批量删除
+        tip3: "确认删除所选规则吗？", // 确认删除所选规则吗？
+        tip4: "这些规则已经被使用了，无法删除。", // 这些规则已经被使用了，无法删除。
+        // name: "名称", // 名称
+        ruleLibrary: "所属规则库", // 所属规则库
+
+        ruleType: "规则类型", // 规则类型
+        // operation: "操作", // 操作
+        defaultRuleLibrary: "默认规则库", // 默认规则库
+        customRuleLibrary: "自定义规则库", // 自定义规则库
+        description: "描述", // 描述
+        allGroupNames: "全部组名", // 全部组名
+        off: "关闭", // 关闭
+        path: "路径", // 路径
+        filename: "文件名", // 文件名
+        featureInformation: "特征信息", // 特征信息
+        size: "大小", // 大小
+        productName: "产品名", // 产品名
+        publisher: "发布者", // 发布者
+        applyRules: "应用规则", // 应用规则
+        tip5: "Windows 7 旗舰版，企业版；Windows 8/8.1 企业版；Windows 10 企业版，教育版", // Windows 7 旗舰版，企业版；Windows 8/8.1 企业版；Windows 10 企业版，教育版
+        tip6: "支持的系统", // 支持的系统
+
+        tip7: "规则名称", // 规则名称
+        tip8: "规则描述", // 规则描述
+        tip9: "匹配路径", // 匹配路径
+        tip10: "匹配特征信息", // 匹配特征信息
+        tip11: "匹配发布和产品", // 匹配发布和产品
+        tip12: "匹配发布者", // 匹配发布者
+        removeingTip: "正在移除中，请稍后", // 正在移除中，请稍后
+
+        // 多虚拟磁盘
+        mVD_storage: "存储", 
+        mVD_add: "添加", 
+        mVD_del: "删除", 
+        mVD_name: "名称", 
+        mVD_bus: "总线类型", 
+        mVD_opacity: "容量", 
+        mVD_operation: "操作", 
+        mVD_edit: "编辑", 
+        mVD_desktopDisk: "桌面磁盘", 
+        mVD_scan: "一键扫描空闲磁盘", 
+        mVD_disk: "磁盘", 
+        mVD_vName: "虚拟机名称", 
+        mVD_user: "用户", 
+        mVD_address: "存储位置", 
+        mVD_takeUpSpace: "占用空间", 
+        mVD_sure: "确定", 
+        mVD_cancel: "取消", 
+        mVD_tip1: "确定要彻底删除该磁盘吗？", 
+        mVD_tip2: "删除前建议扫描一次空闲磁盘，确保磁盘列表为最新且该操作将彻底删除该磁盘，无法恢复，请确认是否要彻底删除磁盘？", 
+        mVD_addDisk: "添加磁盘", 
+        mVD_choose: "请选择", 
+        mVD_tip3: "高速硬盘virtio部分老系统如XP</br>无法支持，需要额外安装驱动。</br>普通硬盘ide相对通用。",
+        mVD_tip3_userDisk: "与系统盘保持一致",
+        mVD_advancedSettings: "高级设置", 
+        mVD_cacheMode: "缓存模式",
+        mVD_cacheMode_systemTip: "数据安全排序：directsync > writethrough > none > writeback > unsafe</br>性能排序：unsafe > writeback > none > writethrough > directsync</br>系统安装时默认使用none模式</br>注：【动态模式-长模式】和【静态模式】下一定要修改为none模式，或安全等级比none高的模式。",
+        mVD_cacheMode_userTip: "数据安全排序：directsync > writethrough > none > writeback > unsafe</br>性能排序：unsafe > writeback > none > writethrough > directsync</br>推荐用户盘子使用none模式！",
+        mVD_cacheMode_diskTip: "数据安全排序：directsync > writethrough > none > writeback > unsafe</br>性能排序：unsafe > writeback > none > writethrough > directsync</br>writethrough：读性能更好、推荐静态模式、长模式使用</br>none：写性能更好、推荐动态模式下使用（默认使用）</br>unsafe：推荐安装系统时使用",
+        mVD_ioRate: "I/O速率限制",
+        mVD_read: "读",
+        mVD_read_tip: "I/O速率限制最大为1000",
+        mVD_tip4: "磁盘读取速率限制，0表示不限制，此设置可能会导致虚拟机出现卡顿，</br>建议不低于5MB/s，否则会影响虚拟机的正常使用",
+        mVD_write: "写",
+        mVD_diskWriteTip: "磁盘写入速率限制，0表示不限制，此设置可能会导致虚拟机出现卡顿，</br>建议不低于5MB/s，否则会影响虚拟机的正常使用",
+        mVD_text1: "关机后清空用户盘数据", 
+        mVD_tip5: "删除失败", 
+        mVD_text2: "挂载的镜像文件", 
+        mVD_text3: "启动时挂载优化工具", 
+        mVD_tip6: "修改磁盘大小对已打快照虚拟机不生效；</br>磁盘容量缩小将对已有桌面不生效，对新建桌面生效；", 
+        mVD_text4: "用户盘数据加密", 
+        mVD_text5: "关机后清空该盘数据", 
+        mVD_text6: "用户文档存放服务器上", 
+        mVD_tip7: "这个功能是针对windows的，windows的文档，图片，视频，</br>桌面这几个系统自带文件夹会重定向到服务器。不保存在用</br>户自己的用户盘，其它数据不影响。", 
+        mVD_text7: "内置光驱", 
+        mVD_userDisk: "用户盘", 
+        mVD_saveFail: "保存失败", 
+        mVD_text8: "数据安全", 
+        mVD_text9: "系统盘", 
+        mVD_text10: "光驱", 
+        mVD_text11: "自动适应", 
+        mVD_tip8: "确定删除该磁盘？删除桌面规格磁盘，删除的磁盘将放入回收站，可前往回收站彻底删除", 
+        mVD_requestFail: "请求失败", 
+        mVD_text12: "桌面规格", 
+        mVD_text13: "用户详情", 
+        mVD_diskSize: "磁盘大小", 
+        mVD_deleteSuccess: "删除成功",
+        mVD_text14: "扫描桌面规格中已删除的空闲磁盘",
+        mVD_encryption: "磁盘加密:",//磁盘密码
+        mVD_inputEncryption: "输入密码:",//输入密码
+        mVD_sureEncryption: "确认密码:",//确认密码
+        mVD_isEncryption: "是否开启磁盘加密？",//开启加密
+        mVD_contentEncryption: "开启磁盘加密可保证用户磁盘数据的安全，该功能仅对新生成的磁盘生效，对历史生成的磁盘不生效，请确认后继续操作！",//开启加密提示内容
+        mVD_closeEncryption:"是否关闭磁盘加密？",//关闭加密
+        mVD_closeContentEncryption:"磁盘加密可保证用户磁盘数据的安全，关闭磁盘加密，新生成的磁盘将不会加密，请确认后继续操作！",//关闭加密内容提示
+        mVD_adminEncryption: "fe.unitModule.multipleVirtualDisks.administrator.encryption",//管理员确认内容提示
+        mVD_diskEncryption: "磁盘数据加密",//磁盘数据加密
+        mVD_successEncryption:"操作成功！",//操作成功
+        mVD_failEncryption:"磁盘加密失败！",//操作失败
+        mVD_deletePassTitle:"确定删除该磁盘？",//删除的确认标题
+        mVD_deletePassContent:"删除的磁盘将放入桌面规格磁盘回收站，可前往回收站彻底删除；",//删除的确认标题
+        mVD_notice:"通知",
+        mVD_editTitle:"系统盘总线类型修改提醒",//修改系统盘的确认标题
+        mVD_editContent:"修改系统盘总线类型，将同步修改用户盘的总线类型,请确认后操作！",//修改系统盘的确认内容
+        mvd_cleanTip: "关机后清空该盘数据可能导致引用该桌面规格的发布规则的桌面数据丢失，是否继续？",//关机后清空该盘数据由未勾选变为勾选提示
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+
+<script type="text/javascript">
+
+// “一体机模块”的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.servers = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        lock: "锁定规格", // 锁定规格
+        unlock: "解锁规格", // 解锁规格
+        passSwitch: "直通切换", // 直通切换
+        vgpuSwitch: "显卡切分", // VGPU切换
+        gpuType: "显卡类型", // 显卡类型
+        useOfGpu: "显卡使用情况", // 显卡使用情况
+        requestTip: "请求已成功发送，请稍后", // 请求已成功发送，请稍后
+        busId: "总线号", // 总线号
+        temperature: "显卡温度", // 显卡温度
+        memoryUsage: "显存使用率", // 显存使用率
+        GFXUsage: "GFX使用率", // GFX使用率
+        GFXUsageEngineClock: "显卡频率", // 显卡频率
+        powerUsage: "显卡功率", // 显卡功率
+        currentDPMLevel: "DPM级别", // DPM级别
+        PCIELinkSpeed: "链路速率", // 链路速率
+        PCIELinkWidth: "链路带宽", // 链路带宽
+        driverVersion: "驱动版本", // 驱动版本
+        utilization: "显卡使用率", // 显卡使用率
+        graphicsClock: "图形频率", // 图形频率
+        memoryClock: "内存频率", // 内存频率
+        vedioClock: "视频频率", // 视频频率
+        smClock: "SM频率", // SM频率
+        swThermalSlowdown: "软件减速", // 软件减速
+        hwThermalSlowdown: "硬件减速", // 硬件减速
+        gpuLinkGeneration: "链路版本", // 链路版本
+        gpuLinkWidth: "链路带宽", // 链路带宽
+        lessThanTip: "因当前集群服务器数量小于3台，必须确保新增服务器与集群原服务器型号一致，否则会导致数据存储副本扩充失败",
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+
+<script type="text/javascript">
+
+// “报表统计模块”的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.statistics = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        client: "终端", // 终端
+        numberOfOnlineTerminals: "在线终端数(个)", // 在线终端数(个)
+        terminalType: "终端类型", // 终端类型
+        onlineState: "在线状态", // 在线状态
+        online: "在线", // 在线
+        offline: "离线", // 离线
+
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+<script type="text/javascript">
+
+// “文档管理模块”的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.document = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        documentManagement: "文档管理", // 文档管理
+        numberOfOnlineUsers: "在线用户数", // 在线用户数
+        numberOfFileOutputs: "文件输出数", // 文件输出数
+        total: "总数", // 总数
+        onlineNumber: "在线人数", // 在线人数
+        usageMode: "使用模式", // 使用模式
+        terminalManagement: "终端管理", // 终端管理
+        cloudDesktop: "云桌面", // 云桌面
+        overrunAlarm: "超限告警", // 超限告警
+        time: "时间", // 时间
+        department: "部门", // 部门
+        outputQuantity: "输出数量", // 输出数量
+
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+<script type="text/javascript">
+
+// auth模块的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.auth = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        // “ldap服务器”
+        ldap: {
+            importUsers: "导入用户", // 导入用户
+            importOuMode1: "导入OU（方式一）", // 导入OU（方式一）
+            importOuMode2: "导入OU（方式二）", // 导入OU（方式二）
+            keyword: "关键字", // 关键字
+            query: "查询", // 查询
+            queryResults: "查询结果", // 查询结果
+            importMethod: "导入方式", //导入方式
+            importSeparately: "单独导入", // 单独导入
+            recursiveImport: "递归导入", // 递归导入
+            importUserOu: "导入用户的OU", // 导入用户的OU
+            towImport: "支持两种导入方式", // 支持两种导入方式
+            importMode1: "导入方式一", // 导入方式一
+            importMode2: "导入方式二", // 导入方式二
+            importToLocal: "导入到本地用户组", // 导入到本地用户组
+            onlySingle: "只支持单选", // 只支持单选
+            import: "导入", // 导入
+            isSyncGroup: "是否同步组结构", // 是否同步组结构
+            timingImportSettings: "定时导入设置", // 定时导入设置
+            open: "开启", // 开启
+            intervalTip1: "每隔", // 每隔
+            intervalTip2: "小时(1~24)自动导入", // 小时(1~24)自动导入
+            requiredTip: "请输入必填信息", // 请输入必填信息
+            intervalTip: "定时导入设置请输入整数（1~24）", // 定时导入设置请输入整数（1~24）
+            createGroupTip: "当前还没有任何组，请先新建组", // 当前还没有任何组，请先新建组
+            importSubmitloading: "加载中...", // 加载中
+            importLoadingText: "正在导入用户，数据量过大，预计需要2-3分钟，请在当前页面耐心等待...", // 加载提示文字
+            dialogFailure:"导入失败!", // 失败
+            dialogSuccess:"导入成功!", // 成功
+            dialogContentOne:"已成功导入", // 弹窗成功文字1
+            dialogContentTwo:"条数据，可前往用户列表查看已导入用户。", // 弹窗成功文字2
+            dialogContentThree:"以下", // 弹窗成功文字3
+            dialogContentFour:"条数据未导入成功。", // 弹窗成功文字4
+
+         }
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+<script type="text/javascript">
+
+!function($, window) {
+'use strict'
+
+getFE().translate.app = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        type: "类型",
+        action: "操作类型",
+        objName: "对象名称",
+        note: "备注",
+        status: "状态",
+        startTime: "申请时间",
+        operation:"操作",
+        approve: "通过",
+        reject: "拒绝",
+        pending: "待处理",
+        approved: "已通过",
+        rejected: "已拒绝",
+        failed:" 已失败",
+        approveInfo: "您确定要通过所选的请求吗？",
+        rejectInfo: "您确定要拒绝所选的请求吗？",
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+<script type="text/javascript">
+
+// 框架相关的翻译 by ph
+
+!function($, window){
+'use strict'
+
+
+getFE().translate.storage = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        dataStorage: "数据存储", // 数据存储
+        distributedStorage: "分布式存储", // 分布式存储
+        otherStorage: "其他存储", // 其他存储
+        name: "名称", // 名称
+        type:"类型", // 类型
+        status: "状态", // 状态
+        purpose: "用途", // 用途
+        totalCapacity: "总容量", // 总容量
+        usableCapacity:"可用容量", //可用容量
+        capacityUtilization: "容量使用率", // 容量使用率
+        numberOfCopy: "副本数", // 副本数
+        virtualMachinesTotalNumber: "虚拟机总数", // 虚拟机总数
+        virtualMachinesRunningNumber: "正运行虚拟机数量", // 正运行虚拟机数量
+        new: "新建", // 新建
+        success: "成功", // 成功
+        storageName: "存储名称", // 存储名称
+        storageCapacity: "存储容量", // 存储容量
+        resourcePoolDetails: "资源池详情", // 资源池详情
+        maximumAvailableCapacity: "可用容量", // 可用容量
+        numberOfAvailable: "数据盘数量", // 可用数据盘数量
+        numberOfHosts: "主机数量", // 主机数量
+        processing: "处理中", // 处理中
+        storageVolume:"存储卷", // 存储卷
+        afterDelete:"删除后", // 删除后
+        allDate:"存储上所有用户数据", // 存储上所有用户数据
+        willDelete:"将删除。", // 将删除。
+        unrecoverable:"且不可恢复！", // 且不可恢复！
+        tipSure: "请谨慎操作，删除前请确保已关闭运行在该存储卷上的虚拟机。", // 请谨慎操作，删除前请确保已关闭运行在该存储卷上的虚拟机。
+        pleaseEnter: "请输入", // 请输入
+        administratorPwd: "管理员密码", // 管理员密码
+        manage: "管理", // 管理
+        data:"数据", // 数据
+        nas: "NFS", // NFS
+        local:"本地磁盘", // 本地
+        online:"正常", // 在线
+        offline:"离线",// 离线
+        netConfigstep1_tt: "请根据自身实际使用场景，选择分布式存储的网络类型，用于访问各主机上的分布式存储数据", // 请根据自身实际使用场景，选择分布式存储的网络类型，用于访问各主机上的分布式存储数据
+        netConfigstep1_radio1: "存储网络共用管理网络", // 存储网络共用管理网络
+        netConfigstep1_radio1Help: "存储网络和管理网络共用一套网络链路，适合快速部署的简易场景，不适用于高负载场景", // 存储网络和管理网络共用一套网络链路，适合快速部署的简易场景，不适用于高负载场景
+        netConfigstep1_radio2: "存储网络使用独立物理网络", // 存储网络使用独立物理网络
+        netConfigstep1_radio2Help: "每台物理服务器使用一个或多个空闲的物理网卡作为存储网口，建立独立的存储网络，与管理网络和业务网络分开，适用于高负载的运行环境", // 每台物理服务器使用一个或多个空闲的物理网卡作为存储网口，建立独立的存储网络，与管理网络和业务网络分开，适用与高负载的运行环境
+        netConfigstep1_radio3: "单网卡", // 单网卡
+        netConfigstep1_radio3Help: "每台物理服务器上，使用一个空闲的物理网卡作为存储网口", // 每台物理服务器上，使用一个空闲的物理网卡作为存储网口
+        netConfigstep1_radio4: "聚合网络", // 聚合网络
+        netConfigstep1_radio4Help: "每台物理服务器上，使用一个以上空闲的物理网卡作为存储网口，默认使用bond6（自适应负载均衡策略），可有效提高负载均衡和灾备能力", // 每台物理服务器上，使用一个以上空闲的物理网卡作为存储网口，默认使用bond6（自适应负载均衡策略），可有效提高负载均衡和灾备能力
+        netConfigstep1_tip1: "至少请选择一种存储网络", // 至少请选择一种存储网络
+        netConfigstep1_tip2: "存在正在运行的虚拟机或离线状态的服务器，禁止修改", // 存在正在运行的虚拟机或离线状态的服务器，禁止修改
+        netConfigstep1_tip3: "您将要切换存储网络，是否继续？", // 您将要切换存储网络，是否继续？
+        netConfigTitle: "配置存储网口", // 配置存储网口
+        next: "下一步", // 下一步
+        prev: "上一步", // 上一步
+        loading: "拼命加载中...", // 拼命加载中...
+        saving: "拼命保存中...", // 拼命保存中...
+        netConfigstep_tip1: "当前集群主机数量小于3，不允许创建", // 当前集群主机数量小于3，不允许创建
+        netConfigstep2_tip1_1: "每台主机请选择", // 每台主机请选择
+        netConfigstep2_tip1_2: "张网卡", // 张网卡
+        netConfigstep2_text1: "存储口IP", // 存储口IP
+        netConfigstep2_tip2: "不能为空", // 不能为空
+        netConfigstep2_tip3: "请输入正确的IP", // 请输入正确的IP
+        netConfigstep2_tip4: "IP重复", // IP重复
+        netConfigstep2_tip5: "IP不在相同网段", // IP不在相同网段
+        netConfigstep2_text2: "主机", // 主机
+        netConfigstep2_text3: "物理网卡", // 物理网卡
+        netConfigstep2_text4: "存储口状态", // 存储口状态
+        netConfigstep2_tip6: "请选择物理网卡", // 请选择物理网卡
+        netConfigstep2_tip7: "请输入IP", // 请输入IP
+        netConfigstep2_tip8: "配置存储网口失败的机器", // 配置存储网口失败的机器
+        netConfigstep2_tip9: function(data){return `请不要以${data}开头`;}, // 请不要以开头
+        normal: "正常", // 正常
+        off: "断开", // 断开
+        chooseDisk_text1: "即将格式化所选磁盘，并将磁盘放入资源池，供系统统一分配，磁盘中数据将完全删除，是否继续", // 即将格式化所选磁盘，并将磁盘放入资源池，供系统统一分配，磁盘中数据将完全删除，是否继续？
+        chooseDisk_text2: "即将新建一个分布式存储，副本数量为3，即每份数据有3份拷贝，可有效保障磁盘故障而导致数据无法访问或丢失的风险。现将各主机的空闲硬盘资源集中整合至资源池，供新建分布式存储使用。", // 即将新建一个分布式存储，副本数量为3，即每份数据有3份拷贝，可有效保障磁盘故障而导致数据无法访问或丢失的风险。现将各主机的空闲硬盘资源集中整合至资源池，供新建分布式存储使用。
+        chooseDisk_text3: "请选择空闲磁盘用途", // 请选择空闲磁盘用途
+        chooseDisk_text4: "磁盘名称", // 磁盘名称
+        chooseDisk_text5: "磁盘类型", // 磁盘类型
+        chooseDisk_text6: "磁盘大小", // 磁盘大小
+        chooseDisk_text7: "磁盘用途", // 磁盘用途
+        chooseDisk_text8: "数据盘", // 数据盘
+        chooseDisk_text8_desc: "用于存储用户数据", // 用于存储用户数据
+        chooseDisk_text9: "暂不使用", // 暂不使用
+        chooseDisk_text10: "存在部分磁盘不符合系统要求，是否继续", // 存在部分磁盘不符合系统要求，是否继续
+        chooseDisk_text11: "以下磁盘初始化失败，未能加入资源池", // 以下磁盘初始化失败，未能加入资源池
+        chooseDisk_text12: "失败原因", // 失败原因
+        chooseDisk_text13: "个数据盘", // 个数据盘
+        chooseDisk_text14: "个缓存盘", // 个缓存盘
+        chooseDisk_text15: "缓存盘", // 缓存盘
+        chooseDisk_text15_desc: "使用固态磁盘给数据盘做IO加速，提高数据读写速度", // 使用固态磁盘给数据盘做IO加速，提高数据读写速度
+        DATA: "数据盘", // 数据盘
+        CACHE: "缓存盘", // 缓存盘
+        storageResource: "存储资源", // 存储资源
+        storageType: "存储类型", // 存储类型
+        capacity: "容量", // 容量
+
+        choose: "请选择",
+        noChoose: "未选择",
+        choosed: "已选择",
+        comfirm: "确 定",
+        cancal: "取 消",
+
+        client: "所有符合升级范围的终端",
+        tip1: "任务名称不能包含特殊字符",
+        tip2: "请输入任务名称",
+        tip3: "请输入版本号",
+        tip4: "请选择升级文件",
+        tip5: "请选择升级时间",
+        tip6: "请选择终端",
+        all: "全部终端",
+        part: "部分终端",
+        no: "暂无",
+
+
+
+
+        };
+    }
+
+    }(jQuery, window);
+
+</script>
+
+
+<script type="text/javascript">
+
+// 框架相关的翻译 by ph
+
+!function($, window){
+'use strict'
+
+getFE().translate.addHost = getTranslateMap();
+
+function  getFE() {
+  return window.FE = $.extend(true, {version: '1.1', translate: {}}, window.FE);
+}
+
+function  getTranslateMap() {
+  return {
+        newHost:"新增主机", //新增主机
+        addSuccess:"新增成功", //新增成功
+        manageStorageIp:"管理存储IP", //管理存储IP
+        errHostNetwork:"主机管理IP和服务器地址不在同一网段", //主机管理IP和服务器地址不在同一网段
+        errStorageNetwork:"管理存储IP和服务器地址不在同一网段", //管理存储IP和服务器地址不在同一网段
+        ipExist:"该IP已被使用", //已被使用
+        noEmpty: "不能为空", // 不能为空
+        legal : function(v){return `请输入合法的${v}`}, //请输入合法的{v}
+        hostManagementIP:"主机管理IP", //主机管理IP
+        rootPassword:"root密码", //root密码
+        serverRole:"服务器角色", //服务器角色
+        processing: "处理中", // 处理中
+        clientIp: "客户端访问IP", // 客户端访问IP
+        manageList: "管理节点列表", // 管理节点列表
+
+        cm: "管理（CM）", // 管理（CM）
+        vdi: "计算（VDI）", // 计算（VDI）
+        cm_vdi: "管理_计算（CM_VDI）", // 管理_计算（CM_VDI）
+        gateway: "网关（Gateway）", // 网关（Gateway）
+        arbiter: "仲裁（Arbiter）", // 仲裁（Arbiter）
+        arbiterTip: "仅支持在 2 个节点时新增独立的分布式存储仲裁节点（Arbiter），仲裁节点不提供云桌面和云服务器",
+
+    };
+}
+
+}(jQuery, window);
+
+</script>
+
+
+<script src="/mc/js/hnkylin/recycleBin.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    jQuery(document).ready(function() {
+        KSVD.updatei18nMap({
+            recycleTable_type: "类型",
+            recycleTable_name: "名称",
+            recycleTable_ownerName: "所属用户",
+            recycleTable_deleteDate: "删除时间",
+            recycleTable_recycleSaveDate: "到期时间",
+            recycleTable_deleteOperationUser: "删除者",
+            recycleTable_operation: "操作",
+            recycleTable_operation_clear: "彻底删除",
+ 	        recycleTable_operation_recover: "恢复",
+            recycleTitle_setting: "回收站设置",
+            recycleSetting_saveSuccess: "保存成功",
+            recycleRecvoer_confirm: "确定恢复该虚拟机？",
+            recycleRecoverManyTitle: "确定要批量恢复选中的虚拟机？",
+            recycleRecoverContent: "虚拟机的用户数据也会一并恢复，恢复后请前往桌面虚拟机列表查看。",
+            recycleRecoverContentPolicyAssignment: "发布规则、用户、用户组被删除的虚拟机不支持批量恢复，将过滤此类虚拟机。恢复后请前往桌面虚拟机列表查看。",
+            recycleRecoverContentPolicy: "当前虚拟机是由于发布规则删除而加入回收站的，将同步恢复原发布规则。虚拟机的用户数据也会一并恢复，恢复后可前往桌面虚拟机列表查看。",
+            recycleRecover_recoverSuccess: "恢复成功",
+            recycleDelete_confirm: "确定要彻底删除当前虚拟机吗？",
+            recycleDeleteContent: "彻底删除后，虚拟机数据及关联的配置，以及备份和快照文件均会被删除。请确认是否要彻底删除虚拟机",
+            recycleDeleteContentPolicy: "由于发布规则被删除而进入回收站的若干虚拟机，彻底删除后，虚拟机及相关配置、记录、备份和快照文件均会被删除。请确认是否要彻底删除",
+            recycleDeleteManyTitle: "确定要批量彻底删除所选虚拟机吗？",
+            recycleDeleteManyContent: "彻底删除后，虚拟机数据及关联的配置，以及备份和快照文件均会被删除。请确认是否要彻底删除选中的",
+            recycleDeleteManyContentEnd: "台虚拟机吗？",
+            recycleDelete_cleanSuccess: "删除成功",
+            recycleDetail: "详情",
+            removeCompletely: "彻底删除",
+            headerTip: "提示",
+            TitleSomeDesktopExpired: "调整后，部分虚拟机已过期",
+            ContentSomeDesktopExpired: "基于调整后的保留时间，部分虚拟机已过期。这部分虚拟机将会在1天之内彻底删除。请确认是否继续？",
+            day: "天",
+            hour: "小时",
+            lessThanAnHour: "不足1小时",
+            storageLoaction: "存储位置",
+            diskUsageSize: "占用空间",
+            restTime: "剩余时间",
+            sourceType: "来源",
+            sourceTypeVM: "删除虚拟机",
+            sourceTypeUserDelete: "用户删除",
+            sourceTypeUserModify: "用户变更",
+            sourceTypePolicyAssignment: "发布规则删除",
+            sourceHover: "发布规则",
+            failed: "失败",
+
+            serverVirutal_recycleTable_type: "类型",
+            serverVirutal_recycleTable_serverCloudName: "名称",
+            serverVirutal_recycleTable_ownerName: "所属用户",
+            serverVirutal_recycleTable_deleteDate: "删除时间",
+            serverVirutal_recycleTable_recycleSaveDate: "到期时间",
+            serverVirutal_recycleTable_deleteOperationUser: "删除者",
+            serverVirutal_recycleTable_operation: "操作",
+            serverVirutal_recycleTable_operation_clear: "删除",
+            serverVirutal_recycleTable_operation_recover: "恢复",
+            serverVirutal_recycleTable_type_cloudServer: "云服务器",
+            serverVirutal_recycleTable_type_desktop: "桌面虚拟化",
+            serverVirutal_recycleTitle_setting: "回收站设置",
+            serverVirutal_recycleSetting_saveSuccess: "保存成功",
+            serverVirutal_recycleRecover_recoverSuccess: "恢复成功。",
+            serverVirutal_recycleDelete_cleanSuccess: "删除成功",
+            serverVirutal_recycleDelete_startDelete: "正在删除，请稍后刷新页面查看",
+            serverVirutal_recycleDelete_confirm: "确定永久删除选中云服务器？",
+            serverVirutal_recycleRecvoer_confirm: "确定恢复选中云服务器？",
+            });
+        KSVD.appCtx = "/mc/";
+        initServerRecycleTable();
+        function i18nRecycleDeleteContent(imagename, username) {
+            return "彻底删除后，虚拟机数据及关联的配置，以及备份和快照文件均会被删除。请确认是否要彻底删除虚拟机"
+        }
+    });
+
+</script>
+
+
+                </div>
+            
+        </div>
+    </div>
+</div>
+<!-- Other modules except client management are introduced into the task-platform and placed at the end -->
+
+  <div id="slideDiv" style="width:100%;position:fixed;display:none;height:310px;z-index:101;">
+  <div style="height:15%;width:100%;padding-top:10px;background-color:rgba(63, 81, 147, 1);">
+    <span id="rmDesk" style="margin-right:45px;float:right;cursor:pointer;"><i style="margin-left:10px;font-size:20px;color:white;" class="fa fa-times"></i></span>
+    <span onclick="freshGrid('','allLink')" style="margin-right:10px;float:right;margin-left:5px;cursor:pointer;"><i style="font-size:15px;color:white;top:4px;" class="glyphicon glyphicon-refresh"></i> </span>
+    <span style="margin-right:10px;float:right;"><a href="/mc/app/taskCenter" style="text-decoration: none;color:white;">查看全部任务</a></span>
+    <span style="margin-right:10px;float:left;margin-left:20px;"><a href="#" style="color:white;">任务台</a></span>
+
+  </div>
+  <div style="height:85%;width:100%;background-color:rgba(8, 14, 35, 1);">
+
+    <div style="display:inline-block;width:8%;height:90%;border-right: solid 1px #808080;margin-top:10px;" >
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="allLink" class="statusLabel" onclick="freshGrid('','allLink')"  href="javascript:void(0)" style="text-decoration: none;color:#337ab7;font-weight: bold;">全部状态</a></div>
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="pendingLink" class="statusLabel" onclick="freshGrid('pending','pendingLink')" style="text-decoration: none;color:white;font-weight: bold;" href="javascript:void(0)">进行中</a></div>
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="failedLink" class="statusLabel" onclick="freshGrid('failed','failedLink')" style="text-decoration: none;color:white;font-weight: bold;" href="javascript:void(0)">失败</a></div>
+    </div>
+    <div style="display:inline-block;width:90%;height:100%;float:right;padding-top:20px;">
+      <div  id="taskDiv" style="width:97%;overflow-x: hidden;">
+
+        <table id="desk-table"></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="/mc/js/hnkylin/taskDetailInfo.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    var timmer;
+    var plateItemFlag='';
+    var itemIdFlag='allLink';
+    jQuery(function(){
+      KSVD.updatei18nMap({
+          serverVirtaulTaskGrid_type: "类型",
+          serverVirtaulTaskGrid_createTime: "创建时间",
+          serverVirtaulTaskGrid_startTime: "开始时间",
+          serverVirtaulTaskGrid_finishTime: "结束时间",
+          serverVirtaulTaskGrid_action: "操作",
+          serverVirtaulTaskGrid_objName: "对象名称",
+          serverVirtaulTaskGrid_operUser: "操作用户",
+          serverVirtaulTaskGrid_status: "状态",
+          serverVirtaulTaskGrid_reason: "原因",
+          serverVirtaulTaskGrid_detail: "详情",
+          showAllTask: "查看全部任务",
+          allStatus: "全部状态",
+          doingStatus: "进行中",
+          failStatus: "失败",
+          successStatus: "成功",
+          completeStatus: "完成",
+          taskProgress: "任务进度",
+
+          servervirtualEdit: "云服务器编辑",
+          serverVirtaulHostMigrate: "主机位置迁移",
+          serverVirtaulHostStorageMigrate: "主机与存储迁移",
+          servervirtualVolMigrate: "存储迁移",
+          serverVirtaulClusterMigrate: "跨集群迁移",
+          servervirtualForceReboot: "强制重启",
+          servervirtualReboot: "重启",
+          servervirtualPowerOn: "开机",
+          servervirtualShutDown: "关机",
+          servervirtualResume: "唤醒",
+          servervirtualPause: "暂停",
+          servervirtualForceShutDown: "强制关机",
+          servervirtualDelete: "删除镜像数据",
+          servervirtualAutoDelete: "回收站自动删除镜像数据",
+          servervirtualManualDelete: "回收站手动删除镜像数据",
+          servervirtualDeleteSoft: "移入回收站",
+          serverVirtualDeleteFormat: "低格删除",
+          serverVirtualDeleteSaveImage: "保留镜像数据",
+          serverAdd: "新增主机",
+
+          servervirtualClone: "完整克隆",
+          servervirtualCloneLink: "链接克隆",
+          servervirtualCreate: "创建云服务器",
+          servervirtualCreateByTemplate: "基于模板创建云服务器",
+          servervirtualExport: "云服务器导出",
+          servervirtualImport: "导入云服务器",
+          servervirtualCreateServerSnap: "创建内存快照",
+          servervirtualCreateNoMemServerSnap: "创建非内存快照",
+          servervirtualSnapshotDelete: "删除快照",
+          servervirtualSnapshotApply: "恢复快照",
+          servervirtualBatchApply: "批量恢复快照",
+          servervirtualBatchCreateSnap: "批量创建快照",
+          servervirtualCreateBackUp: "创建备份",
+          servervirtualRecoverBackUp: "恢复备份",
+          servervirtualDeleteBackUp: "删除备份",
+          servervirtualDiskCopy: "磁盘文件拷贝",
+
+          aliasName: "名称",
+          description: "描述",
+          selectCluster:"计算资源",
+          vcpuSocket: "CPU个数",
+          vcpuCores: "CPU核数",
+          cpuMode: "CPU模式",
+          schedulingPriority: "调度优先级",
+          cpuLimit: "CPU限制(MHz)",
+
+          numaConfig: "虚拟NUMA",
+          memory: "内存",
+          memoryHugeConfig: "大页内存",
+          memoryBubbleConfig: "内存回收",
+
+          addDisk: "增加磁盘",
+          delDisk: "删除磁盘",
+          diskCapacity: "磁盘容量(GB)",
+          targetBus: "磁盘类型",
+          cacheType: "缓存方式",
+          provisionType: "置备方式",
+          readIOLimit: "限制I/O速率",
+          writeIOLimit: "限制I/O速率",
+          readIOPSLimit: "限制IOPS",
+          writeIOPSLimit: "限制IOPS",
+
+          addInterface: "增加网卡",
+          delInterface: "删除网卡",
+          interfaceType: "网络类型",
+          modeltype: "网卡类型",
+          poolName: "地址池",
+          virtualSwitch: "虚拟交换机",
+          portGroup: "端口组",
+          ipAddress: "IP地址",
+          mac: "MAC地址",
+          queueCount: "队列个数",
+          mtuCount: "MTU",
+          hotDrawing: "热拔",
+
+          addIso: "增加光驱",
+          delIso: "删除光驱",
+          sourceFile: "镜像文件",
+
+          editDisk: "磁盘",
+          editInterface: "网卡",
+          editIso: "光驱",
+          editUsb: "USB",
+          editPci: "PCI设备",
+          editGpu: "GPU",
+          graphicsCard: "显卡类型",
+          mouseType: "鼠标类型",
+          biosSwitch: "BIOS设置",
+          biosFile: "BIOS文件",
+          biosWaitTime: "BIOS停留时间",
+
+          addUsb: "新增USB",
+          delUsb: "删除USB",
+          hostId: "主机",
+          usbId: "USB设备",
+
+          vmBluescreen: "云服务器HA",
+          uniqbVmHA: "宿主机HA",
+          enableCpuDynamic: "启用cpu热添加",
+          enableMemDynamic: "启用内存热添加",
+          aotuMigrateSwitch: "自动迁移",
+          followHostStartAuto: "系统启动时，自动运行此云服务器",
+          bootOrder: "引导顺序",
+          remoteOpen: "开启远程控制台",
+          remotePassword: "访问密码",
+          wholeness: "完整性校验",
+          autoStartByHost: "开机自启",
+          existedTime: "有效期",
+          noTime: "无期限",
+          customizeTime: "自定义使用到",
+
+          //values
+          HOST_PASSTHROUGH: "直通模式",
+          HOST_MODEL: "主机匹配模式",
+          CUSTOM: "兼容",
+          schedulingPriorityLow: "低",
+          schedulingPriorityMiddle: "中",
+          schedulingPriorityHigh: "高",
+
+          graphicsCardQXL: "QXL高性能显卡",
+          graphicsCardVGA: "标准VGA显卡",
+          graphicsCardCirrus: "Cirrus高性能显卡",
+          virtio: "virtio类型显卡",
+
+          legacy: "LEGACY启动",
+          uefi: "UEFI启动",
+          userUpload: "自定义启动",
+
+          noConfig: "未配置",
+          reOpen: "重启",
+          byOther: "由其它服务器重建",
+
+          close: "关闭",
+          open: "开启",
+
+
+        });
+      KSVD.appCtx = "/mc/";
+
+        //固定到屏幕底部而不是页面底部
+       var winHeight=jQuery(window).height();
+       var bodyHeight=jQuery(document).height();
+       var offsetHeight=bodyHeight-winHeight;
+
+        jQuery("#slideDiv").css('bottom',0);
+
+        jQuery('.grey').click(function(){
+             var disStatus=jQuery("#slideDiv").is(":hidden");
+              clearInterval(timmer);
+             if(disStatus){
+               timmer= window.setInterval( "freshGrid()",6000);
+             }
+             jQuery("#slideDiv").slideToggle(1000);
+
+        });
+        jQuery('#rmDesk').click(function(){
+            clearInterval(timmer);
+           jQuery("#slideDiv").slideToggle(1000);
+        });
+        initList('desk');
+ });
+
+  function initList(searchType){
+
+        var parent_column = jQuery("#desk-table").closest('[class*="col-"]');
+        //resize to fit page size
+        jQuery(window).on('resize.jqGrid', function () {
+            jQuery("#desk-table").jqGrid('setGridWidth', parent_column.width());
+        });
+
+        //resize on sidebar collapse/expand
+        jQuery(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+            if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                setTimeout(function () {
+                    jQuery("#desk-table").jqGrid('setGridWidth', parent_column.width());
+                }, 20);
+            }
+        });
+
+        var col_names;
+        with (KSVD.i18n) {
+            col_names = [serverVirtaulTaskGrid_status,serverVirtaulTaskGrid_type, serverVirtaulTaskGrid_action, serverVirtaulTaskGrid_objName, serverVirtaulTaskGrid_operUser,taskProgress, serverVirtaulTaskGrid_startTime,
+                serverVirtaulTaskGrid_finishTime, serverVirtaulTaskGrid_detail, serverVirtaulTaskGrid_reason]
+        }
+
+        _tableObj=jQuery("#desk-table").jqGrid({
+            //direction: "rtl",
+            url: KSVD.appCtx + 'serverVMDetail/listTasksByServerId'+(searchType?'?searchType='+searchType:''),
+            datatype: "json",
+            colNames: col_names,
+            height:200,
+            colModel: [
+                {name: 'status', index: 'status', width:100,sortable: false,
+                    formatter: function (value, grid, rows, state) {
+                        var colorValue='';
+                        if(value == KSVD.i18n.successStatus){
+                            colorValue='green';
+                        }else if(value == KSVD.i18n.failStatus){
+                            colorValue='red';
+                        }else if(value == KSVD.i18n.doingStatus){
+                            colorValue='blue';
+                        }
+                        return '<font color="'+colorValue+'">'+value+'</font>';
+                    }
+                },
+                {name: 'type', index: 'type', width:118,sortable: false},
+                {name: 'action', index: 'action',width:180, sortable: false},
+                {name: 'objName', index: 'objName',width:200,sortable: false},
+                {name: 'operUser', index: 'operUser', width:100,sortable: false},
+                {name: 'taskProgress', index: 'taskProgress',width:240, sortable: false,formatter: function (value, grid, rows, state) {
+                    var valStr='<div id="progressBack" style="float:left;">';
+                    if(rows.status == KSVD.i18n.doingStatus){
+                        valStr+='<div id="progressDoing"></div></div><div style="width:30px;float:left;margin-left:10px;line-height:100%;">'+KSVD.i18n.doingStatus+'</div>'
+                    }else{
+                        valStr+='<div id="progressComplete"></div></div><div style="width:30px;float:left;margin-left:10px;line-height:100%;">100%</div>'
+                    }
+                    return valStr;
+                }},
+                {name: 'startTime', index: 'startTime', width:200,sortable: true},
+                {name: 'finishTime', index: 'finishTime',width:200, sortable: true},
+                {name: 'detail', index: 'detail', sortable: false,formatter: function(value, grid, rows) {
+                     var name = rows.detail;
+                     if (name == "null" || (typeof(name) == "undefined")) {
+                         name = ''
+                     }else{
+                         name=KSVD.taskDetailInfo.init(rows.objName,name);
+                     }
+                     return name;
+                 }},
+                {name: 'reason', index: 'reason', width:200,sortable: false},
+
+            ],
+            rowNum: 5,
+            viewrecords: true,
+            altRows: true,
+            pgbuttons: true,
+
+        });
+
+    }
+    function freshGrid(status,eleId){
+         if(status)
+         plateItemFlag=status;
+         if(eleId)
+         itemIdFlag=eleId;
+         var _linkObj=jQuery("#"+itemIdFlag);
+      if(itemIdFlag != 'allLink'){
+        jQuery(_linkObj).css('color','#337ab7');
+        jQuery(_linkObj).parent().siblings().find('a').css('color','white');
+      }else{
+        plateItemFlag='';
+        jQuery(".statusLabel:first").css('color','#337ab7');
+        jQuery(".statusLabel:first").parent().siblings().find('a').css('color','white');
+      }
+        var queryData = {
+            status: plateItemFlag
+        }
+        //_tableObj.jqGrid('clearGridData');
+        _tableObj.jqGrid('setGridParam', {
+            postData: queryData
+        }).trigger("reloadGrid");
+    }
+   //发起任务弹框
+  function showDiaForTask(){
+     var disStatus=jQuery("#slideDiv").is(":hidden");
+      freshGrid(plateItemFlag);
+      clearInterval(timmer);
+     timmer= window.setInterval( "freshGrid()",6000);
+     if(disStatus){
+         jQuery("#slideDiv").slideToggle(1000);
+     }
+  }
+
+</script>
+
+
+
+<!-- Other modules ... end -->
+
+</body>
+</html>

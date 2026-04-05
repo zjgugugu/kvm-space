@@ -1,0 +1,188 @@
+=== Grails Controllers ===
+AppController
+AppLayerRestController
+AppRestController
+AuthController
+AuthProviderRestController
+BackupController
+BaseRestController
+BranchController
+CertificateRestController
+ChartQueryController
+ClientController
+ClientDesktopController
+ClientDetailController
+ClientRestController
+ClientUserController
+ConfigPropertyController
+DebugRestController
+DesktopPoolController
+DesktopPoolRestController
+DevicesController
+DocumentController
+GeneralSettingsController
+GroupRestController
+GuestToolsController
+HostController
+ImageAppController
+ImageAppRuleController
+ImageController
+ImageFileController
+ImageRestController
+ImportLdapUserController
+KcpOpenApiController
+KsvdClusterRestController
+KsvdController
+KsvdEventRestController
+KsvdLicenseRestController
+KsvdServerRestController
+KsvdUserRestController
+LeafController
+MACAddressPoolController
+MACAddressRestController
+MonitoringController
+MonitoringNewController
+MonitoringRestController
+NetworkController
+OpenApiController
+OrganizationController
+OrganizationRestController
+PolicyAssignmentController
+PolicyAssignmentRestController
+PolicyController
+PolicyDiskController
+PolicyPropertyValueController
+PolicyRestController
+PXEController
+RecycleBinController
+ResourceTagController
+ResourceTagRestController
+RoleRestController
+ScreenController
+ServersController
+serverVirtualizationOpenApiController
+StatisticsController
+StorageController
+StorageNewController
+TerminalBindController
+UnauthController
+UserController
+UserRestController
+UserSelectController
+UserSelectRestController
+VirtualAppController
+VirtualFireWallController
+VMApiController
+VMController
+VMRestController
+VolumeController
+
+=== GSP视图目录结构 ===
+app/
+auth/
+backup/
+branch/
+chartQuery/
+client/
+common/
+desktopPool/
+document/
+fileUpload/
+frontEndTranslate/
+generalSettings/
+guestTools/
+image/
+imageApp/
+importLdapUser/
+layouts/
+leaf/
+MACAddressPool/
+monitoring/
+monitoringNew/
+network/
+organization/
+policy/
+policyAssignment/
+recycleBin/
+resourceTag/
+serverRecycle/
+servers/
+serverVirtualization/
+statistics/
+storage/
+storageNew/
+user/
+userSelect/
+virtualApp/
+visitPolicy/
+VM/
+
+=== 每个视图文件夹的GSP文件 ===
+app: aboutBranch,about,approvalCenter,auditList,fileManage,oneClickDetection,purgeEventSettings,taskCenter,util
+auth: createAuthProvider,editAuthProvider,listAuthProviders,showAuthProvider
+backup: addBackupServer,backupServer,editBackupServer,showBackupServer
+branch: branchServers,branchSessions,configBMC,configNTP,configSyncParams,dashboard,editMaxSess,editOrg,editResource,serverConfiguration,serverMonitoring,serverRelatedSessions,serverSummary,sessionMonitoring,sessionSummary,showConfigBMC,showLicense,showMaxSessions,showSyncParams
+chartQuery: _addLineQuery,create
+client: _aceCss,branchIndex,clearImages,clientManagerSet,createClientGroup,_deClearMirrored,_deEnterMaintenace,_deMirroredSpeedLimit,_deployMaintenace,_dePxeDeploy,detail,_deUpdateMirrored,editAlias,editClientGroup,fileManagerSet,_frontEndTranslate,index,_listClient,_listTask,logExtractTask,ostreeUpgrade,powerManageTask,pushMessage,requestControl,scriptExecuteTask,serviceChange,setHostname,setNetwork,setTime,showTask,taskDetail,taskRunningDetail,uploadPxeImage
+common: _commonClientI18,_commonConfirmDialog,_commonImportImageI18,_commonInitialSetupI18,_commonMessageForPolicy,_commonMessage,_commonSystemManageI18,_commonUserI18,_commonVirtualizationServiceI18,_commonWarningDialog,_cssFrames,_jsFrames,_verifyPassword
+desktopPool: create,edit,list,show
+document: list
+fileUpload: index
+frontEndTranslate: _addHost,_app,_auth,_document,_library,_servers,_statistics,_storage,_translateFrames
+generalSettings: addAffinityGroup,addDpmSetting,addDrsSetting,addDynamicPolicy,addDynamicSetting,addLabel,addMailServer,addVideoRedirect,addWelcomeMessage,affinityGroup,affinityGroupMachine,dpmSetting,drsSetting,dynamicSetting,editGlobalPolicy,editVideoRedirect,labelMachine,labelSettings,listAffinity,listLabel,listServer,mailServerList,proxyServerSettings,resetPassword,setRDP,setSPICE,showGlobalPolicy,showHA,showLicense,showMailServer,showPasswordState,showSysLogConfig,showVideoRedirect,trafficServerSettings,vdeSettings,videoRedirectList,welcomeMessageList
+guestTools: uploadGuestTools
+image: afterImport,batchStart,checkinImage,checkoutImage,createImport,edit,editImport,importImage,_listActions,listAppLayers,_listAppLayersTable,_listCheckbox,_listClone,_listDelete,list,listImageOps,listImageVerManage,_listTable,show,uploadIso,uploadSystemUpgrade
+imageApp: builtinRule,customApp,listAppLib,listMachineApp
+importLdapUser: createImportLdapUserProvider
+layouts: branch2,_branch_leftNav,branchManage,_branch_masthead,_language,_leftNav,main,_masthead,_navTabs,_optSelect
+leaf: editDeployments,listDeployments,listReleases
+MACAddressPool: create,edit,list,show
+monitoring: alarmEvents,alarmSettings,auditEvents,branchServerEvents,charts,clientAuditEvents,dashboard,macAddresses,serverEvents,servers,serverVirtualEvents,sessionEvents,sessions,sharedStorageStatus,_taskPlatform,vdeEvents,virtualStorageStatus
+monitoringNew: monitoringNew
+network: addMacAddressPool,addNetworkConfigureRule,addPortGroup,addSecurityGroup,addSecurityGroupRule,addSubNet,addVlanPool,configuration,createVirtualSwitch,editMacAddressPool,editNetworkConfigureRecord,editNetworkConfigureRule,editPortGroup,editSecurityGroup,editSecurityGroupRule,editSubNet,editVirtualSwitch,list,macAddress,machine,networkConfigure,networkConfigureRecord,portGroup,port,portMirroring,securityGroup,securityGroupRule,serverVirtualMachine,showMacAddressPool,_showNetCardDetail,showNetworkConfigureRecord,showNetworkConfigureRule,showPortGroup,showSecurityGroup,showSecurityGroupRule,showSubNet,showVirtualSwitch,showVlanPool,subNet,_subTabs,summary,virtualMachine,vlanPool,_vSwitchSubTabs
+organization: create,edit,list,show
+policy: applyCertificates,_checkboxField1,_checkboxField2,_checkboxField,_checkboxFieldSmall,_checkboxWithInput,_checkboxWithInputSmall,copy,create,createNic,createUSBFilter,_editAdvanced,_editAudit,editGlobalPolicyLEAF,_edit,edit,_editNetwork,editNic,_editProps,_editProtocol,_editSecurityGroup,editSpecialUSBFilter,_editStorage,_editUDSFilter,editUDSFilters,editUSBFilter,_editUSB,_fieldEnableClientCache,importCerts,importUSBFilter,_inputField1,_inputField2,_inputField,_inputHiddenField,listBranchClusters,list,_selectField,_selectFieldSpecifiedOption,_showBody,showGlobalPolicyLEAF,show,showImportUSBFilter,_showNetwork,showNic,_showStorage,showUSBFilter,showUSBFromUser,_showUSB,_udapCopyFirstCol,_udapCopySecondCol,_udapCopySpecialCol,_udapCopySpecialTitleCol,_udapTitle,_unit1,_unit
+policyAssignment: create,edit,editPool,_imageApplist,show
+recycleBin: _desktopDisk,index,_recycleSetting,showDetailOfGroup,_showRecycleVMList,_showRevertVMList
+resourceTag: create,edit,editServer,list,servers,show
+serverRecycle: index,_recycleSetting
+servers: branchServers,branchServersManage,clusterMasters,configBMC,configHugePages,configNTP,configuration,editMaxSess,editOrg,editResource,gpu,_listBranchServers,_listClusterMasters,_listMachineHugepages,listServer,logFetch,monitoring,network,nicBinding,renameCluster,serverPci,serverUsb,serverVirtualMachine,showConfigBMC,showHugepageInfo,showMaxSessions,storageResource,_subTabs,summary,virtualMachine
+serverVirtualization: _alterCpu,_alterDisk,_alterInterface,_alterMachineDetails,_alterMemory,_alterName,_alterVmConfigure,_buttonNewEquipment,_childLinkClone,_cloneVm,clusterMigrateLocation,_createGroup,createImport,_createVmByGuideTemplate,_createVmByTemplateCustomize,_createVmByTemplate,_createVmByTemplateNew,_createVmConfigure,_createVm,_diskList,_editCpuBind,_gpuDeviceList,_grouplist,_importImage,_importImageVm,_importImageVmNew,index,_listClusterMasters,_listPci,_listTemplate,_listUsb,_listVm,_machine-baseInfo,_machineDetails,migrateLocation,_moveGroup,_networkListVm,_pciDeviceList,_rawDevice,_sanVmList,_selectCluster,_selectResourceList,_serverVirtualizationDetail,_serviceVmList,_showBindInfo,_sriovDeviceList,_storageResource,_tmonitoring,_tsummary,uploadBios,uploadDisk
+statistics: alarmStatisticsInfo,clientStateInfo,dataCopyAudit,faultTypeInfo,onlineClientInfo,onlineUserNumberInfo,operationEventInfo,operationUserInfo,serverAlarmInfo,serverVirtualResource,serverVirtualTop,unusedVMInfo,usageTimeInfo,userFaultInfo,userLoginInfo,userUsbInfo,vmAlarmInfo,vmRecoverInfo,vmStatusInfo
+storage: dataStore,DISCARD_dataStore,DISCARD_storageResource,editVirtualStorageSettings,machine,summary,virtualMachine,virtualStorageSettings
+storageNew: storageNew
+user: batchEditKsvdUser,batchShowKsvdUser,create,createKsvdGroup,createKsvdUser,createRole,edit,editKsvdGroup,editKsvdUser,editRole,_groupInfo,_grouplist,_initialSetup,initialSetup,_lapInstructions,list,listKsvdGroups,listKsvdUsers,listRoles,_login,login,resetPassword,show,showKsvdGroup,showKsvdUser,showPasswordPolicy,showPasswordState,showRole,terminalAndUser,_userTable
+userSelect: editList,_resolveConflict,_revertVMList
+virtualApp: addAppAuthorization,addGroupApp,addGroupServer,appSessions,createVirtualAppGroup,deleteAppAuthorization,editGroupApp,editVirtualAppGroup,groupAppSessions,groupApps,groupBaseInfo,groupDetails,groupServers,groupVms,_listAppSessions,showVirtualAppGroup,virtualAppGroups
+visitPolicy: createPolicyDetail,visitPolicys
+VM: addBackup,addNic,backups,batchApplySnapList,batchEditAdvanceConfig,_batchSnapList,csnapshotview,desktopVms,editAdvanceConfig,editSession,editSessions,index,_listvm,_listVuevm,migrationConfig,monitoring,restoreBackup,_ruleList,sessions,showAdvanceConfig,showMigrationConfig,showSession,showSessions,showSnap,_snapList,snapSettings,snapshotList,snapStrategy,summary,tdetails,test,tmonitoring,tsummary
+
+=== 从dashboard GSP提取AJAX URL ===
+
+=== GSP中所有controller:action组合 ===
+[common/_commonVirtualizationServiceI18.gsp] controller: 'image', action: 'uploadIso'
+controller: 'serverVirtualization', action: 'uploadDisk'
+[image/_listTable.gsp] controller: 'image', action: 'checkForActions'
+[image/createImage/selectSize.gsp] controller:'image', action:'uploadIso'
+[leaf/listReleases.gsp] controller: 'leaf', action: 'checkForDownload'
+[network/machine.gsp] controller:'servers',action:'listMachines'
+[serverVirtualization/_alterVmConfigure.gsp] controller: 'image', action: 'uploadIso'
+[serverVirtualization/_cloneVm.gsp] controller: 'image', action: 'uploadIso'
+[serverVirtualization/_createVm.gsp] controller: 'image', action: 'uploadIso'
+controller: 'serverVirtualization', action: 'uploadBios'
+[serverVirtualization/_createVmByGuideTemplate.gsp] controller: 'image', action: 'uploadIso'
+[serverVirtualization/_createVmByTemplateNew.gsp] controller: 'image', action: 'uploadIso'
+[serverVirtualization/_createVmConfigure.gsp] controller: 'image', action: 'uploadIso'
+[serverVirtualization/_importImageVmNew.gsp] controller: 'image', action: 'uploadIso'
+controller: 'serverVirtualization', action: 'uploadBios'
+[serverVirtualization/_serverVirtualizationDetail.gsp] controller: 'image', action: 'uploadIso'
+controller: 'serverVirtualization', action: 'uploadBios'
+[storage/machine.gsp] controller:'servers',action:'listMachines'
+
+=== 直接从mc.js提取所有API调用 ===
+URL: /ksvd-custom/
+URL: /ksvd-custom/org-0/images/masthead_logo.png
+
+=== GSP中所有g:remoteLink ===
+
+=== 最关键: mc.js中KSVD对象的所有方法中的URL ===

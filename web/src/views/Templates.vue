@@ -96,7 +96,7 @@
             <el-option label="Linux" value="linux" /><el-option label="Windows" value="windows" />
           </el-select>
         </el-form-item>
-        <el-form-item label="系统版本"><el-input v-model="form.os_version" placeholder="如 Kylin V10 SP1" /></el-form-item>
+        <el-form-item label="系统版本"><el-input v-model="form.os_version" placeholder="如 Linux V10 SP1" /></el-form-item>
         <el-form-item label="架构">
           <el-select v-model="form.arch" style="width: 100%;">
             <el-option label="x86_64" value="x86_64" /><el-option label="aarch64" value="aarch64" />

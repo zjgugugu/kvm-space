@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const rule = await req.app.locals.driver.createPublishRule(req.body);
-    res.status(201).json(rule);
+    res.json(rule);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

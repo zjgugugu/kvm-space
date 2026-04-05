@@ -1,0 +1,47 @@
+
+
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>管理控制台： {0}</title>
+    <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css" />
+    <script type="text/javascript">
+
+        jQuery(document).ready(function() {
+            KSVD.updatei18nMap({
+                proxyName:"代理名称",
+                proxyServer:"服务器地址",
+                proxyPort:"服务器端口",
+                deleteConfirm:"您确定要删除所选代理服务器吗？"
+            });
+            KSVD.videoRedirect.initProxyServerSettings();
+        });
+    
+</script>
+
+</head>
+
+<body>
+    <div class="body">
+        <div class="tblControls">
+            <button id="addProxyServer" class="btn kylin-green" style="margin-top: 5px">
+                添加
+            </button>
+            <button id="editProxyServer" disabled="disabled" class="btn kylin-green" style="margin-top: 5px">
+                编辑
+            </button>
+            <button id="deleteProxyServer" disabled="disabled" class="btn kylin-green" style="margin-top: 5px">
+                删除
+            </button>
+            <button id="save" disabled="disabled" class="btn kylin-green" style="margin-top: 5px">
+                保存
+            </button>
+            <button id="cancel" disabled="disabled" class="btn btn-cancel-dialog" style="margin-top: 5px">
+                取消
+            </button>
+        </div>
+        <table id="proxy-grid-table"></table>
+        <div id="proxy-grid-pager"></div>
+    </div>
+</body>
+</html>

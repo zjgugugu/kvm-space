@@ -23,8 +23,8 @@ const systemRoutes = require('./routes/system');
 const snapshotPolicyRoutes = require('./routes/snapshot-policies');
 const statsRoutes = require('./routes/stats');
 
-const MODE = process.env.KVM_MODE || 'mock';
-const PORT = parseInt(process.env.PORT) || 3000;
+const MODE = process.env.KVM_MODE || 'libvirt';
+const PORT = parseInt(process.env.PORT) || 8444;
 
 async function main() {
   // 初始化数据库（sql.js 需要异步加载 WASM）
@@ -94,7 +94,7 @@ async function main() {
   app.use(express.static(distDir));
 
   // API 路由
-  app.use('/api/auth', authRoutes);
+  app.use('/api/auth', authMiddleware, authRoutes);
   app.use('/api/dashboard', authMiddleware, dashboardRoutes);
   app.use('/api/vms', authMiddleware, vmRoutes);
   app.use('/api/hosts', authMiddleware, hostRoutes);

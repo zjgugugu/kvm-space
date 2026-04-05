@@ -19,7 +19,7 @@
         </el-form-item>
       </el-form>
       <div style="text-align: center; color: #c0c4cc; font-size: 12px;">
-        默认账号: admin / admin123
+        默认账号: root / root
       </div>
     </el-card>
   </div>

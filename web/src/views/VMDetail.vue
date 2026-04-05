@@ -270,12 +270,8 @@ let cpuChart, memChart, diskIoChart, netIoChart
 function statusType(s) { return { running: 'success', stopped: 'danger', suspended: 'warning' }[s] || 'info' }
 function statusText(s) { return { running: '运行中', stopped: '已关机', suspended: '挂起' }[s] || s }
 
-function genTimeline() { const now = Date.now(); return Array.from({ length: 30 }, (_, i) => { const d = new Date(now - (29 - i) * 60000); return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') }) }
-function genLine(base, range) { return Array.from({ length: 30 }, () => +(base + (Math.random() - 0.5) * range).toFixed(1)) }
-
-function initCharts() {
-  const times = genTimeline()
-  const lineOpt = (title, series, yFormat) => ({
+async function initCharts() {
+  const lineOpt = (title, times, series, yFormat) => ({
     title: { text: title, left: 'center', textStyle: { fontSize: 14 } },
     tooltip: { trigger: 'axis' }, grid: { top: 40, bottom: 30, left: 50, right: 20 },
     xAxis: { type: 'category', data: times, boundaryGap: false },
@@ -283,26 +279,46 @@ function initCharts() {
     series: series.map(s => ({ ...s, type: 'line', smooth: true, areaStyle: { opacity: 0.15 } }))
   })
 
+  // Fetch real stats from API
+  let stats = {}
+  try {
+    stats = await api.get(`/vms/${route.params.id}/stats`)
+  } catch(e) { stats = {} }
+
+  const now = Date.now()
+  const times = Array.from({ length: 30 }, (_, i) => { const d = new Date(now - (29 - i) * 60000); return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') })
+
+  // Use real data if available, show single-point current value otherwise
+  const cpuPct = stats.cpu_percent != null ? stats.cpu_percent : 0
+  const memPct = stats.mem_percent != null ? stats.mem_percent : 0
+  const diskRd = stats.disk_rd_bytes != null ? +(stats.disk_rd_bytes / 1048576).toFixed(1) : 0
+  const diskWr = stats.disk_wr_bytes != null ? +(stats.disk_wr_bytes / 1048576).toFixed(1) : 0
+  const netRx = stats.net_rx_bytes != null ? +(stats.net_rx_bytes * 8 / 1048576).toFixed(1) : 0
+  const netTx = stats.net_tx_bytes != null ? +(stats.net_tx_bytes * 8 / 1048576).toFixed(1) : 0
+
+  // Fill 30 points: last one is real, rest are 0 (no historical data stored)
+  const fillData = (val) => Array.from({ length: 30 }, (_, i) => i === 29 ? val : 0)
+
   if (cpuChartRef.value) {
     cpuChart = echarts.init(cpuChartRef.value)
-    cpuChart.setOption(lineOpt('CPU使用率', [{ name: 'CPU', data: genLine(35, 30), itemStyle: { color: '#409EFF' } }], '{value}%'))
+    cpuChart.setOption(lineOpt('CPU使用率', times, [{ name: 'CPU', data: fillData(cpuPct), itemStyle: { color: '#409EFF' } }], '{value}%'))
   }
   if (memChartRef.value) {
     memChart = echarts.init(memChartRef.value)
-    memChart.setOption(lineOpt('内存使用率', [{ name: '内存', data: genLine(55, 20), itemStyle: { color: '#67C23A' } }], '{value}%'))
+    memChart.setOption(lineOpt('内存使用率', times, [{ name: '内存', data: fillData(memPct), itemStyle: { color: '#67C23A' } }], '{value}%'))
   }
   if (diskIoRef.value) {
     diskIoChart = echarts.init(diskIoRef.value)
-    diskIoChart.setOption(lineOpt('磁盘IO (MB/s)', [
-      { name: '读', data: genLine(15, 12), itemStyle: { color: '#E6A23C' } },
-      { name: '写', data: genLine(8, 6), itemStyle: { color: '#F56C6C' } }
+    diskIoChart.setOption(lineOpt('磁盘IO (MB/s)', times, [
+      { name: '读', data: fillData(diskRd), itemStyle: { color: '#E6A23C' } },
+      { name: '写', data: fillData(diskWr), itemStyle: { color: '#F56C6C' } }
     ]))
   }
   if (netIoRef.value) {
     netIoChart = echarts.init(netIoRef.value)
-    netIoChart.setOption(lineOpt('网络IO (Mbps)', [
-      { name: '入', data: genLine(20, 15), itemStyle: { color: '#409EFF' } },
-      { name: '出', data: genLine(10, 8), itemStyle: { color: '#909399' } }
+    netIoChart.setOption(lineOpt('网络IO (Mbps)', times, [
+      { name: '入', data: fillData(netRx), itemStyle: { color: '#409EFF' } },
+      { name: '出', data: fillData(netTx), itemStyle: { color: '#909399' } }
     ]))
   }
 }
@@ -315,19 +331,16 @@ async function loadVM() {
     const res = await api.get(`/vms/${route.params.id}`)
     vm.value = res.data || res
     snapshots.value = ((await api.get(`/vms/${route.params.id}/snapshots`)).data) || []
-    vmEvents.value = generateEvents()
+    // Load real events from API
+    try {
+      const evtRes = await api.get('/events', { params: { type: 'vm', page_size: 20 } })
+      vmEvents.value = (evtRes.data || []).filter(e => e.resource_id === route.params.id || e.resource_name === vm.value.name).slice(0, 20)
+      if (!vmEvents.value.length) vmEvents.value = evtRes.data?.slice(0, 10) || []
+    } catch(e) { vmEvents.value = [] }
   } finally { loading.value = false }
 }
 
-function generateEvents() {
-  const types = ['power_on', 'power_off', 'reboot', 'snapshot', 'migrate', 'config_change']
-  const msgs = { power_on: '虚拟机开机', power_off: '虚拟机关机', reboot: '虚拟机重启', snapshot: '创建快照', migrate: '迁移虚拟机', config_change: '修改配置' }
-  return Array.from({ length: 8 }, (_, i) => {
-    const t = types[i % types.length]
-    const d = new Date(Date.now() - i * 3600000 * 6)
-    return { id: i+1, created_at: d.toISOString().replace('T',' ').slice(0,19), type: t, message: msgs[t], operator: 'admin', result: Math.random() > 0.1 ? 'success' : 'failed' }
-  })
-}
+// Removed fake generateEvents function
 
 async function action(act) {
   if (act === 'migrate') { ElMessage.info('迁移功能模拟中...'); return }

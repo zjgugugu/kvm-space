@@ -28,7 +28,7 @@ router.get('/settings', async (req, res) => {
 router.post('/settings', async (req, res) => {
   try {
     const setting = await req.app.locals.driver.createAlertSetting(req.body);
-    res.status(201).json(setting);
+    res.json(setting);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -1,0 +1,1175 @@
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+
+将thin-main.gsp与main.gsp合并——modify by ph
+1. 删除所有css引入，放在一级模块gsp中维护
+2. 删除所有js引入， 放在一级模块gsp中维护
+
+ PS: CSS,JS代码请放入if (filterPaths) 语句中
+
+-->
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="description" content="Kylin MC"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+    <title>管理控制台： 本地服务器</title>
+    <link rel="shortcut icon" href="/mc/favicon.ico" type="image/ico"/>
+    
+    
+    
+    
+    
+
+        <!-- bootstrap & fontawesome -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css"
+              href="/mc/font-awesome/4.5.0/css/font-awesome.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/jquery-ui.min.css"/>
+
+        <!-- ace styles -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace.min.css"
+              class="ace-main-stylesheet" id="main-ace-style"/>
+        <!--[if lte IE 9]>
+        <link rel="stylesheet" type="text/css"  href="/mc/css/ace/ace-part2.min.css" class="ace-main-stylesheet" />
+    <![endif]-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-skins.min.css"/>
+        <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-rtl.min.css"/>
+        <!--[if lte IE 9]>
+        <link rel="stylesheet" type="text/css"   href="/mc/css/ace/ace-ie.min.css"/>
+    <![endif]-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/gpl/jquery.cluetip.css"/>
+
+        <!-- 引入mc工具类 -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/mc/mc_util_simple.css"/>
+        <!-- page specific plugin styles -->
+        <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+        <!-- 引入共用样式，以覆盖/全局使用-->
+        <link rel="stylesheet" type="text/css" href="/mc/css/mc/common-style.css"/>
+
+
+        <!--[if !IE]> -->
+        <script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+        <!-- <![endif]-->
+        <!--[if IE]>
+        <script src="/mc/js/ace/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+        <![endif]-->
+        <script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/jquery-ui.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/jquery.jqGrid.min.js" type="text/javascript"></script>
+
+        <!-- ace scripts -->
+        <script src="/mc/js/ace/ace-elements.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/ace/ace.min.js" type="text/javascript"></script>
+
+        <script src="/mc/js/gpl/jquery/jquery.jgrowl_minimized.js" type="text/javascript"></script>
+
+        <!-- mc.js 初始化时会调用，不引入会导致发布规则编辑页面报错 -->
+        <script src="/mc/js/gpl/jquery/jquery.cluetip.js" type="text/javascript"></script>
+
+        <script src="/mc/js/gpl/jquery/jquery.hoverIntent.js" type="text/javascript"></script>
+
+
+        <script src="/mc/js/hnkylin/mc.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/notify.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/task.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/approvalNotify.js" type="text/javascript"></script>
+
+        <script src="/mc/js/hnkylin/common/common.js" type="text/javascript"></script>
+
+    
+
+    
+    <link rel="stylesheet" type="text/css" href="/mc/css/mc/task_platform.css" />
+
+    <link rel="stylesheet" type="text/css" href="/mc/css/lib/swiper.min.css"/>
+    <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+    <script src="/mc/js/../mc/lib/swiper.min.js" type="text/javascript"></script>
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+        
+            <script src="/mc/js/gpl/Datejs/date-zh-CN.js" type="text/javascript"></script>
+
+        
+        <script type="text/javascript">
+
+      jQuery(document).ready(function() {
+        KSVD.updatei18nMap({
+          titleConfirm: "确认",
+          titleInfo: "提示",
+          titleWarn: "警告",
+          titleError: "错误",
+          OK: "确定",
+          cancel: "取消",
+          urgent: "紧急", // 紧急
+        });
+        KSVD.appCtx = "/mc/";
+        KSVD.initSideBar();
+        KSVD.notify.init();
+        KSVD.task.init();
+        KSVD.approvalNotify.init();
+        KSVD.initGlobalSettings();
+        KSVD.errorStr = "错误";
+      });
+        
+</script>
+
+    
+
+    
+    
+    
+    <script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+
+        {
+            const $ = jQuery;
+            $(function () {
+                const body = $('body');
+                // 注册关于
+                body.on('click', '.j-dialog-info-trigger', function () {
+                    KSVD.dialogFormat('alert', 'dialog-info', $(this).attr('data-info'), null, null);
+                });
+            });
+        }
+    
+</script>
+
+
+    
+    
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="/mc/js/gpl/jquery/jquery.heatcolor.0.0.1.pack.js" type="text/javascript"></script>
+
+    <meta name="layout" content="main"/>
+    <script src="/mc/js/gpl/jquery/jquery.jquery-ui-1.8.10.custom.min.js" type="text/javascript"></script>
+
+    <link rel="stylesheet" type="text/css" href="/mc/css/gpl/smoothness/jquery-ui-1.8.2.custom.css"/>
+    <link rel="stylesheet" href="/mc/js/gpl/SlickGrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="/mc/js/gpl/SlickGrid/css/slick-default-theme.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="/mc/js/gpl/SlickGrid/controls/slick.pager.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="/mc/js/gpl/SlickGrid/controls/slick.columnpicker.css" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+    <script src="/mc/js/gpl/SlickGrid/lib/jquery.event.drag-2.0.min.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/lib/jquery.event.drop-2.0.min.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/slick.core.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/plugins/slick.checkboxselectcolumn.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/plugins/slick.autotooltips.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/plugins/slick.cellrangedecorator.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/plugins/slick.cellrangeselector.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/plugins/slick.cellcopymanager.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/plugins/slick.cellselectionmodel.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/plugins/slick.rowselectionmodel.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/controls/slick.pager.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/controls/slick.ksvdcolumnpicker.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/slick.dataview.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/slick.editors.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/SlickGrid/slick.grid.js" type="text/javascript"></script>
+
+    <script src="/mc/js/gpl/jquery/jquery.blockUI.js" type="text/javascript"></script>
+
+    <script src="/mc/js/hnkylin/monitoring.js" type="text/javascript"></script>
+
+    
+    
+    <script type="text/javascript">
+
+      jQuery(document).ready(function() {
+        KSVD.updatei18nMap({
+          take_online : "联机",
+          take_offline : "脱机",
+          offline : "脱机",
+          status_online : "联机",
+          status_offline : "脱机",
+          status_halt : "停机",
+          cancel : "取消",
+          shutdown : "关闭",
+          abort : "中止",
+          all : "全部",
+          no_selection : "尚未选择任何服务器。",
+          single_selection : "请为此操作只选择一个服务器行。",
+          server_error : "从服务器接收数据时出错。",
+          toggle : "切换联机",
+          no_perm : "您没有访问该资源的权限。",
+          confirm : "确定",
+          ipaddress_invalid : "IP地址无效",
+          accounts_null : "帐号输入为空",
+          password_null : "密码输入为空",
+          bindIP_title : "IP绑定",
+          stopServer_title : "关闭服务器",
+          startServer_title : "开启服务器",
+          stopServer_progress : "服务器{0}正在关机，请等待...",
+          startServer_progress : "服务器{0}正在开机，请等待...",
+          storageUtil : "存储资源使用率",
+          storageIOPS : "IOPS",
+          netRkbps : "网络接收带宽",
+          netXkbps : "网络传输带宽",
+          netUtil : "网络资源使用率",
+          error: "错误",
+          warn: "警告"
+        });
+        KSVD.monitoring.initServers(1775315435416);
+      } );
+    
+</script>
+
+  
+</head>
+
+
+
+
+
+
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+
+<!-- .skin-thime 为了增加权重 by ph -->
+<body class="kylin skin-thime" id="main-body" data-permission="[&quot;MON_SERVERS&quot;:&quot;true&quot;, &quot;MON_SESSIONS&quot;:&quot;true&quot;, &quot;IMAGE_OWNER&quot;:&quot;true&quot;, &quot;AL_READ&quot;:&quot;true&quot;, &quot;SP_READ&quot;:&quot;true&quot;, &quot;PROV_READ&quot;:&quot;true&quot;, &quot;GS_FULL&quot;:&quot;true&quot;, &quot;LEAF_READ&quot;:&quot;true&quot;, &quot;PROV_FULL&quot;:&quot;true&quot;, &quot;MAINT_READ&quot;:&quot;true&quot;, &quot;NP_READ&quot;:&quot;true&quot;, &quot;DP_FULL&quot;:&quot;true&quot;, &quot;SERVERS_FULL&quot;:&quot;true&quot;, &quot;VM_FULL&quot;:&quot;true&quot;, &quot;STAT_READ&quot;:&quot;true&quot;, &quot;SP_FULL&quot;:&quot;true&quot;, &quot;NP_FULL&quot;:&quot;true&quot;, &quot;MAINT_FULL&quot;:&quot;true&quot;, &quot;VM_READ&quot;:&quot;true&quot;, &quot;IMAGE_READ&quot;:&quot;true&quot;, &quot;DP_READ&quot;:&quot;true&quot;, &quot;POLICY_READ&quot;:&quot;true&quot;, &quot;LEAF_FULL&quot;:&quot;true&quot;, &quot;IMAGE_FULL&quot;:&quot;true&quot;, &quot;SERVERS_READ&quot;:&quot;true&quot;, &quot;MON_READ&quot;:&quot;true&quot;, &quot;ORG_FULL&quot;:&quot;true&quot;, &quot;POLICY_FULL&quot;:&quot;true&quot;, &quot;GS_READ&quot;:&quot;true&quot;, &quot;ORG_ADMIN&quot;:&quot;true&quot;, &quot;ORG_READ&quot;:&quot;true&quot;, &quot;AL_FULL&quot;:&quot;true&quot;, &quot;IMAGE_OPS&quot;:&quot;true&quot;]">
+
+    <input id="is_jzgk" value="false" hidden="hidden">
+
+
+<!-- Client management introduces the task-platform at this position. If the terminal is placed at the end, many JS files will be missing. Other modules will be placed at the end -->
+
+<!-- Client management ... end -->
+
+<!-- masthead -->
+
+
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script type="text/javascript">
+
+    /*validate 验证提示*/
+    var params = {
+        name : "名称",
+        nickname1 : "标题",
+        ip : "IP",
+        mask : "子网掩码",
+        gateway : "网关",
+        require : function(v){return `${v}不能为空`}, //不能为空
+        specia_character : function(v){return `${v}不能包含特殊字符`}, //不能包含特殊字符
+        legal : function(v){return `请输入合法的${v}`}, //请输入合法的{v}
+        cannot_same : function(v){return `${v}不能相同`}, //不能相同
+        mismatch : function(v){return `${v}不匹配`}, //不匹配
+        tipTitle: "提示",
+    }
+    /*重构loadmodal simplemodal
+    和 弹窗相关
+    * */
+    var loadDialog_lang = {
+        title : "提示",
+        comfirm : "确定",
+        cancel : "取消",
+        add : "添加",
+    }
+    /*loading */
+    var loading_lang = {
+        message : "拼命加载中...",
+    }
+    /*发布规则 选择客户端登陆时间段*/
+    var dateFilter_lang = {
+        login_point : "登录时间点",
+        login_period : "登录时间段",
+        login_require_point : "不可登录时间点",
+        login_require_period : "不可登录时间段",
+        time_slot : "时间段",
+        title : "客户端登录时间段"
+    }
+    if(typeof KSVD == "undefined"){
+        var KSVD = {};
+    }
+    KSVD.validateTips = Object.assign({},params);
+    KSVD.loadDialogTips = Object.assign({},loadDialog_lang);
+    KSVD.loadingTips = Object.assign({},loading_lang);
+    KSVD.dateFilterTips = Object.assign({},dateFilter_lang);
+
+</script>
+
+</body>
+</html>
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+
+modify by ph
+ 1. 删除bootstrap.min.js
+
+-->
+
+
+
+
+
+
+
+
+    <script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+
+
+
+
+
+
+    <div id="navbar" class="navbar">
+    <div class="navbar-container" id="navbar-container">
+        <div class="navbar-header pull-left">
+            <a href="/mc/reporting/dashboard" class="navbar-brand">
+                <small>
+                    <i class=""></i>
+                    
+                        <img id="KylinCloudLogo" src="/mc/images/hnkylin/Kylin.png" height="70" width="229"/>
+                    
+                </small>
+            </a>
+        </div>
+        <nav role="navigation" class="navbar-menu">
+            <ul class="nav navbar-nav">
+                
+                    <li id="nav_dashboard_li" >
+                        <a href="/mc/reporting/dashboard" title="仪表板">仪表板</a>
+                    </li>
+                
+                
+                    <li id="nav_desktop_publish_id" >
+                        
+                            <a href="/mc/image/list" title="桌面发布">桌面发布</a>
+                        
+                    </li>
+                
+                
+
+                
+                    <li id="nav_virtual_machine_id_new" >
+                        <a href="/mc/VM/desktopVms" title="桌面虚拟机">桌面虚拟机</a>
+                    </li>
+                
+
+
+                
+                    <li id="nav_serverVirtualization_id" >
+                        <a href="/mc/serverVirtualization/index" title="服务器虚拟化">服务器虚拟化</a>
+                    </li>
+                
+                
+                    <li id="nav_network_pool_id" >
+                        
+                            <a href="/mc/network/list" title="网络池">网络池</a>
+                        
+                        
+                    </li>
+                
+                
+
+
+
+
+
+                    <li id="nav_storage_pool_id" >
+                        
+                            <a href="/mc/storageNew/storageNew" title="存储池">存储池</a>
+                        
+                    </li>
+                
+                
+                    <li id="nav_physical_machine_id" >
+                        
+                            <a href="/mc/servers/clusterMasters" title="一体机">一体机</a>
+                        
+                    </li>
+
+
+
+
+
+
+
+
+                    
+                        <li id="nav_log_warning_id01" >
+                            <a href="/mc/monitoringNew/monitoringNew" title="日志告警">日志告警</a>
+                        </li>
+                    
+                
+                
+                
+                    <li id="nav_statistic_id" >
+                        
+                            <a href="/mc/statistics/userLoginInfo" title="统计报表">统计报表</a>
+                        
+                    </li>
+                
+                
+                    
+                        <li id="nav_client_management_id" >
+                            
+                                <a href="/mc/client/index" title="终端管理">终端管理</a>
+                            
+                        </li>
+                    
+                
+                <li id="nav_system_management_id" >
+                    
+                        <a href="/mc/generalSettings/showGlobalPolicy" title="系统管理">系统管理</a>
+                    
+                </li>
+            </ul>
+        </nav>
+        <div class="navbar-buttons navbar-header pull-right" role="navigation">
+            <ul class="nav navbar-nav j-fullscreen-text">
+
+                
+                    <li class="grey dropdown-modal">
+                        <a  class="dropdown-toggle" href="#" title="任务展示">
+                            <i class="ksvd-task"></i>
+                            <span class="badge badge-grey"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-check"></i>
+                                任务进展提醒
+                            </li>
+
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar">
+                                </ul>
+                            </li>
+
+                            <li class="dropdown-footer">
+                                <a href="/mc/app/taskCenter" style="cursor: pointer;" class="hide">查看完成的任务</a>
+                                <a id="task_pending_id" style="cursor: pointer;" class="hide" >
+                                    查看进行中的任务
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                
+
+                
+                    <li class="white dropdown-modal">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#" title="审批提醒">
+                            <i class="icon-approval2"></i>
+                            <span class="badge badge-light"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-check"></i>
+                                审批提醒
+                            </li>
+
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar">
+                                </ul>
+                            </li>
+
+                            <li class="dropdown-footer">
+                                <a href="/mc/app/approvalCenter" style="cursor: pointer;">查看未处理的审批</a>
+                            </li>
+                        </ul>
+                    </li>
+                
+
+                
+                    <li class="purple dropdown-modal">
+                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                            <i class="alarm"></i>
+                            <span class="badge badge-important"></span>
+                        </a>
+
+                        <ul class="dropdown-menu-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close" style="left: -215px;">
+                            <li class="dropdown-header">
+                                <i class="ace-icon fa fa-exclamation-triangle"></i>
+                                告警事件提醒
+                            </li>
+                            <li class="dropdown-content">
+                                <ul class="dropdown-menu dropdown-navbar j-alarm20200507">
+                                </ul>
+                            </li>
+                            <div style="display: inline;line-height: 3.4;">
+                                <a id="more-notification" style="position: relative;left:40px;bottom:2px;">
+                                    <u>查看更多</u>
+                                    
+                                </a>
+
+                                <a id="ignore-notification" style="position: absolute;right:40px;bottom:2px;visibility: hidden;">
+                                    <u>我知道了</u>
+                                    
+                                </a>
+                            </div>
+                        </ul>
+                    </li>
+                
+
+                <li class="light-blue dropdown-modal" >
+                    <a data-toggle="dropdown" href="#" class="dropdown-toggle">
+                        <span class="username">
+                            
+                                mcadmin
+                            
+                            <b class="arrow fa fa-angle-down"></b>
+                        </span>
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-user af-wautoi">
+                        <li>
+                            <a href="/mc/user/resetPassword/mcadmin" onclick="javascript:KSVD.loadModal(this, event, false, &#39;auto&#39;, &#39;/mc/&#39;, 450);return false;" title="重置用户 'mcadmin' 的密码">
+                                <i class="icon-resetPassowrd af-ml0i" ></i> 重置密码
+                            </a>
+                        </li>
+
+                        <li>
+                            
+                                <a href="/mc/user/logout">
+                                    <i class="icon-logout af-ml0i" ></i> 注销
+                                </a>
+                            
+                        </li>
+
+                        <li>
+                            <a href="javascript: void(0);" id="buildinfo" class="j-dialog-info-trigger" data-info="产品版本：KSVD V7 <br/>内部版本号：R023S07.48308">
+                                <i class="icon-about af-ml0i" ></i> 关于
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="swiper-tips-dialog">
+    <div class="container-box">
+        <div class="title">告警</div>
+        <div class="swiper-tips-container">
+            <div class="swiper-wrapper">
+                
+                <div class="swiper-slide swiper-no-swiping">
+                    <p class="sub-title">一体机服务器警告</p>
+                    <div class="tips-info tips-one"></div>
+                </div>
+                
+                <div class="swiper-slide swiper-no-swiping">
+                    <p class="sub-title">存储警告</p>
+                    <div class="tips-info">
+                        <span>当前未配置用户数据存储，所有数据均保存在Mstorage存储中，有存储风险。请尽快联系管理员前往存储池页面，添加用户数据存储！</span>
+                        <label>
+                            <input value="" class="remind-input" type="checkbox"/><span>下次不再提醒本条告警</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <!-- 如果需要分页器 -->
+            <div class="swiper-pagination"></div>
+        </div>
+        <div class="pagination-group">
+            <div class="pagination-prev">上一页</div>
+            <div class="pagination-next">下一页</div>
+            <div class="pagination-close">关闭</div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="loadingStatus">
+    <div class="loadEffect">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</div>
+
+<div class="expiration-tips">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    <span class="text"></span>
+    <a href="../generalSettings/showLicense">立即处理</a>
+    <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+</div>
+<div class="main-container ace-save-state" id="main-container">
+    <script type="text/javascript">
+        try {
+            ace.settings.loadState('main-container')
+        } catch (e) {
+        }
+    </script>
+    
+        <!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+ 
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+-->
+
+
+
+
+
+  
+  
+  
+  
+    <div id="sidebar" class="sidebar sidebar-style1">
+      <script type="text/javascript">
+        try{ace.settings.loadState('sidebar')}catch(e){}
+      </script>
+      
+
+    </div>
+  
+
+
+    
+    <div class="main-content">
+        <div class="main-content-inner">
+            
+                <div class="page-content">
+                    
+    <div id="dialog-confirm" style="display: none" title="使服务器脱机">
+      <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>确认要切换服务器为脱机状态？脱机状态时新会话将不启动在此节点上，已启动在此节点的会话不受影响。</p>
+    </div>
+    <div id="dialog-limit-confirm" style="display: none" title="多选警告">
+      <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>您选择了多个服务器，不允许多选</p>
+    </div>
+    <div id="bindIPDialog" style="display: none" title="IP绑定">
+      <span id='errorsnap'></span>
+      <table width='250px'>
+        <tr>
+          <td align='left'>
+            <label for="ipaddressID">IP绑定<span class='reqAnno'> *</span></label>
+          </td>
+          <td align='right'>
+            <input type="text" maxlength="15" size="16" value="" id="ipaddressID"/>
+          </td>
+        </tr>
+        <tr>
+          <td align='left'>
+            <label for="accountsID">帐号<span class='reqAnno'> *</span></label>
+          </td>
+          <td align='right'>
+            <input type="text" maxlength="64" size="16" value="" id="accountsID"/>
+          </td>
+        </tr>
+        <tr>
+          <td align='left'>
+            <label for="passwordID">密码<span class='reqAnno'> *</span></label>
+          </td>
+          <td align='right'>
+            <input type="password" value="" size="16" maxlength="64" id="passwordID"/>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div id="1775315435416" style="display:none"></div>
+    <div class="toolbarContainer">
+      <div class="gridToolbar">
+        
+          <button id="actionToggle"  class="ui-corner-all" onclick="KSVD.monitoring.toggleServer(event);" title="切换联机">切换联机</button>
+          <button id="actionBindIP"  class="ui-corner-all" onclick="KSVD.monitoring.bindIPServer(event);" title="绑定">绑定</button>
+          <button id="actionStop"  class="ui-corner-all" onclick="KSVD.monitoring.stopServer(event);" title="关机">关机</button>
+          <button id="actionStart"  class="ui-corner-all" onclick="KSVD.monitoring.startServer(event);" title="开机">开机</button>
+        
+        <!--
+        <button id="actionRestart" class="ui-corner-all" onclick="jQuery.jGrowl('not implemented');" title="重启">重启</button>
+        -->
+      </div>
+    </div>
+    <div id="outerGridDiv">
+	  <div id="innerGridDiv">
+        <div class="grid-header ui-corner-top" style="width:100%">
+          <label>本地服务器</label>
+<!--          <button id="filterToggle" onclick="KSVD.monitoring.toggleFilterRow()">切换搜索面板</button>-->
+          <a id="gridLauncher" href="#"></a>
+        </div>
+        <div id="inlineFilterPanel">
+          <label for="txtSearch2">过滤器:</label>&nbsp;<input type="text" id="txtSearch2">
+        </div>        
+        <div id="grid"></div>
+        <div id="pager" class="ui-corner-bottom"></div>
+	  </div>
+    </div>
+  
+                </div>
+            
+        </div>
+    </div>
+</div>
+<!-- Other modules except client management are introduced into the task-platform and placed at the end -->
+
+  <div id="slideDiv" style="width:100%;position:fixed;display:none;height:310px;z-index:101;">
+  <div style="height:15%;width:100%;padding-top:10px;background-color:rgba(63, 81, 147, 1);">
+    <span id="rmDesk" style="margin-right:45px;float:right;cursor:pointer;"><i style="margin-left:10px;font-size:20px;color:white;" class="fa fa-times"></i></span>
+    <span onclick="freshGrid('','allLink')" style="margin-right:10px;float:right;margin-left:5px;cursor:pointer;"><i style="font-size:15px;color:white;top:4px;" class="glyphicon glyphicon-refresh"></i> </span>
+    <span style="margin-right:10px;float:right;"><a href="/mc/app/taskCenter" style="text-decoration: none;color:white;">查看全部任务</a></span>
+    <span style="margin-right:10px;float:left;margin-left:20px;"><a href="#" style="color:white;">任务台</a></span>
+
+  </div>
+  <div style="height:85%;width:100%;background-color:rgba(8, 14, 35, 1);">
+
+    <div style="display:inline-block;width:8%;height:90%;border-right: solid 1px #808080;margin-top:10px;" >
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="allLink" class="statusLabel" onclick="freshGrid('','allLink')"  href="javascript:void(0)" style="text-decoration: none;color:#337ab7;font-weight: bold;">全部状态</a></div>
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="pendingLink" class="statusLabel" onclick="freshGrid('pending','pendingLink')" style="text-decoration: none;color:white;font-weight: bold;" href="javascript:void(0)">进行中</a></div>
+      <div style="height:15%;line-height:50px;text-align: center;color:white;"><a id="failedLink" class="statusLabel" onclick="freshGrid('failed','failedLink')" style="text-decoration: none;color:white;font-weight: bold;" href="javascript:void(0)">失败</a></div>
+    </div>
+    <div style="display:inline-block;width:90%;height:100%;float:right;padding-top:20px;">
+      <div  id="taskDiv" style="width:97%;overflow-x: hidden;">
+
+        <table id="desk-table"></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script src="/mc/js/hnkylin/taskDetailInfo.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    var timmer;
+    var plateItemFlag='';
+    var itemIdFlag='allLink';
+    jQuery(function(){
+      KSVD.updatei18nMap({
+          serverVirtaulTaskGrid_type: "类型",
+          serverVirtaulTaskGrid_createTime: "创建时间",
+          serverVirtaulTaskGrid_startTime: "开始时间",
+          serverVirtaulTaskGrid_finishTime: "结束时间",
+          serverVirtaulTaskGrid_action: "操作",
+          serverVirtaulTaskGrid_objName: "对象名称",
+          serverVirtaulTaskGrid_operUser: "操作用户",
+          serverVirtaulTaskGrid_status: "状态",
+          serverVirtaulTaskGrid_reason: "原因",
+          serverVirtaulTaskGrid_detail: "详情",
+          showAllTask: "查看全部任务",
+          allStatus: "全部状态",
+          doingStatus: "进行中",
+          failStatus: "失败",
+          successStatus: "成功",
+          completeStatus: "完成",
+          taskProgress: "任务进度",
+
+          servervirtualEdit: "云服务器编辑",
+          serverVirtaulHostMigrate: "主机位置迁移",
+          serverVirtaulHostStorageMigrate: "主机与存储迁移",
+          servervirtualVolMigrate: "存储迁移",
+          serverVirtaulClusterMigrate: "跨集群迁移",
+          servervirtualForceReboot: "强制重启",
+          servervirtualReboot: "重启",
+          servervirtualPowerOn: "开机",
+          servervirtualShutDown: "关机",
+          servervirtualResume: "唤醒",
+          servervirtualPause: "暂停",
+          servervirtualForceShutDown: "强制关机",
+          servervirtualDelete: "删除镜像数据",
+          servervirtualAutoDelete: "回收站自动删除镜像数据",
+          servervirtualManualDelete: "回收站手动删除镜像数据",
+          servervirtualDeleteSoft: "移入回收站",
+          serverVirtualDeleteFormat: "低格删除",
+          serverVirtualDeleteSaveImage: "保留镜像数据",
+          serverAdd: "新增主机",
+
+          servervirtualClone: "完整克隆",
+          servervirtualCloneLink: "链接克隆",
+          servervirtualCreate: "创建云服务器",
+          servervirtualCreateByTemplate: "基于模板创建云服务器",
+          servervirtualExport: "云服务器导出",
+          servervirtualImport: "导入云服务器",
+          servervirtualCreateServerSnap: "创建内存快照",
+          servervirtualCreateNoMemServerSnap: "创建非内存快照",
+          servervirtualSnapshotDelete: "删除快照",
+          servervirtualSnapshotApply: "恢复快照",
+          servervirtualBatchApply: "批量恢复快照",
+          servervirtualBatchCreateSnap: "批量创建快照",
+          servervirtualCreateBackUp: "创建备份",
+          servervirtualRecoverBackUp: "恢复备份",
+          servervirtualDeleteBackUp: "删除备份",
+          servervirtualDiskCopy: "磁盘文件拷贝",
+
+          aliasName: "名称",
+          description: "描述",
+          selectCluster:"计算资源",
+          vcpuSocket: "CPU个数",
+          vcpuCores: "CPU核数",
+          cpuMode: "CPU模式",
+          schedulingPriority: "调度优先级",
+          cpuLimit: "CPU限制(MHz)",
+
+          numaConfig: "虚拟NUMA",
+          memory: "内存",
+          memoryHugeConfig: "大页内存",
+          memoryBubbleConfig: "内存回收",
+
+          addDisk: "增加磁盘",
+          delDisk: "删除磁盘",
+          diskCapacity: "磁盘容量(GB)",
+          targetBus: "磁盘类型",
+          cacheType: "缓存方式",
+          provisionType: "置备方式",
+          readIOLimit: "限制I/O速率",
+          writeIOLimit: "限制I/O速率",
+          readIOPSLimit: "限制IOPS",
+          writeIOPSLimit: "限制IOPS",
+
+          addInterface: "增加网卡",
+          delInterface: "删除网卡",
+          interfaceType: "网络类型",
+          modeltype: "网卡类型",
+          poolName: "地址池",
+          virtualSwitch: "虚拟交换机",
+          portGroup: "端口组",
+          ipAddress: "IP地址",
+          mac: "MAC地址",
+          queueCount: "队列个数",
+          mtuCount: "MTU",
+          hotDrawing: "热拔",
+
+          addIso: "增加光驱",
+          delIso: "删除光驱",
+          sourceFile: "镜像文件",
+
+          editDisk: "磁盘",
+          editInterface: "网卡",
+          editIso: "光驱",
+          editUsb: "USB",
+          editPci: "PCI设备",
+          editGpu: "GPU",
+          graphicsCard: "显卡类型",
+          mouseType: "鼠标类型",
+          biosSwitch: "BIOS设置",
+          biosFile: "BIOS文件",
+          biosWaitTime: "BIOS停留时间",
+
+          addUsb: "新增USB",
+          delUsb: "删除USB",
+          hostId: "主机",
+          usbId: "USB设备",
+
+          vmBluescreen: "云服务器HA",
+          uniqbVmHA: "宿主机HA",
+          enableCpuDynamic: "启用cpu热添加",
+          enableMemDynamic: "启用内存热添加",
+          aotuMigrateSwitch: "自动迁移",
+          followHostStartAuto: "系统启动时，自动运行此云服务器",
+          bootOrder: "引导顺序",
+          remoteOpen: "开启远程控制台",
+          remotePassword: "访问密码",
+          wholeness: "完整性校验",
+          autoStartByHost: "开机自启",
+          existedTime: "有效期",
+          noTime: "无期限",
+          customizeTime: "自定义使用到",
+
+          //values
+          HOST_PASSTHROUGH: "直通模式",
+          HOST_MODEL: "主机匹配模式",
+          CUSTOM: "兼容",
+          schedulingPriorityLow: "低",
+          schedulingPriorityMiddle: "中",
+          schedulingPriorityHigh: "高",
+
+          graphicsCardQXL: "QXL高性能显卡",
+          graphicsCardVGA: "标准VGA显卡",
+          graphicsCardCirrus: "Cirrus高性能显卡",
+          virtio: "virtio类型显卡",
+
+          legacy: "LEGACY启动",
+          uefi: "UEFI启动",
+          userUpload: "自定义启动",
+
+          noConfig: "未配置",
+          reOpen: "重启",
+          byOther: "由其它服务器重建",
+
+          close: "关闭",
+          open: "开启",
+
+
+        });
+      KSVD.appCtx = "/mc/";
+
+        //固定到屏幕底部而不是页面底部
+       var winHeight=jQuery(window).height();
+       var bodyHeight=jQuery(document).height();
+       var offsetHeight=bodyHeight-winHeight;
+
+        jQuery("#slideDiv").css('bottom',0);
+
+        jQuery('.grey').click(function(){
+             var disStatus=jQuery("#slideDiv").is(":hidden");
+              clearInterval(timmer);
+             if(disStatus){
+               timmer= window.setInterval( "freshGrid()",6000);
+             }
+             jQuery("#slideDiv").slideToggle(1000);
+
+        });
+        jQuery('#rmDesk').click(function(){
+            clearInterval(timmer);
+           jQuery("#slideDiv").slideToggle(1000);
+        });
+        initList('desk');
+ });
+
+  function initList(searchType){
+
+        var parent_column = jQuery("#desk-table").closest('[class*="col-"]');
+        //resize to fit page size
+        jQuery(window).on('resize.jqGrid', function () {
+            jQuery("#desk-table").jqGrid('setGridWidth', parent_column.width());
+        });
+
+        //resize on sidebar collapse/expand
+        jQuery(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+            if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                setTimeout(function () {
+                    jQuery("#desk-table").jqGrid('setGridWidth', parent_column.width());
+                }, 20);
+            }
+        });
+
+        var col_names;
+        with (KSVD.i18n) {
+            col_names = [serverVirtaulTaskGrid_status,serverVirtaulTaskGrid_type, serverVirtaulTaskGrid_action, serverVirtaulTaskGrid_objName, serverVirtaulTaskGrid_operUser,taskProgress, serverVirtaulTaskGrid_startTime,
+                serverVirtaulTaskGrid_finishTime, serverVirtaulTaskGrid_detail, serverVirtaulTaskGrid_reason]
+        }
+
+        _tableObj=jQuery("#desk-table").jqGrid({
+            //direction: "rtl",
+            url: KSVD.appCtx + 'serverVMDetail/listTasksByServerId'+(searchType?'?searchType='+searchType:''),
+            datatype: "json",
+            colNames: col_names,
+            height:200,
+            colModel: [
+                {name: 'status', index: 'status', width:100,sortable: false,
+                    formatter: function (value, grid, rows, state) {
+                        var colorValue='';
+                        if(value == KSVD.i18n.successStatus){
+                            colorValue='green';
+                        }else if(value == KSVD.i18n.failStatus){
+                            colorValue='red';
+                        }else if(value == KSVD.i18n.doingStatus){
+                            colorValue='blue';
+                        }
+                        return '<font color="'+colorValue+'">'+value+'</font>';
+                    }
+                },
+                {name: 'type', index: 'type', width:118,sortable: false},
+                {name: 'action', index: 'action',width:180, sortable: false},
+                {name: 'objName', index: 'objName',width:200,sortable: false},
+                {name: 'operUser', index: 'operUser', width:100,sortable: false},
+                {name: 'taskProgress', index: 'taskProgress',width:240, sortable: false,formatter: function (value, grid, rows, state) {
+                    var valStr='<div id="progressBack" style="float:left;">';
+                    if(rows.status == KSVD.i18n.doingStatus){
+                        valStr+='<div id="progressDoing"></div></div><div style="width:30px;float:left;margin-left:10px;line-height:100%;">'+KSVD.i18n.doingStatus+'</div>'
+                    }else{
+                        valStr+='<div id="progressComplete"></div></div><div style="width:30px;float:left;margin-left:10px;line-height:100%;">100%</div>'
+                    }
+                    return valStr;
+                }},
+                {name: 'startTime', index: 'startTime', width:200,sortable: true},
+                {name: 'finishTime', index: 'finishTime',width:200, sortable: true},
+                {name: 'detail', index: 'detail', sortable: false,formatter: function(value, grid, rows) {
+                     var name = rows.detail;
+                     if (name == "null" || (typeof(name) == "undefined")) {
+                         name = ''
+                     }else{
+                         name=KSVD.taskDetailInfo.init(rows.objName,name);
+                     }
+                     return name;
+                 }},
+                {name: 'reason', index: 'reason', width:200,sortable: false},
+
+            ],
+            rowNum: 5,
+            viewrecords: true,
+            altRows: true,
+            pgbuttons: true,
+
+        });
+
+    }
+    function freshGrid(status,eleId){
+         if(status)
+         plateItemFlag=status;
+         if(eleId)
+         itemIdFlag=eleId;
+         var _linkObj=jQuery("#"+itemIdFlag);
+      if(itemIdFlag != 'allLink'){
+        jQuery(_linkObj).css('color','#337ab7');
+        jQuery(_linkObj).parent().siblings().find('a').css('color','white');
+      }else{
+        plateItemFlag='';
+        jQuery(".statusLabel:first").css('color','#337ab7');
+        jQuery(".statusLabel:first").parent().siblings().find('a').css('color','white');
+      }
+        var queryData = {
+            status: plateItemFlag
+        }
+        //_tableObj.jqGrid('clearGridData');
+        _tableObj.jqGrid('setGridParam', {
+            postData: queryData
+        }).trigger("reloadGrid");
+    }
+   //发起任务弹框
+  function showDiaForTask(){
+     var disStatus=jQuery("#slideDiv").is(":hidden");
+      freshGrid(plateItemFlag);
+      clearInterval(timmer);
+     timmer= window.setInterval( "freshGrid()",6000);
+     if(disStatus){
+         jQuery("#slideDiv").slideToggle(1000);
+     }
+  }
+
+</script>
+
+
+
+<!-- Other modules ... end -->
+
+</body>
+</html>

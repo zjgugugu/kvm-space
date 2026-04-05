@@ -1,8 +1,8 @@
-// 仪表盘 API (对标KSVD V7 Dashboard 7大卡片 - KSVD兼容格式)
+// 仪表盘 API - Dashboard 7大卡片
 const express = require('express');
 const router = express.Router();
 
-// 仪表盘概览 (KSVD格式: vm/server/cpu/mem/storage/systemType)
+// 仪表盘概览 (vm/server/cpu/mem/storage/systemType)
 router.get('/overview', async (req, res) => {
   try {
     const d = await req.app.locals.driver.getDashboardOverview();
@@ -42,7 +42,7 @@ router.get('/overview', async (req, res) => {
   }
 });
 
-// 在线趋势图 (KSVD格式: chart.lines[].lineQuery.dataType.name + values[[ts,val]])
+// 在线趋势图 (chart.lines[].lineQuery.dataType.name + values[[ts,val]])
 router.get('/trends', async (req, res) => {
   try {
     const granularity = (req.query.granularity || 'minute').toUpperCase();
@@ -98,7 +98,7 @@ router.get('/trends', async (req, res) => {
   }
 });
 
-// 用户在线统计 (KSVD格式)
+// 用户在线统计
 router.get('/user-stats', async (req, res) => {
   try {
     const db = req.app.locals.db;
@@ -116,7 +116,7 @@ router.get('/user-stats', async (req, res) => {
   }
 });
 
-// 用户在线时长排名 (KSVD jqGrid格式)
+// 用户在线时长排名
 router.get('/user-ranking', async (req, res) => {
   try {
     const db = req.app.locals.db;
@@ -138,7 +138,7 @@ router.get('/user-ranking', async (req, res) => {
   }
 });
 
-// 近期告警 (KSVD jqGrid格式)
+// 近期告警
 router.get('/recent-alerts', async (req, res) => {
   try {
     const db = req.app.locals.db;

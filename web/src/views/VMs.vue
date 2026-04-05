@@ -276,7 +276,7 @@ async function batchAction(action) {
   } else {
     await Promise.all(selected.value.map(vm => api.post(`/vms/${vm.id}/action`, { action })))
   }
-  ElMessage.success('批量操作完成'); load()
+  ElMessage.success('批量操作完成'); selected.value = []; load()
 }
 
 function openConsole(vm) {

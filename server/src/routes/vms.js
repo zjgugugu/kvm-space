@@ -46,7 +46,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const vm = await req.app.locals.driver.createVM(req.body);
-    res.status(201).json(vm);
+    res.json(vm);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -121,7 +121,7 @@ router.post('/:id/migrate', async (req, res) => {
 router.post('/:id/clone', async (req, res) => {
   try {
     const vm = await req.app.locals.driver.cloneVM(req.params.id, req.body.name);
-    res.status(201).json(vm);
+    res.json(vm);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -141,7 +141,7 @@ router.get('/:id/stats', async (req, res) => {
 router.post('/:id/disks', async (req, res) => {
   try {
     const disk = await req.app.locals.driver.addDisk(req.params.id, req.body);
-    res.status(201).json(disk);
+    res.json(disk);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -160,7 +160,7 @@ router.delete('/:id/disks/:diskId', async (req, res) => {
 router.post('/:id/nics', async (req, res) => {
   try {
     const nic = await req.app.locals.driver.addNic(req.params.id, req.body);
-    res.status(201).json(nic);
+    res.json(nic);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -188,7 +188,7 @@ router.get('/:id/snapshots', async (req, res) => {
 router.post('/:id/snapshots', async (req, res) => {
   try {
     const snap = await req.app.locals.driver.createSnapshot(req.params.id, req.body.name, req.body.description);
-    res.status(201).json(snap);
+    res.json(snap);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -225,7 +225,7 @@ router.delete('/:id/snapshots/:snapId', async (req, res) => {
 router.post('/:id/template', async (req, res) => {
   try {
     const tpl = await req.app.locals.driver.createTemplateFromVM(req.params.id, req.body.name);
-    res.status(201).json(tpl);
+    res.json(tpl);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

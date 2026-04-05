@@ -27,7 +27,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const tpl = await req.app.locals.driver.createTemplate(req.body);
-    res.status(201).json(tpl);
+    res.json(tpl);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -67,7 +67,7 @@ router.post('/:id/maintain', async (req, res) => {
 router.post('/:id/clone', async (req, res) => {
   try {
     const tpl = await req.app.locals.driver.cloneTemplate(req.params.id, req.body.name);
-    res.status(201).json(tpl);
+    res.json(tpl);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -79,7 +79,7 @@ router.post('/extract-from-vm', async (req, res) => {
     const { vm_id, name } = req.body;
     if (!vm_id || !name) return res.status(400).json({ error: '请提供虚拟机ID和模板名称' });
     const tpl = await req.app.locals.driver.createTemplateFromVM(vm_id, name);
-    res.status(201).json(tpl);
+    res.json(tpl);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -108,7 +108,7 @@ router.get('/:id/versions', async (req, res) => {
 router.post('/:id/versions', async (req, res) => {
   try {
     const ver = await req.app.locals.driver.createTemplateVersion(req.params.id, req.body.description);
-    res.status(201).json(ver);
+    res.json(ver);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

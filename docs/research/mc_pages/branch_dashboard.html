@@ -1,0 +1,632 @@
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+ 
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+-->
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <title>管理控制台： 仪表板</title>
+  <link rel="shortcut icon" href="/mc/favicon.ico" type="image/ico" />
+
+  <!-- bootstrap & fontawesome -->
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="/mc/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+  <!-- page specific plugin styles -->
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/jquery-ui.min.css" />
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap-datepicker3.min.css"/>
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/ui.jqgrid.min.css"/>
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/daterangepicker.min.css"/>
+
+  <!-- ace styles -->
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
+  <!--[if lte IE 9]>
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-part2.min.css" class="ace-main-stylesheet" />
+  <![endif]-->
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-skins.min.css" />
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-rtl.min.css" />
+  <!--[if lte IE 9]>
+  <link rel="stylesheet" type="text/css" href="/mc/css/ace/ace-ie.min.css"/>
+  <![endif]-->
+
+  <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css" />
+  <link rel="stylesheet" type="text/css" href="/mc/css/mc/common-style.css" />
+  <!--[if !IE]> -->
+  <script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+  <!-- <![endif]-->
+  <!--[if IE]>
+  <script src="/mc/js/ace/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+  <![endif]-->
+  <script src="/mc/js/ace/bootstrap.min.js" type="text/javascript"></script>
+
+  <script src="/mc/js/ace/jquery-ui.min.js" type="text/javascript"></script>
+
+
+  <!-- ace scripts -->
+  <script src="/mc/js/ace/ace-elements.min.js" type="text/javascript"></script>
+
+  <script src="/mc/js/ace/ace.min.js" type="text/javascript"></script>
+
+
+  <script src="/mc/js/hnkylin/mc.js" type="text/javascript"></script>
+
+  
+  
+    
+  
+  
+  
+  
+  
+  
+  
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  
+  
+    <script src="/mc/js/gpl/Datejs/date-zh-CN.js" type="text/javascript"></script>
+
+  
+  <script type="text/javascript">
+
+    jQuery(document).ready(function() {
+      KSVD.initGlobalSettings();
+      jQuery('#admin-info').mouseover(function() {
+        jQuery(this).next().fadeIn();
+      }).mouseout(function() {
+        jQuery(this).next().fadeOut();
+      });
+    });
+  
+</script>
+
+  
+    
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="layout" content="branch2"/>
+    
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="/mc/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/jquery-ui.min.css" />
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ui.jqgrid.min.css"/>
+
+
+<link rel="stylesheet" type="text/css" href="/mc/css/ace/ace.min.css"/>
+
+
+
+
+<!-- 引入mc工具类 -->
+<link rel="stylesheet" type="text/css" href="/mc/css/mc/mc_util.css"/>
+<!-- 引入ace样式修复 -->
+<link rel="stylesheet" type="text/css" href="/mc/css/mc/ace_fix.css"/>
+    <!-- 引入mc工具类 -->
+    <link rel="stylesheet" type="text/css" href="/mc/css/mc/mc_util_simple.css"/>
+    <link rel="stylesheet" type="text/css" href="/mc/css/console_master.css"/>
+
+    <link rel="stylesheet" type="text/css" href="/mc/css/mc/dashboard.css"/>
+
+</head>
+<body class="kylin" id="main-body" data-permission="[&quot;MON_SERVERS&quot;:&quot;true&quot;, &quot;IMAGE_READ&quot;:&quot;true&quot;, &quot;MON_SESSIONS&quot;:&quot;true&quot;, &quot;DP_READ&quot;:&quot;true&quot;, &quot;IMAGE_OWNER&quot;:&quot;true&quot;, &quot;AL_READ&quot;:&quot;true&quot;, &quot;POLICY_READ&quot;:&quot;true&quot;, &quot;LEAF_FULL&quot;:&quot;true&quot;, &quot;IMAGE_FULL&quot;:&quot;true&quot;, &quot;PROV_READ&quot;:&quot;true&quot;, &quot;GS_FULL&quot;:&quot;true&quot;, &quot;LEAF_READ&quot;:&quot;true&quot;, &quot;PROV_FULL&quot;:&quot;true&quot;, &quot;MON_READ&quot;:&quot;true&quot;, &quot;ORG_FULL&quot;:&quot;true&quot;, &quot;POLICY_FULL&quot;:&quot;true&quot;, &quot;GS_READ&quot;:&quot;true&quot;, &quot;MAINT_READ&quot;:&quot;true&quot;, &quot;DP_FULL&quot;:&quot;true&quot;, &quot;ORG_ADMIN&quot;:&quot;true&quot;, &quot;ORG_READ&quot;:&quot;true&quot;, &quot;AL_FULL&quot;:&quot;true&quot;, &quot;IMAGE_OPS&quot;:&quot;true&quot;, &quot;MAINT_FULL&quot;:&quot;true&quot;]">
+
+  <input id="is_jzgk" value="false" hidden="hidden">
+
+<!-- masthead -->
+
+
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script type="text/javascript">
+
+    /*validate 验证提示*/
+    var params = {
+        name : "名称",
+        nickname1 : "标题",
+        ip : "IP",
+        mask : "子网掩码",
+        gateway : "网关",
+        require : function(v){return `${v}不能为空`}, //不能为空
+        specia_character : function(v){return `${v}不能包含特殊字符`}, //不能包含特殊字符
+        legal : function(v){return `请输入合法的${v}`}, //请输入合法的{v}
+        cannot_same : function(v){return `${v}不能相同`}, //不能相同
+        mismatch : function(v){return `${v}不匹配`}, //不匹配
+        tipTitle: "提示",
+    }
+    /*重构loadmodal simplemodal
+    和 弹窗相关
+    * */
+    var loadDialog_lang = {
+        title : "提示",
+        comfirm : "确定",
+        cancel : "取消",
+        add : "添加",
+    }
+    /*loading */
+    var loading_lang = {
+        message : "拼命加载中...",
+    }
+    /*发布规则 选择客户端登陆时间段*/
+    var dateFilter_lang = {
+        login_point : "登录时间点",
+        login_period : "登录时间段",
+        login_require_point : "不可登录时间点",
+        login_require_period : "不可登录时间段",
+        time_slot : "时间段",
+        title : "客户端登录时间段"
+    }
+    if(typeof KSVD == "undefined"){
+        var KSVD = {};
+    }
+    KSVD.validateTips = Object.assign({},params);
+    KSVD.loadDialogTips = Object.assign({},loadDialog_lang);
+    KSVD.loadingTips = Object.assign({},loading_lang);
+    KSVD.dateFilterTips = Object.assign({},dateFilter_lang);
+
+</script>
+
+</body>
+</html>
+<!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+ 
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+-->
+
+
+
+
+
+
+<div class="navbar" id="navbar">
+  <div class="navbar-container">
+    <div class="navbar-header pull-left">
+      <a href="/mc/branch/dashboard" class="navbar-brand">
+        <small>
+          <i class=""></i>
+          
+            <img id="KylinCloudLogo" src="/mc/images/hnkylin/Kylin.png" height="70" width="230" alt="kylin logo"/>
+          
+        </small>
+      </a>
+    </div>
+    <nav role="navigation" class="navbar-menu">
+      <ul class="nav navbar-nav">
+        
+          <li class="active">
+            <a href="/mc/branch/dashboard" title="仪表板">仪表板</a>
+          </li>
+          <li >
+            <a href="/mc/branch/branchServers" title="分支">分支</a>
+          </li>
+          <li id="nav_network_pool_id" >
+            
+              <a href="/mc/network/list" title="网络池">网络池</a>
+            
+          </li>
+          <li id="nav_storage_pool_id" >
+            
+              <a href="/mc/storageNew/storageNew" title="存储池">存储池</a>
+            
+          </li>
+          <li id="nav_client_management_id" >
+            <a href="/mc/client/index" title="终端管理">终端管理</a>
+          </li>
+        
+      </ul>
+    </nav>
+    <div class="branch navbar-buttons navbar-header pull-right" role="navigation">
+      <ul class="navbar-nav">
+
+        <li>
+          <a id="admin-info" style="color: white" rel="#adminInfo_tip" class="username">mcadmin</a>
+          <div class="admin-info" style="display:none;">
+            <h3>mcadmin 有以下角色：</h3>
+            
+            
+              
+            
+            <span>管理控制台主管理员</span>
+          </div>
+        </li>
+        <li style="border-left-width: 2px; border-left-color: rgba(161, 177, 194, 0.5);">
+          <a id="buildinfo">
+            帮助<i class="icon-help"></i>
+            <div class="build-info" style="display: none">产品版本：KSVD V7 <br/>内部版本号：R023S07.48308</div>
+          </a>
+        </li>
+        <li>
+          <a href="/mc/user/logout" class="infolinks">注销</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="main-container ace-save-state" id="main-container">
+  <script type="text/javascript">
+    try{ace.settings.loadState('main-container')}catch(e){}
+  </script>
+  
+    <!--
+ Copyright 2006-2017 Hunan Kylin, Inc.  All Rights Reserved.
+ 
+ NOTICE: ALL INFORMATION CONTAINED HEREIN IS, AND REMAINS THE PROPERTY OF
+ HUNAN KYLIN, INC. AND ITS SUPPLIERS, IF ANY. THE INTELLECTUAL AND
+ TECHNICAL CONCEPTS CONTAINED HEREIN ARE PROPRIETARY TO HUNAN KYLIN, INC.
+ AND ITS SUPPLIERS AND MAY BE COVERED BY U.S. AND FOREIGN PATENTS, PATENTS IN
+ PROCESS, AND ARE PROTECTED BY TRADE SECRET OR COPYRIGHT LAW. DISSEMINATION
+ OF THIS INFORMATION OR REPRODUCTION OF THIS MATERIAL IS STRICTLY FORBIDDEN
+ UNLESS PRIOR WRITTEN PERMISSION IS OBTAINED FROM HUNAN KYLIN, INC.
+-->
+
+
+
+
+  
+
+
+
+  
+
+  <div class="main-content">
+    <div class="main-content-inner">
+      
+        <div class="page-content">
+          
+<div class="m-grid-wrap j-grid-wrap">
+    
+</div>
+
+<script src="/mc/js/ace/jquery-2.1.4.min.js" type="text/javascript"></script>
+
+<script src="/mc/js/ace/jquery-ui.min.js" type="text/javascript"></script>
+
+
+<script src="/mc/js/hnkylin/mc.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/notify.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/task.js" type="text/javascript"></script>
+
+<script src="/mc/js/hnkylin/common/common.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+window.addEventListener('DOMContentLoaded', () => {
+    KSVD.updatei18nMap({
+          titleConfirm: "确认",
+          titleInfo: "提示",
+          titleWarn: "警告",
+          titleError: "错误",
+          OK: "确定",
+          cancel: "取消",
+          branch_auth_failed: "分支认证失败：",
+          branch_auth_help: "请联系MC管理员或者及时更新分支同步参数！"
+        });
+     KSVD.appCtx = "/mc/";
+     KSVD.initSideBar();
+     KSVD.notify.init();
+     KSVD.task.init();
+     KSVD.initGlobalSettings();
+});
+
+</script>
+
+
+
+<script type="text/javascript">
+
+// by penghui
+// desc 翻译注入到js
+jQuery(function(){
+    var $ = jQuery;
+
+    window.FE = window.FE || {version: '1.0'};
+
+    var translate = {
+        language: "chinese", // chinese
+        task: "任务", // 任务
+        client: "终端", // 终端
+        taskName: "任务名称", // 任务名称
+        taskDetail: "任务详情", // 任务详情
+        save: "保存", // 保存
+        cancel: "取消", // 取消
+        file: "文件", // 文件
+        softMaintenance: "Uniface升级", // 软件升级
+        updateType:"升级类型",     //升级类型
+        unifaceType:"Uniface升级",     //uniface// 类型
+        uniagentType:"Uniagent升级",     //uniagent类型
+        unifaceBootType:"Uniface-boot升级",     //uniface// 类型
+        softupdate:"软件升级",     
+        noFile: "没有文件 ...", // 没有文件 ...
+        choose: "选择", // 选择
+        confirm: "确认", // 确认
+        sure: "确定", // 确定
+        tip: "提示", // 提示
+        warn: "警告", // 警告
+        error: "错误", // 错误
+        incorrectFile: "文件名格式不正确", // 文件名格式不正确
+        customOperation: "自定义操作", // 自定义操作
+        setScreen: "屏保设置", // 屏保设置
+        taskType: "任务类型", // 任务类型
+        stop: "关闭", // 关闭
+        start: "开启", // 开启
+        rightNow: "立即", // 立即
+        delayMinutes: "延时(分钟)", // 延时(分钟)
+        executionTime: "执行时间", // 执行时间
+        name: "名称", // 名称
+        operator: "操作者", // 操作者
+        type: "类型", // 类型
+        storageLocation: "存放位置", // 存放位置
+        date: "日期", // 日期
+        uploadTime : "上传时间", // 上传时间
+        size : "大小", // 大小
+        description : "描述", // 描述
+        status: "状态", // 状态
+        operation: "操作", // 操作
+        allType: "全部类型", // 全部类型
+        allState: "全部状态", // 全部状态
+        delete: "删除", // 删除
+        download: "下载", // 下载
+        delConfirmTip: function(data){return `删除终端将不包括在线终端，确定删除所选${data}？`}, // 确定删除所选？
+        delConfirmTip2: function(data){return `确定删除所选${data}？` }, // 确定删除所选？
+        delStatusTip: function(data,data1){return `仅支持删除${data}状态和${data1}状态的文件，以确保与文件关联的任务能正常进行。请确认是否删除？`; }, // 只删除状态的记录
+        delateTask: "确认删除所选任务吗？", // 删除单个任务
+        new: "新建", // 新建
+        started: "进行中", // 进行中
+        completed: "已完成", // 已完成
+        idle: "闲置", // 闲置
+        batchDelete: "批量删除", // 批量删除
+        fileNameTip1: "文件名需要包含", // 文件名需要包含
+        fileNameTip2: (v) => `文件名后缀需要以${v}结尾`, // 文件名后缀需要以结尾
+        loginMethod: "登录方式", // 登陆方式
+        netEnviroment: "网络环境", // 网络环境
+        connectionProtocol: "连接协议", // 连接协议
+        unifaceConfig: "uniface配置", // uniface配置
+        netSet: "网络设置", // 网络设置
+        displaySet: "显示设置", // 显示设置
+        other: "其他", // 其他
+        userPassword: "用户密码", // 用户密码
+        uKey: "ukey", // ukey
+        changeLogo: "logo更换", // logo更换
+        configureNow: "立即配置",//立即配置
+        configureLater: "稍后配置",//稍后配置
+        notReminding:"下次不再提醒本条告警",//不再提醒
+        configureTip: "当前未配置用户数据存储，所有数据均保存在Mstorage存储中，有存储风险。请尽快联系管理员前往存储池页面，添加用户数据存储！",//配置提示
+        /* mc首页 */
+        /* 虚拟机 */
+        /* 异常 */
+        abnormal: "异常", // 异常
+        running: "运行", // 运行
+        notRunning: "未运行", // 未运行
+        running_server: "运行", // 运行
+        notRunning_server: "未运行", // 未运行
+        virtualMachineUsage: "虚拟机使用情况", // 虚拟机使用情况
+
+        /* 服务器统计 */
+        server: "服务器", // 服务器
+        stations: "台", // 台
+        online: "在线", // 在线
+        offline: "离线", // 离线
+        /* 集群资源使用情况 */
+        clusterResourceUsage: "集群资源使用情况", // 集群资源使用情况
+        memory: "内存", // 内存
+        storage: "存储", // 存储
+        used: "已使用", // 已使用
+        notUsed: "未使用", // 未使用
+        utilizationRate: "使用率", // 使用率
+        /* 在线趋势图 */
+        onlineTrendMap: "在线趋势图", // 在线趋势图
+        minute: "分", // 分
+        hour: "时", // 时
+        day: "天", // 天
+        session: "会话", // 会话
+        important: "重要", // 重要
+        urgent: "紧急", // 紧急
+        serious: "严重", // 严重
+        normal: "一般", // 一般
+        more: "更多", // 更多
+        time: "执行时间", // 时间
+        details: "详情", // 详情
+        grade: "等级", // 等级
+        unit: "单位", // 单位
+        user: "用户", // 用户
+        virtualMachineIndex: "云桌面", // 云桌面
+        servervirtualsession: "云服务器", // 云服务器
+        virtualMachine: "桌面虚拟机", // 虚拟机
+        userOnlineTimeSequencing: "用户在线时长排序", // 用户在线时长排序
+        currentMonth: "当月", // 当月
+
+        userOnline: "用户在线情况", // 用户在线情况
+        totalNumberOfUsers: "用户总数", // 用户总数
+        numberOfOnlineUsers: "在线用户数", // 在线用户数
+        totalNumberCurrentMonth: "当月登录用户总数", // 当月登陆用户总数
+        totalNumberCurrentYear: "当年登录用户总数", // 当年登陆用户总数
+        person: "人", // 人
+        fullScreen: "全屏", // 全屏
+        emptyWarnData: "当前无警告数据", // 当前无警告数据
+
+        /* /mc首页 */
+
+        /* mc首页-zkbm */
+        userUseCurve: "用户使用曲线", // 用户使用曲线
+        fileTransferCurve: "文件传输曲线", // 文件传输曲线
+        numberOfRegisteredUsers: "注册用户数", // 注册用户数
+        fucloudUsersllScreen: "云用户数", // 云用户数
+        month: "月", // 月
+        userOnlineStatistics: "用户在线统计", // 用户在线统计
+
+        /* /mc首页-zkbm */
+
+        reviewTip: "只支持png，最多只能上传100张，每张图片限制在1M内", // 只支持png，最多只能上传100张，每张图片限制在100M内
+        review: "预览", // 预览
+
+        animationFile: "动画文件", //动画文件
+        bootAnimationConfiguration: "开机动画配置", // 开机动画配置
+        animationFileTip: "请选择连续的动画帧序列图片作为动画文件，系统会以一个图片一帧的方式生成开机动画。当前仅支持png格式，单个图片不超过1M，总动画文件不超过100张", // 开机动画配置
+        animationFileTip2: "正在保存中，请稍后", // 正在保存中，请稍后
+
+    },
+
+    bTranslate = {
+        // uniface配置 -> 网络设置
+        netEnvironment1: "局域网", // 局域网
+        netEnvironment2: "带宽",
+        netEnvironment3: "广域网",
+        netEnvironment4: "拨号上网",
+        // uniface配置 -> 登陆方式
+        clientkeyType: "key的类型", // 网络类型
+        clientkeyTypeValue1: "903",
+        clientkeyTypeValue2: "303",
+        clientkeyTypeValue3: "903c",
+        clientkeyTypeValue4: "Csp",
+        clientkeyTypeValue5: "ylt",
+        clientkeyTypeValue6: "whgm",
+        clientKeyLevel: "key的等级", // key的等级
+        clientKeyUnicode: "key的编号", // key的编号
+
+        // uniface配置 -> 显示设置
+        displaySet1: "服务器列表显示",
+        displaySet2: "云桌面全屏显示",
+        displaySet3: "uniface全屏显示",
+        displaySet4: "显示扩展功能",
+        displaySet5: "显示退出按钮",
+        displaySet2_tip: "此功能配置后只针对PC机器生效",
+        displaySet4_tip: "此功能配置后针对所有版本生效",
+        displaySet5_tip: "此功能配置后只针对PC机器生效",
+
+        // uniface配置 -> 其他
+        other1: "自动登录",
+        other2: "自动连接",
+        other3: "开机自启动(windows)",
+        other3_tip: "此功能配置后只针对PC-Windows机器生效",
+        other4: "桌面自动连接（VOI）",
+        other4_tip: "自动进入默认桌面，发布规则可指定默认桌面；",
+        other5: "自动连接倒计时",
+
+        // logo更换 -> 文件
+        setlogolabal_desk: "桌面选择界面上方图标",
+        setlogolabal_location: "登录框位置图标",
+        setlogolabal_background: "背景图",
+        setlogolabal_copyright: "版权信息",
+        setlogovalue_copyright: "版权所有2006-2024 湖南麒麟信安科技股份有限公司。保留所有权利。",
+        setlogotip_upload: "只支持png格式，且文件在200KB内",
+
+        setlogolabal_desk_tips: "推荐像素  宽256高40",
+        setlogolabal_location_tips: "推荐像素 宽172高28",
+        setlogolabal_background_tips: "推荐像素  宽1380高702",
+    };
+
+
+    // 导出
+    $.extend(window.FE, {
+        translate: translate,
+        bTranslate: bTranslate, // 与业务相关的翻译
+    });
+});
+
+</script>
+
+
+<script src="/mc/js/../mc/client/fe-injection.js" type="text/javascript"></script>
+
+<script async data-main="/mc/mc/dashboard/entry-branch-require" src="/mc/mc/lib/require.js"></script>
+<script>
+    /* 打补丁 */
+    jQuery(function(){
+        jQuery('#admin-info').mouseover(function() {
+            jQuery(this).next().fadeIn();
+        }).mouseout(function() {
+            jQuery(this).next().fadeOut();
+        });
+        jQuery('#buildinfo').mouseover(function() {
+            jQuery(this).find('div').eq(0).fadeIn();
+        }).mouseout(function() {
+            jQuery(this).find('div').eq(0).fadeOut();
+        });
+    });
+</script>
+
+        </div>
+      
+    </div>
+  </div>
+</div>
+</body>
+</html>

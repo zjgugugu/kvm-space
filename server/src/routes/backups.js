@@ -15,7 +15,7 @@ router.get('/servers', async (req, res) => {
 router.post('/servers', async (req, res) => {
   try {
     const server = await req.app.locals.driver.addBackupServer(req.body);
-    res.status(201).json(server);
+    res.json(server);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const backup = await req.app.locals.driver.createBackup(req.body);
-    res.status(201).json(backup);
+    res.json(backup);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -27,7 +27,7 @@ router.get('/pools/:id', async (req, res) => {
 router.post('/pools', async (req, res) => {
   try {
     const pool = await req.app.locals.driver.createStoragePool(req.body);
-    res.status(201).json(pool);
+    res.json(pool);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -80,7 +80,7 @@ router.get('/volumes', async (req, res) => {
 router.post('/volumes', async (req, res) => {
   try {
     const vol = await req.app.locals.driver.createVolume(req.body);
-    res.status(201).json(vol);
+    res.json(vol);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
