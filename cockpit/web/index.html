@@ -7,64 +7,69 @@
   <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif; background: #0a0f26; color: #fff; min-height: 100vh; }
+    body { font-family: "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif; background: #000; color: #fff; min-height: 100vh; }
     [v-cloak] { display: none; }
 
     /* 登录页 */
-    .login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #0a0f26 0%, #1a2340 100%); }
+    .login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #191d22 0%, #000 100%); }
     .login-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 40px; width: 400px; }
-    .login-box h1 { text-align: center; margin-bottom: 30px; font-size: 22px; color: #409eff; }
+    .login-box h1 { text-align: center; margin-bottom: 30px; font-size: 22px; color: #1ea9ff; }
     .login-box .el-input { margin-bottom: 16px; }
     .login-box .el-button { width: 100%; }
 
-    /* 顶部导航栏 - 匹配真实 Cockpit 9090 */
-    .area-ct-navbar { background: #090f26; height: 56px; display: flex; align-items: center; border-bottom: 1px solid #2a3456; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
-    .area-ct-navbar .navbar-brand { display: flex; align-items: center; padding: 0 20px; height: 100%; }
-    .area-ct-navbar .navbar-brand .logos { height: 32px; }
-    .area-ct-navbar .navbar-brand .logos img { height: 100%; }
-    .area-ct-navbar .navbar-brand .brand-text { color: #409eff; font-size: 16px; font-weight: bold; margin-left: 12px; }
-    .area-ct-navbar .nav-menus { display: flex; align-items: center; height: 100%; }
-    .area-ct-navbar .nav-menus .nav-item { padding: 0 20px; height: 100%; display: flex; align-items: center; color: #ccc; font-size: 14px; cursor: pointer; border-bottom: 2px solid transparent; }
-    .area-ct-navbar .nav-menus .nav-item.active { color: #fff; border-bottom-color: #409eff; }
-    .area-ct-navbar .nav-menus .nav-item:hover { color: #fff; }
-    .area-ct-navbar .nav-right { margin-left: auto; padding-right: 20px; display: flex; align-items: center; gap: 16px; }
-    .area-ct-navbar .nav-right .exit-btn { color: #ccc; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; }
+    /* 顶部导航栏 - 匹配真实 Cockpit 9090 (高112px, bg #191d22) */
+    .area-ct-navbar { background: #191d22; height: 112px; display: flex; align-items: center; border: none; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+    .area-ct-navbar .navbar-header { display: flex; align-items: center; height: 100%; flex: 1; border: none; }
+    .area-ct-navbar .navbar-brand { padding: 0 10px; display: flex; align-items: center; }
+    .area-ct-navbar .navbar-brand .logos { display: inline-block; margin-top: 0; }
+    .area-ct-navbar .navbar-brand .logos img { height: 40px; }
+    .area-ct-navbar .navbar-brand .brand-text { color: #fff; font-size: 16px; font-weight: bold; margin-left: 8px; text-transform: uppercase; }
+    .area-ct-navbar .navMenus { flex: 1; height: 100%; display: flex; align-items: center; }
+    .area-ct-navbar .navMenus .main-navbar { list-style: none; margin: 0; padding: 0; display: flex; height: 100%; border: none; }
+    .area-ct-navbar .navMenus .main-navbar > li { display: flex; align-items: center; position: relative; background: transparent; border: none; }
+    .area-ct-navbar .navMenus .main-navbar > li > a { color: #fff; font-size: 14px; padding: 0 20px; cursor: pointer; text-decoration: none; display: flex; align-items: center; height: 100%; position: relative; }
+    .area-ct-navbar .navMenus .main-navbar > li > a:hover { text-decoration: none; }
+    .area-ct-navbar .navMenus .main-navbar > li.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #1ea9ff; }
+    .area-ct-navbar .navMenus .main-navbar > li:not(:first-child)::before { content: ''; height: 27px; width: 2px; background: rgba(255,255,255,0.15); position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+    .area-ct-navbar .nav-right { padding-right: 20px; display: flex; align-items: center; gap: 16px; }
+    .area-ct-navbar .nav-right .exit-btn { color: #fff; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 4px; }
     .area-ct-navbar .nav-right .exit-btn:hover { color: #f56c6c; }
 
     /* 主体布局 */
-    .area-ct-body { margin-top: 56px; display: flex; min-height: calc(100vh - 56px); }
+    .area-ct-body { margin-top: 112px; display: flex; min-height: calc(100vh - 112px); position: relative; }
 
-    /* 左侧导航 - 匹配真实 Cockpit 9090 */
-    .area-ct-subnav { width: 200px; background: #090f26; border-right: 1px solid #2a3456; flex-shrink: 0; }
-    .area-ct-subnav .sidebar-group { padding: 8px 0; }
-    .area-ct-subnav .sidebar-group-title { padding: 8px 16px; color: #666; font-size: 12px; text-transform: uppercase; }
-    .area-ct-subnav .sidebar-item { padding: 10px 20px; color: #8892b0; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; transition: all 0.2s; border-left: 3px solid transparent; }
-    .area-ct-subnav .sidebar-item:hover { color: #fff; background: rgba(64,158,255,0.08); }
-    .area-ct-subnav .sidebar-item.active { color: #409eff; background: rgba(64,158,255,0.12); border-left-color: #409eff; }
-    .area-ct-subnav .sidebar-item i { font-size: 16px; width: 20px; text-align: center; }
-
-    /* 存储维护子菜单 */
-    .area-ct-subnav .sub-menu { background: rgba(0,0,0,0.15); }
-    .area-ct-subnav .sub-menu .sub-item { padding: 8px 20px 8px 50px; color: #8892b0; cursor: pointer; font-size: 13px; transition: all 0.2s; }
-    .area-ct-subnav .sub-menu .sub-item:hover { color: #fff; background: rgba(64,158,255,0.08); }
-    .area-ct-subnav .sub-menu .sub-item.active { color: #409eff; }
+    /* 左侧子导航 - 仅在本地服务器(system)模块显示, 匹配真实 9090 subnav */
+    .area-ct-subnav { width: 180px; background: #393f44; border-right: 1px solid #292e34; flex-shrink: 0; }
+    .area-ct-subnav .list-group { list-style: none; margin: 10px 0; padding: 0; border: none; }
+    .area-ct-subnav .list-group-item { padding: 0; background: inherit; border: none; margin-right: 0; transition: all 0.3s; }
+    .area-ct-subnav .list-group-item a { padding: 15px; display: block; color: #d1d1d1; text-decoration: none; font-size: 14px; cursor: pointer; }
+    .area-ct-subnav .list-group-item:hover { background: rgba(77,82,88,0.5); }
+    .area-ct-subnav .list-group-item:hover a { color: #fff; }
+    .area-ct-subnav .list-group-item.active { background: #1ea9ff; }
+    .area-ct-subnav .list-group-item.active a { color: #fff; font-weight: 600; }
 
     /* 内容区 */
-    .area-ct-content { flex: 1; padding: 24px; background: #0d1333; overflow-y: auto; }
+    .area-ct-content { flex: 1; padding: 24px; background: #000; overflow-y: auto; }
+
+    /* 存储维护内部 tab (水平标签, 在内容区内) */
+    .maintain-tabs { display: flex; border-bottom: 1px solid #393f44; margin-bottom: 20px; }
+    .maintain-tabs .maintain-tab { padding: 12px 20px; color: #d1d1d1; cursor: pointer; font-size: 14px; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .maintain-tabs .maintain-tab:hover { color: #fff; }
+    .maintain-tabs .maintain-tab.active { color: #1ea9ff; border-bottom-color: #1ea9ff; }
 
     /* 容器 */
-    .container-box { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 24px; }
-    .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #2a3456; }
+    .container-box { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 24px; }
+    .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #393f44; }
     .section-title h2 { font-size: 18px; color: #fff; }
     .section-title .actions { display: flex; gap: 8px; }
 
     /* 部署向导 */
     .deploy-guide { text-align: center; padding: 60px 0; }
-    .deploy-guide h1 { font-size: 28px; margin-bottom: 40px; color: #409eff; }
+    .deploy-guide h1 { font-size: 28px; margin-bottom: 40px; color: #1ea9ff; }
     .deploy-options { display: flex; justify-content: center; gap: 60px; }
-    .deploy-option { cursor: pointer; padding: 40px; background: rgba(255,255,255,0.05); border: 2px solid rgba(64,158,255,0.3); border-radius: 12px; transition: all 0.3s; width: 240px; }
-    .deploy-option:hover { border-color: #409eff; background: rgba(64,158,255,0.1); transform: translateY(-4px); }
-    .deploy-option i { font-size: 64px; color: #409eff; display: block; margin-bottom: 16px; }
+    .deploy-option { cursor: pointer; padding: 40px; background: rgba(255,255,255,0.05); border: 2px solid rgba(30,169,255,0.3); border-radius: 12px; transition: all 0.3s; width: 240px; }
+    .deploy-option:hover { border-color: #1ea9ff; background: rgba(30,169,255,0.1); transform: translateY(-4px); }
+    .deploy-option i { font-size: 64px; color: #1ea9ff; display: block; margin-bottom: 16px; }
     .deploy-option h3 { font-size: 18px; color: #fff; }
     .deploy-option p { color: #8892b0; margin-top: 8px; font-size: 13px; }
 
@@ -73,7 +78,7 @@
 
     /* 角色标签 */
     .role-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-    .role-cm-vdi { background: rgba(64,158,255,0.2); color: #409eff; }
+    .role-cm-vdi { background: rgba(30,169,255,0.2); color: #1ea9ff; }
     .role-cm { background: rgba(103,194,58,0.2); color: #67c23a; }
     .role-vdi { background: rgba(230,162,60,0.2); color: #e6a23c; }
     .role-arbiter { background: rgba(144,147,153,0.2); color: #909399; }
@@ -85,7 +90,7 @@
     /* 高级设置弹窗 */
     .setting-form .el-form-item { margin-bottom: 18px; }
     .setting-section { margin-bottom: 24px; }
-    .setting-section h3 { font-size: 16px; margin-bottom: 12px; color: #409eff; border-left: 3px solid #409eff; padding-left: 8px; }
+    .setting-section h3 { font-size: 16px; margin-bottom: 12px; color: #1ea9ff; border-left: 3px solid #1ea9ff; padding-left: 8px; }
 
     /* 存储表格 */
     .storage-section { margin-top: 24px; }
@@ -97,16 +102,16 @@
     .el-table th { background-color: rgba(255,255,255,0.05) !important; color: #fff !important; }
     .el-table tr { background-color: transparent !important; }
     .el-table tr:hover > td { background-color: rgba(64,158,255,0.08) !important; }
-    .el-table td { border-bottom: 1px solid #2a3456 !important; }
+    .el-table td { border-bottom: 1px solid #393f44 !important; }
     .el-table::before, .el-table::after { background: transparent !important; }
-    .el-table th.is-leaf { border-bottom-color: #2a3456 !important; }
+    .el-table th.is-leaf { border-bottom-color: #393f44 !important; }
 
-    .el-dialog { background: #1a2340 !important; }
+    .el-dialog { background: #292e34 !important; }
     .el-dialog__title { color: #fff !important; }
     .el-dialog__body { color: #ccc !important; }
 
     .el-steps { background: transparent; }
-    .el-step__title.is-process { color: #409eff !important; }
+    .el-step__title.is-process { color: #1ea9ff !important; }
     .el-step__title.is-finish { color: #67c23a !important; }
     .el-step__title.is-wait { color: #666 !important; }
 
@@ -121,7 +126,7 @@
     <!-- 登录页 -->
     <div v-if="!token" class="login-page">
       <div class="login-box">
-        <h1>🖥 总控虚拟化界面</h1>
+        <h1>总控虚拟化界面</h1>
         <el-input v-model="loginForm.username" placeholder="用户名" prefix-icon="el-icon-user"></el-input>
         <el-input v-model="loginForm.password" placeholder="密码" type="password" show-password prefix-icon="el-icon-lock" @keyup.enter.native="doLogin"></el-input>
         <el-button type="primary" :loading="loginLoading" @click="doLogin">登 录</el-button>
@@ -130,16 +135,27 @@
 
     <!-- 主界面 -->
     <div v-else>
-      <!-- 顶部导航栏 -->
+      <!-- 顶部导航栏 - 匹配真实 9090: Logo + 本地服务器/虚拟化/存储维护 tabs + 退出 -->
       <nav class="area-ct-navbar">
-        <div class="navbar-brand">
-          <div class="brand-text">KVM Cloud</div>
-        </div>
-        <div class="nav-menus">
-          <div class="nav-item active">本地服务器</div>
+        <div class="navbar-header">
+          <div class="navbar-brand">
+            <div class="brand-text">KVM Cloud</div>
+          </div>
+          <div class="navMenus">
+            <ul class="main-navbar">
+              <li :class="{ active: currentModule === 'system' }" @click="switchModule('system')">
+                <a>本地服务器</a>
+              </li>
+              <li :class="{ active: currentModule === 'virtualization' }" @click="switchModule('virtualization')">
+                <a>虚拟化</a>
+              </li>
+              <li :class="{ active: currentModule === 'maintain' }" @click="switchModule('maintain')">
+                <a>存储维护</a>
+              </li>
+            </ul>
+          </div>
         </div>
         <div class="nav-right">
-          <span style="color: #8892b0; font-size: 13px;">{{ sysInfo.hostname }}</span>
           <span class="exit-btn" @click="logout">
             <i class="el-icon-switch-button"></i> 退出
           </span>
@@ -147,38 +163,19 @@
       </nav>
 
       <div class="area-ct-body">
-        <!-- 左侧导航 -->
-        <div class="area-ct-subnav">
-          <!-- Dashboard 区域 -->
-          <div class="sidebar-group">
-            <div class="sidebar-item" :class="{ active: currentModule === 'virtualization' }" @click="switchModule('virtualization')">
-              <i class="el-icon-monitor"></i>
-              <span>虚拟化</span>
-            </div>
-            <div class="sidebar-item" :class="{ active: currentModule === 'maintain' }" @click="switchModule('maintain')">
-              <i class="el-icon-coin"></i>
-              <span>存储维护</span>
-            </div>
-            <!-- 存储维护子菜单 -->
-            <div v-if="currentModule === 'maintain'" class="sub-menu">
-              <div class="sub-item" :class="{ active: maintainTab === i }" v-for="(tab, i) in maintainTabs" :key="i" @click="maintainTab = i">
-                {{ tab.label }}
-              </div>
-            </div>
-          </div>
-          <!-- Menu 区域 (匹配 systemd manifest menu) -->
-          <div class="sidebar-group" style="border-top: 1px solid #2a3456; margin-top: 4px; padding-top: 4px;">
-            <div class="sidebar-item" :class="{ active: currentModule === 'system' }" @click="switchModule('system')">
-              <i class="el-icon-s-platform"></i>
-              <span>System</span>
-            </div>
-            <!-- System 子菜单 -->
-            <div v-if="currentModule === 'system'" class="sub-menu">
-              <div class="sub-item" :class="{ active: systemTab === 'overview' }" @click="systemTab = 'overview'; loadOverview()">概览</div>
-              <div class="sub-item" :class="{ active: systemTab === 'services' }" @click="systemTab = 'services'; loadServices()">服务</div>
-              <div class="sub-item" :class="{ active: systemTab === 'logs' }" @click="systemTab = 'logs'; loadLogs()">日志</div>
-            </div>
-          </div>
+        <!-- 左侧子导航: 仅 本地服务器(system) 模块激活时显示, 匹配真实 9090 host-nav -->
+        <div class="area-ct-subnav" v-if="currentModule === 'system'">
+          <ul class="list-group" id="sidebar-menu">
+            <li class="list-group-item" :class="{ active: systemTab === 'overview' }" @click="systemTab = 'overview'; loadOverview()">
+              <a>概览</a>
+            </li>
+            <li class="list-group-item" :class="{ active: systemTab === 'services' }" @click="systemTab = 'services'; loadServices()">
+              <a>服务</a>
+            </li>
+            <li class="list-group-item" :class="{ active: systemTab === 'logs' }" @click="systemTab = 'logs'; loadLogs()">
+              <a>日志</a>
+            </li>
+          </ul>
         </div>
 
         <div class="area-ct-content">
@@ -274,7 +271,7 @@
                   <!-- Final step: 部署状态 -->
                   <div v-if="deployStep === currentSteps.length - 1">
                     <div style="text-align: center; padding: 40px;">
-                      <i v-if="deploying" class="el-icon-loading" style="font-size: 48px; color: #409eff;"></i>
+                      <i v-if="deploying" class="el-icon-loading" style="font-size: 48px; color: #1ea9ff;"></i>
                       <i v-else class="el-icon-circle-check" style="font-size: 48px; color: #67c23a;"></i>
                       <p style="margin-top: 16px; font-size: 16px;">{{ deploying ? '正在部署...' : '部署完成！' }}</p>
                     </div>
@@ -369,6 +366,12 @@
 
           <!-- ====== 存储维护模块 ====== -->
           <div v-if="currentModule === 'maintain'">
+            <!-- 存储维护内部 tab 导航 (匹配真实 maintain 插件内部菜单) -->
+            <div class="maintain-tabs">
+              <div class="maintain-tab" :class="{ active: maintainTab === i }" v-for="(tab, i) in maintainTabs" :key="i" @click="maintainTab = i">
+                {{ tab.label }}
+              </div>
+            </div>
             <!-- 脑裂恢复 -->
             <div v-if="maintainTab === 0" class="container-box">
               <div class="section-title"><h2>脑裂恢复</h2></div>
@@ -463,18 +466,18 @@
               </div>
               <div style="display: flex; gap: 16px; margin-top: 16px;">
                 <div class="container-box" style="flex: 1;">
-                  <h3 style="margin-bottom: 12px; color: #409eff;">CPU 使用率</h3>
+                  <h3 style="margin-bottom: 12px; color: #1ea9ff;">CPU 使用率</h3>
                   <p style="color: #8892b0; font-size: 13px;">{{ overview.cpu ? overview.cpu.cores + ' 核' : '' }}</p>
                   <el-progress :percentage="overview.cpu ? Math.round(overview.cpu.usage) : 0" :color="progressColor" style="margin-top: 8px;"></el-progress>
                 </div>
                 <div class="container-box" style="flex: 1;">
-                  <h3 style="margin-bottom: 12px; color: #409eff;">内存</h3>
+                  <h3 style="margin-bottom: 12px; color: #1ea9ff;">内存</h3>
                   <p style="color: #8892b0; font-size: 13px;">{{ overview.memory ? overview.memory.used_mb + ' / ' + overview.memory.total_mb + ' MB' : '' }}</p>
                   <el-progress :percentage="overview.memory && overview.memory.total_mb ? Math.round(overview.memory.used_mb / overview.memory.total_mb * 100) : 0" :color="progressColor" style="margin-top: 8px;"></el-progress>
                 </div>
               </div>
               <div class="container-box" style="margin-top: 16px;">
-                <h3 style="margin-bottom: 12px; color: #409eff;">磁盘使用</h3>
+                <h3 style="margin-bottom: 12px; color: #1ea9ff;">磁盘使用</h3>
                 <el-table :data="overview.disks || []" size="small">
                   <el-table-column prop="device" label="设备" align="center"></el-table-column>
                   <el-table-column prop="fstype" label="文件系统" align="center" width="100"></el-table-column>
@@ -486,7 +489,7 @@
                 </el-table>
               </div>
               <div class="container-box" style="margin-top: 16px;">
-                <h3 style="margin-bottom: 12px; color: #409eff;">网络接口</h3>
+                <h3 style="margin-bottom: 12px; color: #1ea9ff;">网络接口</h3>
                 <el-table :data="overview.interfaces || []" size="small">
                   <el-table-column prop="name" label="接口" align="center" width="120"></el-table-column>
                   <el-table-column prop="addr" label="地址" align="center"></el-table-column>
@@ -687,7 +690,7 @@
           token: localStorage.getItem('cockpit_token') || '',
           loginForm: { username: 'root', password: '' },
           loginLoading: false,
-          currentModule: 'virtualization',
+          currentModule: 'system',
           sysInfo: {},
 
           // 集群状态
@@ -770,6 +773,7 @@
         if (this.token) {
           this.loadSysInfo();
           this.loadClusterStatus();
+          this.loadOverview();
         }
       },
       methods: {
@@ -918,6 +922,7 @@
           this.currentModule = mod;
           if (mod === 'virtualization') this.loadClusterStatus();
           else if (mod === 'system') { this.systemTab = 'overview'; this.loadOverview(); }
+          else if (mod === 'maintain') { this.loadMaintainBackups(); this.loadMaintainLogs(); }
         },
         loadOverview: function () {
           var self = this;
@@ -952,12 +957,6 @@
         }
       },
       watch: {
-        currentModule: function (val) {
-          if (val === 'maintain') {
-            this.loadMaintainBackups();
-            this.loadMaintainLogs();
-          }
-        },
         settingDialogVisible: function (val) {
           if (val) {
             var self = this;
