@@ -13,7 +13,8 @@ router.get('/', (req, res) => {
   if (category) { sql += ' AND category = ?'; params.push(category); }
   if (type) { sql += ' AND type = ?'; params.push(type); }
   sql += ' ORDER BY created_at DESC';
-  res.json(db.prepare(sql).all(...params));
+  const rows = db.prepare(sql).all(...params);
+  res.json({ data: rows, total: rows.length });
 });
 
 // GET /api/files/:id — 文件详情

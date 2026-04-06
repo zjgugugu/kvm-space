@@ -5,7 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 // ==================== VLAN池 ====================
 router.get('/vlan-pools', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM vlan_pools ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM vlan_pools ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/vlan-pools', (req, res) => {
@@ -34,7 +35,8 @@ router.delete('/vlan-pools/:id', (req, res) => {
 // ==================== 端口镜像 ====================
 router.get('/port-mirroring', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM port_mirroring ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM port_mirroring ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/port-mirroring', (req, res) => {
@@ -63,7 +65,8 @@ router.delete('/port-mirroring/:id', (req, res) => {
 // ==================== 网络配置规则 ====================
 router.get('/config-rules', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM network_config_rules ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM network_config_rules ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/config-rules', (req, res) => {
@@ -92,7 +95,8 @@ router.delete('/config-rules/:id', (req, res) => {
 // ==================== 虚拟防火墙 ====================
 router.get('/firewalls', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM virtual_firewalls ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM virtual_firewalls ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.get('/firewalls/:id', (req, res) => {
@@ -145,7 +149,8 @@ router.delete('/firewalls/:fwId/rules/:ruleId', (req, res) => {
 // ==================== 端口组 ====================
 router.get('/port-groups', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM port_groups ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM port_groups ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/port-groups', (req, res) => {

@@ -5,7 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 // 终端用户绑定列表
 router.get('/', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM terminal_user_bindings ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM terminal_user_bindings ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 // 获取单条

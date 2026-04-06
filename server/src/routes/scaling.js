@@ -5,7 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 // ==================== 自动伸缩策略 ====================
 router.get('/strategies', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM scaling_strategies ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM scaling_strategies ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/strategies', (req, res) => {
@@ -35,7 +36,8 @@ router.delete('/strategies/:id', (req, res) => {
 // ==================== 自动伸缩组 ====================
 router.get('/groups', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT sg.*, ss.name as strategy_name FROM scaling_groups sg LEFT JOIN scaling_strategies ss ON sg.strategy_id = ss.id ORDER BY sg.created_at DESC').all());
+  const rows = db.prepare('SELECT sg.*, ss.name as strategy_name FROM scaling_groups sg LEFT JOIN scaling_strategies ss ON sg.strategy_id = ss.id ORDER BY sg.created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/groups', (req, res) => {
@@ -65,7 +67,8 @@ router.delete('/groups/:id', (req, res) => {
 // ==================== 负载均衡 ====================
 router.get('/load-balancers', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM load_balancers ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM load_balancers ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.get('/load-balancers/:id', (req, res) => {
@@ -120,7 +123,8 @@ router.delete('/load-balancers/:id/members/:memberId', (req, res) => {
 // ==================== DRS (分布式资源调度) ====================
 router.get('/drs', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM drs_rules ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM drs_rules ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/drs', (req, res) => {
@@ -150,7 +154,8 @@ router.delete('/drs/:id', (req, res) => {
 // ==================== DPM (分布式电源管理) ====================
 router.get('/dpm', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM dpm_policies ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM dpm_policies ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/dpm', (req, res) => {

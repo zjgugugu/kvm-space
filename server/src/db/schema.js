@@ -925,6 +925,9 @@ function initSchema(db) {
     { table: 'vms', column: 'vm_type', def: "TEXT DEFAULT 'desktop'" },
     { table: 'terminals', column: 'type', def: "TEXT DEFAULT 'TC'" },
     { table: 'terminals', column: 'group_name', def: "TEXT DEFAULT ''" },
+    { table: 'zombie_servers', column: 'detected_at', def: "DATETIME DEFAULT (datetime('now'))" },
+    { table: 'zombie_servers', column: 'resolved', def: "INTEGER DEFAULT 0" },
+    { table: 'zombie_servers', column: 'resolved_at', def: "DATETIME" },
   ];
   for (const { table, column, def } of alterColumns) {
     try {

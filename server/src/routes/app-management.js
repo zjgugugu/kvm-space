@@ -5,7 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 // ==================== 应用程序层 ====================
 router.get('/layers', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM app_layers ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM app_layers ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/layers', (req, res) => {
@@ -35,7 +36,8 @@ router.delete('/layers/:id', (req, res) => {
 // ==================== 软件库 ====================
 router.get('/software', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM software_library ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM software_library ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/software', (req, res) => {
@@ -65,7 +67,8 @@ router.delete('/software/:id', (req, res) => {
 // ==================== 软件发布 ====================
 router.get('/software-publish', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT sp.*, sl.name as software_name FROM software_publish sp LEFT JOIN software_library sl ON sp.software_id = sl.id ORDER BY sp.created_at DESC').all());
+  const rows = db.prepare('SELECT sp.*, sl.name as software_name FROM software_publish sp LEFT JOIN software_library sl ON sp.software_id = sl.id ORDER BY sp.created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/software-publish', (req, res) => {
@@ -88,7 +91,8 @@ router.get('/control-rules', (req, res) => {
   const db = req.app.locals.db;
   const type = req.query.type; // 'builtin' or 'custom'
   const sql = type ? 'SELECT * FROM app_control_rules WHERE type = ? ORDER BY created_at DESC' : 'SELECT * FROM app_control_rules ORDER BY created_at DESC';
-  res.json(type ? db.prepare(sql).all(type) : db.prepare(sql).all());
+  const rows = type ? db.prepare(sql).all(type) : db.prepare(sql).all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/control-rules', (req, res) => {
@@ -118,7 +122,8 @@ router.delete('/control-rules/:id', (req, res) => {
 // ==================== 应用发布 - 应用组 ====================
 router.get('/virtual-groups', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM virtual_app_groups ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM virtual_app_groups ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/virtual-groups', (req, res) => {
@@ -148,7 +153,8 @@ router.delete('/virtual-groups/:id', (req, res) => {
 // ==================== 应用发布 - 应用会话 ====================
 router.get('/virtual-sessions', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM virtual_app_sessions ORDER BY started_at DESC').all());
+  const rows = db.prepare('SELECT * FROM virtual_app_sessions ORDER BY started_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/virtual-sessions', (req, res) => {

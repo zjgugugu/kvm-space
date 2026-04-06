@@ -5,7 +5,8 @@ const { v4: uuidv4 } = require('uuid');
 // ==================== 僵尸云服务器 ====================
 router.get('/zombie-servers', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM zombie_servers ORDER BY detected_at DESC').all());
+  const rows = db.prepare('SELECT * FROM zombie_servers ORDER BY detected_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/zombie-servers/scan', (req, res) => {
@@ -38,7 +39,8 @@ router.delete('/zombie-servers/:id', (req, res) => {
 // ==================== 云服务器启动顺序 ====================
 router.get('/boot-order', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT bo.*, v.name as vm_name, v.status as vm_status FROM boot_order_config bo LEFT JOIN vms v ON bo.vm_id = v.id ORDER BY bo.boot_priority ASC').all());
+  const rows = db.prepare('SELECT bo.*, v.name as vm_name, v.status as vm_status FROM boot_order_config bo LEFT JOIN vms v ON bo.vm_id = v.id ORDER BY bo.boot_priority ASC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/boot-order', (req, res) => {
@@ -68,7 +70,8 @@ router.delete('/boot-order/:id', (req, res) => {
 // ==================== 组织/资源调度 ====================
 router.get('/organizations', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM organizations ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM organizations ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/organizations', (req, res) => {
@@ -101,7 +104,7 @@ router.get('/affinity-groups', (req, res) => {
   for (const g of groups) {
     g.vms = db.prepare('SELECT agv.vm_id, v.name as vm_name FROM affinity_group_vms agv LEFT JOIN vms v ON agv.vm_id = v.id WHERE agv.group_id = ?').all(g.id);
   }
-  res.json(groups);
+  res.json({ data: groups, total: groups.length });
 });
 
 router.post('/affinity-groups', (req, res) => {
@@ -148,7 +151,8 @@ router.delete('/affinity-groups/:id/vms/:vmId', (req, res) => {
 // ==================== 标签管理 ====================
 router.get('/labels', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM labels ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM labels ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/labels', (req, res) => {
@@ -197,7 +201,8 @@ router.delete('/labels/:id/assign', (req, res) => {
 // ==================== 一键检测 ====================
 router.get('/detection', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM detection_results ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM detection_results ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/detection/run', (req, res) => {
@@ -233,7 +238,8 @@ router.post('/detection/run', (req, res) => {
 // ==================== 访问策略 ====================
 router.get('/access-policies', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM access_policies ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM access_policies ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/access-policies', (req, res) => {
@@ -262,7 +268,8 @@ router.delete('/access-policies/:id', (req, res) => {
 // ==================== 角色管理 ====================
 router.get('/roles', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM roles ORDER BY created_at DESC').all());
+  const rows = db.prepare('SELECT * FROM roles ORDER BY created_at DESC').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 router.post('/roles', (req, res) => {
