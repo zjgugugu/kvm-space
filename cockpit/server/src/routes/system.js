@@ -161,16 +161,30 @@ router.get('/networking', function (req, res) {
     } catch (e) {}
   }
   if (!interfaces.length) {
-    // fallback
-    var ifLines = exec("ip -o link show | awk '{print $2,$9}'");
+    // fallback: parse ip addr line by line
+    var ifLines = exec("ip -o addr show | awk '{print $2, $3, $4}'");
+    var ifMap = {};
     ifLines.split('\n').forEach(function (line) {
-      var parts = line.split(' ');
-      if (parts.length >= 2) {
-        var name = parts[0].replace(':', '');
-        var addr = exec("ip -4 addr show " + name + " | grep inet | awk '{print $2}'");
-        interfaces.push({ name: name, state: parts[1], mac: '', mtu: 0, addresses: addr ? [addr] : [] });
+      var parts = line.trim().split(/\s+/);
+      if (parts.length >= 3) {
+        var name = parts[0];
+        var family = parts[1];
+        var addr = parts[2];
+        if (!ifMap[name]) ifMap[name] = { name: name, state: '', mac: '', mtu: 0, addresses: [] };
+        if (family === 'inet') ifMap[name].addresses.push(addr);
       }
     });
+    // get state separately
+    var stateLines = exec("ip -o link show | awk -F'[<>]' '{print $1, $2}'");
+    stateLines.split('\n').forEach(function (line) {
+      var m = line.match(/^\d+:\s+(\S+)/);
+      if (m) {
+        var name = m[1].replace(':', '');
+        var up = line.indexOf('UP') !== -1;
+        if (ifMap[name]) ifMap[name].state = up ? 'UP' : 'DOWN';
+      }
+    });
+    interfaces = Object.keys(ifMap).map(function (k) { return ifMap[k]; });
   }
 
   // Routes
@@ -201,6 +215,20 @@ router.get('/storage', function (req, res) {
   var blockDevices = [];
   if (lsblkText) {
     try { blockDevices = JSON.parse(lsblkText).blockdevices || []; } catch (e) {}
+  }
+  if (!blockDevices.length) {
+    // fallback: parse lsblk text output
+    var lsblkLines = exec("lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT 2>/dev/null");
+    lsblkLines.split('\n').forEach(function (line, i) {
+      if (i === 0) return;
+      var parts = line.replace(/[├└│─]/g, '').trim().split(/\s+/);
+      if (parts.length >= 3) {
+        blockDevices.push({
+          name: parts[0], size: parts[1], type: parts[2],
+          fstype: parts[3] || '', mountpoint: parts[4] || ''
+        });
+      }
+    });
   }
 
   // Filesystems
