@@ -48,37 +48,51 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { Back } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import api from '../api'
 
 const route = useRoute()
-const storageName = computed(() => route.params.name || 'default')
+const storageName = computed(() => pool.value?.name || route.params.name || 'default')
+const loading = ref(false)
+const pool = ref({})
+const volumes = ref([])
 
-const totalGB = 500
-const usedGB = 312
-const usedPercent = Math.round(usedGB / totalGB * 100)
+const totalGB = computed(() => Math.round(pool.value?.total || 0))
+const usedGB = computed(() => Math.round(pool.value?.used || 0))
+const usedPercent = computed(() => totalGB.value ? Math.round(usedGB.value / totalGB.value * 100) : 0)
 
-const overviewCards = [
-  { label: '总容量', value: totalGB + ' GB', color: '#409EFF' },
-  { label: '已使用', value: usedGB + ' GB', color: '#E6A23C' },
-  { label: '可用', value: (totalGB - usedGB) + ' GB', color: '#67C23A' },
-  { label: '磁盘数', value: 5, color: '#909399' },
-]
-
-const volumes = ref([
-  { name: 'vm-desktop-01.qcow2', format: 'qcow2', capacity: '40 GB', allocation: '18 GB', vm: 'desktop-01' },
-  { name: 'vm-desktop-02.qcow2', format: 'qcow2', capacity: '40 GB', allocation: '22 GB', vm: 'desktop-02' },
-  { name: 'vm-server-01.qcow2', format: 'qcow2', capacity: '100 GB', allocation: '65 GB', vm: 'server-01' },
-  { name: 'template-kylin-v10.qcow2', format: 'qcow2', capacity: '20 GB', allocation: '12 GB', vm: '' },
-  { name: 'backup-snapshot.qcow2', format: 'qcow2', capacity: '80 GB', allocation: '45 GB', vm: '' },
+const overviewCards = computed(() => [
+  { label: '总容量', value: totalGB.value + ' GB', color: '#409EFF' },
+  { label: '已使用', value: usedGB.value + ' GB', color: '#E6A23C' },
+  { label: '可用', value: (totalGB.value - usedGB.value) + ' GB', color: '#67C23A' },
+  { label: '磁盘数', value: volumes.value.length, color: '#909399' },
 ])
+
+async function load() {
+  loading.value = true
+  try {
+    // Load pool detail by name (route param is name)
+    const pools = (await api.get('/storage/pools')).data || []
+    pool.value = pools.find(p => p.name === route.params.name || p.id === route.params.name) || {}
+    if (pool.value.id) {
+      volumes.value = (await api.get('/storage/volumes', { params: { pool_id: pool.value.id } })).data || []
+    }
+  } catch (e) { pool.value = {}; volumes.value = [] }
+  finally { loading.value = false }
+}
 
 function editVol(row) { ElMessage.info('编辑: ' + row.name) }
 async function deleteVol(row) {
   await ElMessageBox.confirm(`确定删除磁盘 "${row.name}" ?`, '确认')
-  volumes.value = volumes.value.filter(v => v.name !== row.name)
-  ElMessage.success('删除成功')
+  try {
+    await api.delete(`/storage/volumes/${row.id}`)
+    ElMessage.success('删除成功')
+    load()
+  } catch (e) { ElMessage.error('删除失败') }
 }
+
+onMounted(load)
 </script>

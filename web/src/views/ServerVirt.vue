@@ -21,10 +21,12 @@
         <template #default="{ row }"><el-tag :type="statusType(row.status)" size="small">{{ statusText(row.status) }}</el-tag></template>
       </el-table-column>
       <el-table-column prop="os_type" label="操作系统" width="120" />
-      <el-table-column prop="vcpu" label="vCPU" width="70" />
-      <el-table-column prop="memory_mb" label="内存(MB)" width="90" />
+      <el-table-column prop="cpu" label="vCPU" width="70" />
+      <el-table-column label="内存" width="90">
+        <template #default="{ row }">{{ (row.memory/1024).toFixed(0) }}GB</template>
+      </el-table-column>
       <el-table-column prop="host_name" label="所在主机" width="140" />
-      <el-table-column prop="ip_address" label="IP地址" width="130" />
+      <el-table-column prop="ip" label="IP地址" width="130" />
       <el-table-column prop="created_at" label="创建时间" width="160" />
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="{ row }">
@@ -54,7 +56,7 @@ const filteredVms = computed(() => {
   let list = vms.value
   if (search.value) {
     const s = search.value.toLowerCase()
-    list = list.filter(v => v.name.toLowerCase().includes(s) || (v.ip_address || '').includes(s))
+    list = list.filter(v => v.name.toLowerCase().includes(s) || (v.ip || '').includes(s))
   }
   if (statusFilter.value) list = list.filter(v => v.status === statusFilter.value)
   return list
@@ -70,7 +72,7 @@ async function load() {
 }
 
 async function action(vm, act) {
-  await api.post(`/vms/${vm.id}/${act}`)
+  await api.post(`/vms/${vm.id}/action`, { action: act })
   ElMessage.success(`${act} 操作已执行`); setTimeout(load, 1000)
 }
 
