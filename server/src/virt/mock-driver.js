@@ -298,15 +298,15 @@ class MockDriver extends VirtDriver {
     const vnc_port = 5900 + Math.floor(Math.random() * 100);
 
     this.db.prepare(`INSERT INTO vms (id,name,host_id,template_id,spec_id,cpu,max_cpu,memory,max_memory,disk,status,ip,mac,os_type,os_version,owner,vnc_port,
-      cpu_mode,bios_type,video_type,video_ram,boot_order,cpu_hotplug,mem_hotplug,hugepages,ha_enabled,disk_cache,
+      cpu_mode,bios_type,video_type,video_ram,boot_order,cpu_hotplug,mem_hotplug,hugepages,ha_enabled,disk_cache,vm_type,
       created_at,updated_at)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))`)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),datetime('now'))`)
       .run(id, config.name, config.host_id, config.template_id || '', config.spec_id || '',
         config.cpu || 2, config.max_cpu || config.cpu || 4, config.memory || 2048, config.max_memory || config.memory || 4096, config.disk || 40,
         'stopped', ip, mac, config.os_type || 'linux', config.os_version || '', config.owner || 'admin', vnc_port,
         config.cpu_mode || 'host-passthrough', config.bios_type || 'seabios', config.video_type || 'qxl', config.video_ram || 32,
         config.boot_order || 'hd,cdrom,network', config.cpu_hotplug ? 1 : 0, config.mem_hotplug ? 1 : 0, config.hugepages ? 1 : 0, config.ha_enabled ? 1 : 0,
-        config.disk_cache || 'none');
+        config.disk_cache || 'none', config.vm_type || 'desktop');
 
     // 创建系统盘
     this.db.prepare(`INSERT INTO vm_disks (id,vm_id,name,size,type,bus,format) VALUES (?,?,?,?,?,?,?)`).run(uuidv4(), id, `${config.name}-sys`, config.disk || 40, 'system', 'virtio', 'qcow2');

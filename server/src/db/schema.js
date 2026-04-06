@@ -922,6 +922,9 @@ function initSchema(db) {
     { table: 'sys_config', column: 'category', def: "TEXT DEFAULT ''" },
     { table: 'volumes', column: 'disk_role', def: "TEXT DEFAULT 'data'" },
     { table: 'hosts', column: 'cluster_id', def: "TEXT DEFAULT ''" },
+    { table: 'vms', column: 'vm_type', def: "TEXT DEFAULT 'desktop'" },
+    { table: 'terminals', column: 'type', def: "TEXT DEFAULT 'TC'" },
+    { table: 'terminals', column: 'group_name', def: "TEXT DEFAULT ''" },
   ];
   for (const { table, column, def } of alterColumns) {
     try {

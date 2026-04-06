@@ -89,7 +89,10 @@ router.put('/roles', function (req, res) {
 router.get('/network', function (req, res) {
   try {
     var { execSync } = require('child_process');
-    var ip = execSync("hostname -I | awk '{print $1}'", { encoding: 'utf8', timeout: 3000 }).trim();
+    var allIPs = execSync('hostname -I', { encoding: 'utf8', timeout: 3000 }).trim().split(/\s+/);
+    var ip = allIPs.find(function (a) {
+      return a && !a.startsWith('10.0.') && !a.startsWith('172.17.') && !a.startsWith('127.');
+    }) || allIPs[0] || '';
     var gw = execSync("ip route | grep default | awk '{print $3}'", { encoding: 'utf8', timeout: 3000 }).trim();
     var mask = execSync("ip -o -4 addr show scope global | head -1 | awk '{print $4}' | cut -d/ -f2", { encoding: 'utf8', timeout: 3000 }).trim();
     var hostname = execSync('hostname', { encoding: 'utf8', timeout: 3000 }).trim();

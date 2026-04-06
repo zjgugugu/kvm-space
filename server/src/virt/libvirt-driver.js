@@ -128,7 +128,7 @@ class LibvirtDriver extends MockDriver {
 
   async _exec(cmd, args, timeout = 30000) {
     try {
-      const { stdout, stderr } = await execFileAsync(cmd, args, { timeout });
+      const { stdout, stderr } = await execFileAsync(cmd, args, { timeout, env: { ...process.env, LANG: 'C', LC_ALL: 'C' } });
       return { stdout: stdout.trim(), stderr: stderr.trim() };
     } catch (err) {
       const msg = err.stderr || err.message || String(err);
@@ -549,7 +549,7 @@ ${videoBlock}
         await new Promise(r => setTimeout(r, 2000));
         try {
           const { stdout } = await this._virsh(['domstate', vm.id]);
-          if (stdout.includes('shut off')) { stopped = true; break; }
+          if (stdout.includes('shut off') || stdout.includes('关闭')) { stopped = true; break; }
         } catch (e) { stopped = true; break; }
       }
       if (!stopped) {
@@ -654,17 +654,33 @@ ${videoBlock}
     if (vm.status === 'running') throw new Error('请先关闭虚拟机');
 
     if (permanent || vm.deleted === 1) {
-      // 永久删除：清理 libvirt 定义和磁盘
-      try {
-        await this._virsh(['undefine', vm.id, '--remove-all-storage']);
-      } catch (err) {
-        // 可能未在 libvirt 注册，只清理本地文件
-        try { await this._virsh(['undefine', vm.id]); } catch (e) { /* ignore */ }
+      // 永久删除：undefine + 清理文件
+      // 尝试多种 undefine 策略（不同 virsh 版本支持不同标志）
+      const strategies = [
+        ['undefine', vm.id, '--snapshots-metadata', '--managed-save'],
+        ['undefine', vm.id, '--snapshots-metadata'],
+        ['undefine', vm.id, '--managed-save'],
+        ['undefine', vm.id],
+      ];
+      let undefined = false;
+      for (const args of strategies) {
+        try {
+          await this._virsh(args);
+          undefined = true;
+          break;
+        } catch (e) { /* try next strategy */ }
+      }
+      if (!undefined) {
+        console.warn(`[LibvirtDriver] 无法 undefine VM ${vm.id}，可能不在 libvirt 中`);
       }
 
-      // 清理本地磁盘文件
-      const diskPath = path.join(VM_IMAGES_DIR, `${vm.id}-sys.qcow2`);
-      try { if (fs.existsSync(diskPath)) fs.unlinkSync(diskPath); } catch (e) { /* ignore */ }
+      // 清理本地磁盘文件（包括快照残留文件）
+      try {
+        const files = fs.readdirSync(VM_IMAGES_DIR).filter(f => f.startsWith(vm.id));
+        for (const f of files) {
+          try { fs.unlinkSync(path.join(VM_IMAGES_DIR, f)); } catch (e) { /* ignore */ }
+        }
+      } catch (e) { /* ignore */ }
 
       // 调用父类永久删除（清理DB）
       return super.deleteVM(id, true);
@@ -879,9 +895,9 @@ ${videoBlock}
           // 检查是否在 virsh 中
           try {
             const { stdout: state } = await this._virsh(['domstate', vm.id]);
-            if (state.includes('shut off')) {
+            if (state.includes('shut off') || state.includes('关闭')) {
               this.db.prepare("UPDATE vms SET status = 'stopped', vnc_port = 0 WHERE id = ?").run(vm.id);
-            } else if (state.includes('paused')) {
+            } else if (state.includes('paused') || state.includes('暂停')) {
               this.db.prepare("UPDATE vms SET status = 'suspended' WHERE id = ?").run(vm.id);
             }
           } catch (e) {
@@ -897,7 +913,7 @@ ${videoBlock}
         if (virshUUIDs.includes(vm.id)) {
           try {
             const { stdout: state } = await this._virsh(['domstate', vm.id]);
-            if (state.includes('running') && vm.status !== 'running') {
+            if ((state.includes('running') || state.includes('运行')) && vm.status !== 'running') {
               let vncPort = 0;
               try {
                 const { stdout: vnc } = await this._virsh(['vncdisplay', vm.id]);
@@ -905,7 +921,7 @@ ${videoBlock}
                 if (match) vncPort = 5900 + parseInt(match[1]);
               } catch (e) { /* ignore */ }
               this.db.prepare("UPDATE vms SET status = 'running', vnc_port = ? WHERE id = ?").run(vncPort, vm.id);
-            } else if (state.includes('shut off') && vm.status === 'running') {
+            } else if ((state.includes('shut off') || state.includes('关闭')) && vm.status === 'running') {
               this.db.prepare("UPDATE vms SET status = 'stopped', vnc_port = 0 WHERE id = ?").run(vm.id);
             }
           } catch (e) { /* ignore */ }

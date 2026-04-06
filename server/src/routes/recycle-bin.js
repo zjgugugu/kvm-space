@@ -17,7 +17,7 @@ router.get('/', (req, res) => {
     for (const vm of deletedVMs) {
       recycled.push({
         id: 'vm-' + vm.id,
-        resource_type: 'vm',
+        resource_type: 'vm_deleted',
         resource_id: vm.id,
         resource_name: vm.name,
         deleted_by: vm.owner || 'admin',
@@ -26,7 +26,7 @@ router.get('/', (req, res) => {
       });
     }
   }
-  res.json(recycled);
+  res.json({ data: recycled, total: recycled.length });
 });
 
 // POST /api/recycle-bin/:id/restore — 恢复

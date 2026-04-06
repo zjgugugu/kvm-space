@@ -12,16 +12,47 @@ router.get('/overview', async (req, res) => {
     const cpu = cluster.cpu || {};
     const mem = cluster.memory || {};
     const sto = cluster.storage || {};
+    const db = req.app.locals.db;
 
+    // 存储池列表
     let storageList = [];
     try {
-      const pools = req.app.locals.db.prepare('SELECT * FROM storage_pools').all();
+      const pools = db.prepare('SELECT * FROM storage_pools').all();
       storageList = pools.map((p, i) => ({
         id: i + 1, name: p.name, state: p.status || 'online',
         totalSize: +(p.total || 0).toFixed(1),
         usedSize: +(p.used || 0).toFixed(1),
-        type: { name: 'LOCAL' }, usage: { name: 'DATA' }, status: { name: 'NORMAL' }
+        type: { name: (p.type || 'local').toUpperCase() === 'LOCAL' ? 'LOCAL' : 'DISTRIBUTED' },
+        usage: { name: p.name === 'MStorage' ? 'MANAGE' : 'DATA' },
+        status: { name: 'NORMAL' }
       }));
+    } catch(e) {}
+
+    // 服务器VM统计 (vm_type='server' 或 template.run_mode != 'VDI')
+    let serverRunning = 0, serverStopped = 0, serverTotal = 0;
+    try {
+      const serverVMs = db.prepare(`
+        SELECT v.status FROM vms v
+        LEFT JOIN templates t ON v.template_id = t.id
+        WHERE v.deleted = 0 AND (v.vm_type = 'server' OR (t.run_mode IS NOT NULL AND t.run_mode != 'VDI'))
+      `).all();
+      serverTotal = serverVMs.length;
+      serverRunning = serverVMs.filter(v => v.status === 'running').length;
+      serverStopped = serverTotal - serverRunning;
+    } catch(e) {}
+
+    // 终端系统类型统计 (来自 terminals 表)
+    let systemType = { normal: 0, vde: 0, tc: 0 };
+    try {
+      const terminalStats = db.prepare(`
+        SELECT type, COUNT(*) as cnt FROM terminals GROUP BY type
+      `).all();
+      for (const t of terminalStats) {
+        const typeLower = (t.type || '').toLowerCase();
+        if (typeLower === 'pc' || typeLower === 'normal') systemType.normal += t.cnt;
+        else if (typeLower === 'vde') systemType.vde += t.cnt;
+        else if (typeLower === 'tc') systemType.tc += t.cnt;
+      }
     } catch(e) {}
 
     res.json({
@@ -29,13 +60,15 @@ router.get('/overview', async (req, res) => {
         connected: vms.running || 0,
         disConnected: (vms.stopped || 0) + (vms.suspended || 0),
         total: vms.total || 0,
-        isRunning: 0, unRun: 0, servertotal: 0
+        isRunning: serverRunning,
+        unRun: serverStopped,
+        servertotal: serverTotal
       },
       server: { online: hosts.online || 0, offline: hosts.offline || 0 },
       cpu: { used: +(cpu.used || 0), total: +(cpu.total || 0) },
       mem: { used: +((mem.used || 0) / 1024).toFixed(2), total: +((mem.total || 0) / 1024).toFixed(2) },
       storage: { used: Math.round(sto.used || 0), total: Math.round(sto.total || 0), storageList },
-      systemType: { normal: 0, vde: 0, tc: 0 }
+      systemType
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

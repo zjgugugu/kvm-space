@@ -44,7 +44,7 @@ async function main() {
       var os = '';
       try { os = execSync('cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d \'"\'', { encoding: 'utf8', timeout: 3000 }).trim(); } catch (e) {}
       var cpuModel = '';
-      try { cpuModel = execSync("lscpu | grep 'Model name' | sed 's/Model name:\\s*//'", { encoding: 'utf8', timeout: 3000 }).trim(); } catch (e) {}
+      try { cpuModel = execSync("lscpu | grep -E 'Model name|型号名称' | sed 's/.*：\\s*//' | sed 's/.*:\\s*//'", { encoding: 'utf8', timeout: 3000 }).trim(); } catch (e) {}
       var cpuCount = 0;
       try { cpuCount = parseInt(execSync('nproc', { encoding: 'utf8', timeout: 3000 }).trim()); } catch (e) {}
       var memTotal = 0;

@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 router.get('/', async (req, res) => {
   const db = req.app.locals.db;
   const rows = db.prepare('SELECT * FROM desktop_pools ORDER BY created_at DESC').all();
-  res.json(rows);
+  res.json({ data: rows, total: rows.length });
 });
 
 // GET /api/desktop-pools/:id — 详情

@@ -96,6 +96,14 @@ router.post('/ldap/sync', async (req, res) => {
   res.json({ success: true, message: 'LDAP用户同步完成（模拟）', synced: 0, added: 0, updated: 0 });
 });
 
+// 获取用户详情
+router.get('/:id', (req, res) => {
+  const db = req.app.locals.db;
+  const user = db.prepare('SELECT id, username, role, display_name, email, phone, status, group_id, last_login, login_fail_count, created_at FROM users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: '用户不存在' });
+  res.json(user);
+});
+
 // 编辑用户
 router.put('/:id', (req, res) => {
   if (req.user.role !== 'sysadmin') {

@@ -11,7 +11,8 @@ router.get('/', (req, res) => {
   if (status) { sql += ' AND status = ?'; params.push(status); }
   if (keyword) { sql += ' AND (name LIKE ? OR ip LIKE ? OR mac LIKE ?)'; params.push(`%${keyword}%`, `%${keyword}%`, `%${keyword}%`); }
   sql += ' ORDER BY created_at DESC';
-  res.json(db.prepare(sql).all(...params));
+  const rows = db.prepare(sql).all(...params);
+  res.json({ data: rows, total: rows.length });
 });
 
 // GET /api/clients/:id — 终端详情
@@ -83,7 +84,8 @@ router.post('/batch-action', (req, res) => {
 // GET /api/clients/tasks/list — 终端任务列表
 router.get('/tasks/list', (req, res) => {
   const db = req.app.locals.db;
-  res.json(db.prepare('SELECT * FROM terminal_tasks ORDER BY created_at DESC LIMIT 200').all());
+  const rows = db.prepare('SELECT * FROM terminal_tasks ORDER BY created_at DESC LIMIT 200').all();
+  res.json({ data: rows, total: rows.length });
 });
 
 module.exports = router;
