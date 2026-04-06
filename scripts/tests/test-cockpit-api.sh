@@ -1,5 +1,5 @@
 #!/bin/bash
-# Cockpit API 综合测试 (33 endpoints)
+# Cockpit API 综合测试 (42 endpoints)
 BASE="https://localhost:9091"
 PASS=0
 FAIL=0
@@ -177,7 +177,31 @@ check "POST /api/maintain/network-detect" 200 "$CODE"
 CODE=$(curl -sk -o /dev/null -w '%{http_code}' -H "$AUTH" $BASE/api/maintain/tasks)
 check "GET /api/maintain/tasks" 200 "$CODE"
 
-# 6. Auth guard test
+# 6. System
+echo ""
+echo "--- System ---"
+CODE=$(curl -sk -o /dev/null -w '%{http_code}' -H "$AUTH" $BASE/api/system/overview)
+check "GET /api/system/overview" 200 "$CODE"
+
+CODE=$(curl -sk -o /dev/null -w '%{http_code}' -H "$AUTH" $BASE/api/system/services)
+check "GET /api/system/services" 200 "$CODE"
+
+CODE=$(curl -sk -o /dev/null -w '%{http_code}' -H "$AUTH" $BASE/api/system/services/sshd)
+check "GET /api/system/services/sshd" 200 "$CODE"
+
+CODE=$(curl -sk -o /dev/null -w '%{http_code}' -H "$AUTH" "$BASE/api/system/logs?lines=10")
+check "GET /api/system/logs" 200 "$CODE"
+
+CODE=$(curl -sk -o /dev/null -w '%{http_code}' -H "$AUTH" $BASE/api/system/networking)
+check "GET /api/system/networking" 200 "$CODE"
+
+CODE=$(curl -sk -o /dev/null -w '%{http_code}' -H "$AUTH" $BASE/api/system/storage)
+check "GET /api/system/storage" 200 "$CODE"
+
+CODE=$(curl -sk -o /dev/null -w '%{http_code}' -H "$AUTH" $BASE/api/system/accounts)
+check "GET /api/system/accounts" 200 "$CODE"
+
+# 7. Auth guard test
 echo ""
 echo "--- Auth Guard ---"
 CODE=$(curl -sk -o /dev/null -w '%{http_code}' $BASE/api/cluster/status)

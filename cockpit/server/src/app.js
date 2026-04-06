@@ -11,6 +11,7 @@ var { router: authRoutes, authMiddleware } = require('./routes/auth');
 var clusterRoutes = require('./routes/cluster');
 var configRoutes = require('./routes/config');
 var maintainRoutes = require('./routes/maintain');
+var systemRoutes = require('./routes/system');
 
 var PORT = parseInt(process.env.COCKPIT_PORT) || 9091;
 
@@ -35,6 +36,7 @@ async function main() {
   app.use('/api/cluster', authMiddleware, clusterRoutes);
   app.use('/api/config', authMiddleware, configRoutes);
   app.use('/api/maintain', authMiddleware, maintainRoutes);
+  app.use('/api/system', authMiddleware, systemRoutes);
 
   // 系统信息（无需认证）
   app.get('/api/info', function (req, res) {
