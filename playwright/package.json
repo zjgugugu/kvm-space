@@ -1,0 +1,14 @@
+{
+  "name": "cockpit-e2e-tests",
+  "version": "1.0.0",
+  "description": "Playwright visual comparison tests: 9091 vs 9090",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:compare": "npx playwright test compare",
+    "test:report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^20.0.0"
+  }
+}
