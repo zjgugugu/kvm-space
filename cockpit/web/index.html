@@ -149,6 +149,7 @@
       <div class="area-ct-body">
         <!-- 左侧导航 -->
         <div class="area-ct-subnav">
+          <!-- Dashboard 区域 -->
           <div class="sidebar-group">
             <div class="sidebar-item" :class="{ active: currentModule === 'virtualization' }" @click="switchModule('virtualization')">
               <i class="el-icon-monitor"></i>
@@ -163,6 +164,19 @@
               <div class="sub-item" :class="{ active: maintainTab === i }" v-for="(tab, i) in maintainTabs" :key="i" @click="maintainTab = i">
                 {{ tab.label }}
               </div>
+            </div>
+          </div>
+          <!-- Menu 区域 (匹配 systemd manifest menu) -->
+          <div class="sidebar-group" style="border-top: 1px solid #2a3456; margin-top: 4px; padding-top: 4px;">
+            <div class="sidebar-item" :class="{ active: currentModule === 'system' }" @click="switchModule('system')">
+              <i class="el-icon-s-platform"></i>
+              <span>System</span>
+            </div>
+            <!-- System 子菜单 -->
+            <div v-if="currentModule === 'system'" class="sub-menu">
+              <div class="sub-item" :class="{ active: systemTab === 'overview' }" @click="systemTab = 'overview'; loadOverview()">概览</div>
+              <div class="sub-item" :class="{ active: systemTab === 'services' }" @click="systemTab = 'services'; loadServices()">服务</div>
+              <div class="sub-item" :class="{ active: systemTab === 'logs' }" @click="systemTab = 'logs'; loadLogs()">日志</div>
             </div>
           </div>
         </div>
@@ -418,6 +432,125 @@
               <el-empty v-if="!networkDetectResults.length" description="点击'检测网络'开始" :image-size="100"></el-empty>
             </div>
           </div>
+
+          <!-- ====== System 模块 (匹配真实 9090 systemd) ====== -->
+          <div v-if="currentModule === 'system'">
+            <!-- 概览 -->
+            <div v-if="systemTab === 'overview'">
+              <div class="container-box">
+                <div class="section-title">
+                  <h2>系统信息</h2>
+                  <div class="actions">
+                    <el-popover placement="bottom" width="120" trigger="click">
+                      <div style="text-align: center; cursor: pointer;">
+                        <p @click="powerAction('restart')" style="padding: 6px;">重启</p>
+                        <p @click="powerAction('shutdown')" style="padding: 6px;">关机</p>
+                      </div>
+                      <el-button slot="reference" size="small">电源</el-button>
+                    </el-popover>
+                    <el-button icon="el-icon-refresh" size="small" @click="loadOverview">刷新</el-button>
+                  </div>
+                </div>
+                <el-form label-width="100px" class="setting-form" size="small" label-position="left">
+                  <el-form-item label="硬件">{{ overview.cpu ? overview.cpu.model : '' }}</el-form-item>
+                  <el-form-item label="操作系统">{{ overview.os }}</el-form-item>
+                  <el-form-item label="主机名">{{ overview.hostname }}</el-form-item>
+                  <el-form-item label="内核">{{ overview.kernel }}</el-form-item>
+                  <el-form-item label="架构">{{ overview.arch }}</el-form-item>
+                  <el-form-item label="运行时间">{{ overview.uptime }}</el-form-item>
+                  <el-form-item label="负载">{{ overview.cpu ? overview.cpu.load_avg : '' }}</el-form-item>
+                </el-form>
+              </div>
+              <div style="display: flex; gap: 16px; margin-top: 16px;">
+                <div class="container-box" style="flex: 1;">
+                  <h3 style="margin-bottom: 12px; color: #409eff;">CPU 使用率</h3>
+                  <p style="color: #8892b0; font-size: 13px;">{{ overview.cpu ? overview.cpu.cores + ' 核' : '' }}</p>
+                  <el-progress :percentage="overview.cpu ? Math.round(overview.cpu.usage) : 0" :color="progressColor" style="margin-top: 8px;"></el-progress>
+                </div>
+                <div class="container-box" style="flex: 1;">
+                  <h3 style="margin-bottom: 12px; color: #409eff;">内存</h3>
+                  <p style="color: #8892b0; font-size: 13px;">{{ overview.memory ? overview.memory.used_mb + ' / ' + overview.memory.total_mb + ' MB' : '' }}</p>
+                  <el-progress :percentage="overview.memory && overview.memory.total_mb ? Math.round(overview.memory.used_mb / overview.memory.total_mb * 100) : 0" :color="progressColor" style="margin-top: 8px;"></el-progress>
+                </div>
+              </div>
+              <div class="container-box" style="margin-top: 16px;">
+                <h3 style="margin-bottom: 12px; color: #409eff;">磁盘使用</h3>
+                <el-table :data="overview.disks || []" size="small">
+                  <el-table-column prop="device" label="设备" align="center"></el-table-column>
+                  <el-table-column prop="fstype" label="文件系统" align="center" width="100"></el-table-column>
+                  <el-table-column prop="size" label="大小" align="center" width="80"></el-table-column>
+                  <el-table-column prop="used" label="已用" align="center" width="80"></el-table-column>
+                  <el-table-column prop="avail" label="可用" align="center" width="80"></el-table-column>
+                  <el-table-column prop="use_pct" label="使用率" align="center" width="80"></el-table-column>
+                  <el-table-column prop="mount" label="挂载点" align="center"></el-table-column>
+                </el-table>
+              </div>
+              <div class="container-box" style="margin-top: 16px;">
+                <h3 style="margin-bottom: 12px; color: #409eff;">网络接口</h3>
+                <el-table :data="overview.interfaces || []" size="small">
+                  <el-table-column prop="name" label="接口" align="center" width="120"></el-table-column>
+                  <el-table-column prop="addr" label="地址" align="center"></el-table-column>
+                </el-table>
+              </div>
+            </div>
+            <!-- 服务管理 -->
+            <div v-if="systemTab === 'services'">
+              <div class="container-box">
+                <div class="section-title">
+                  <h2>系统服务</h2>
+                  <div class="actions">
+                    <el-input v-model="serviceFilter" placeholder="搜索服务..." size="small" style="width: 250px;" prefix-icon="el-icon-search" clearable></el-input>
+                    <el-button icon="el-icon-refresh" size="small" @click="loadServices">刷新</el-button>
+                  </div>
+                </div>
+                <el-table :data="filteredServices" size="small" max-height="600">
+                  <el-table-column prop="name" label="服务" align="left" width="250"></el-table-column>
+                  <el-table-column label="状态" align="center" width="80">
+                    <template slot-scope="scope">
+                      <el-tag :type="scope.row.active === 'active' ? 'success' : scope.row.active === 'failed' ? 'danger' : 'info'" size="mini">{{ scope.row.sub }}</el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="description" label="描述" align="left"></el-table-column>
+                  <el-table-column label="操作" align="center" width="200">
+                    <template slot-scope="scope">
+                      <el-button v-if="scope.row.active !== 'active'" type="text" size="mini" @click="serviceAction(scope.row.name, 'start')">启动</el-button>
+                      <el-button v-if="scope.row.active === 'active'" type="text" size="mini" @click="serviceAction(scope.row.name, 'stop')">停止</el-button>
+                      <el-button type="text" size="mini" @click="serviceAction(scope.row.name, 'restart')">重启</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </div>
+            <!-- 日志 -->
+            <div v-if="systemTab === 'logs'">
+              <div class="container-box">
+                <div class="section-title">
+                  <h2>系统日志</h2>
+                  <div class="actions">
+                    <el-select v-model="logPriority" placeholder="级别" size="small" style="width: 120px;" clearable>
+                      <el-option label="紧急" value="0"></el-option>
+                      <el-option label="错误" value="3"></el-option>
+                      <el-option label="警告" value="4"></el-option>
+                      <el-option label="通知" value="5"></el-option>
+                      <el-option label="信息" value="6"></el-option>
+                    </el-select>
+                    <el-input v-model="logUnit" placeholder="服务名..." size="small" style="width: 200px;" clearable></el-input>
+                    <el-button type="primary" size="small" @click="loadLogs">查询</el-button>
+                  </div>
+                </div>
+                <el-table :data="systemLogs" size="small" max-height="600">
+                  <el-table-column label="级别" align="center" width="60">
+                    <template slot-scope="scope">
+                      <el-tag :type="{'0':'danger','1':'danger','2':'danger','3':'danger','4':'warning','5':'info','6':'info','7':'info'}[scope.row.priority] || 'info'" size="mini">{{ {'0':'紧急','1':'警报','2':'严重','3':'错误','4':'警告','5':'通知','6':'信息','7':'调试'}[scope.row.priority] || scope.row.priority }}</el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="timestamp" label="时间" align="center" width="180"></el-table-column>
+                  <el-table-column prop="unit" label="来源" align="center" width="180"></el-table-column>
+                  <el-table-column prop="message" label="内容" align="left"></el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -601,13 +734,36 @@
             VDI_Only: '计算（VDI）',
             Arbiter: '仲裁（Arbiter）',
             Gateway: '网关（Gateway）'
-          }
+          },
+
+          // System 模块
+          systemTab: 'overview',
+          overview: {},
+          serviceList: [],
+          serviceFilter: '',
+          systemLogs: [],
+          logPriority: '',
+          logUnit: '',
+
+          // 进度条颜色
+          progressColor: [
+            { color: '#67c23a', percentage: 60 },
+            { color: '#e6a23c', percentage: 80 },
+            { color: '#f56c6c', percentage: 100 }
+          ]
         };
       },
       computed: {
         currentSteps: function () {
           if (this.deployMode === 'standalone') return ['单机属性', '存储模式', '主机配置', '部署状态'];
           return ['类型选择', '存储模式', '添加主机', '部署检测', '存储配置', '部署状态'];
+        },
+        filteredServices: function () {
+          var kw = this.serviceFilter.toLowerCase();
+          if (!kw) return this.serviceList;
+          return this.serviceList.filter(function (s) {
+            return s.name.toLowerCase().indexOf(kw) !== -1 || (s.description || '').toLowerCase().indexOf(kw) !== -1;
+          });
         }
       },
       created: function () {
@@ -761,6 +917,38 @@
         switchModule: function (mod) {
           this.currentModule = mod;
           if (mod === 'virtualization') this.loadClusterStatus();
+          else if (mod === 'system') { this.systemTab = 'overview'; this.loadOverview(); }
+        },
+        loadOverview: function () {
+          var self = this;
+          api('GET', '/api/system/overview').then(function (r) { self.overview = r; });
+        },
+        loadServices: function () {
+          var self = this;
+          api('GET', '/api/system/services').then(function (r) { self.serviceList = r.data || []; });
+        },
+        serviceAction: function (name, action) {
+          var self = this;
+          self.$confirm('确定要 ' + action + ' 服务 ' + name + '？', '确认').then(function () {
+            api('POST', '/api/system/services/' + name + '/' + action).then(function (r) {
+              self.$message.success(r.message || '操作完成');
+              self.loadServices();
+            }).catch(function () { self.$message.error('操作失败'); });
+          }).catch(function () {});
+        },
+        loadLogs: function () {
+          var self = this;
+          var params = '?lines=200';
+          if (self.logPriority) params += '&priority=' + self.logPriority;
+          if (self.logUnit) params += '&unit=' + self.logUnit;
+          api('GET', '/api/system/logs' + params).then(function (r) { self.systemLogs = r.data || []; });
+        },
+        powerAction: function (action) {
+          var self = this;
+          self.$confirm('确定要' + (action === 'shutdown' ? '关机' : '重启') + '本机？', '确认', { type: 'warning' }).then(function () {
+            api('POST', '/api/system/services/systemd-' + action + 'restart').catch(function () {});
+            self.$message.success('指令已发送');
+          }).catch(function () {});
         }
       },
       watch: {
