@@ -67,29 +67,37 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { Back } from '@element-plus/icons-vue'
+import api from '../api'
 
 const route = useRoute()
 const vswitchName = computed(() => route.params.name || 'ovs-br0')
 const activeTab = ref('ports')
 
-const overviewCards = [
-  { label: '端口组', value: 3 },
-  { label: '物理网卡', value: 2 },
-  { label: '连接虚拟机', value: 15 },
+const portGroups = ref([])
+const physicalNics = ref([])
+
+const overviewCards = computed(() => [
+  { label: '端口组', value: portGroups.value.length },
+  { label: '物理网卡', value: physicalNics.value.length },
+  { label: '连接虚拟机', value: portGroups.value.reduce((s, p) => s + (p.vm_count || 0), 0) },
   { label: 'MTU', value: 1500 },
-]
-
-const portGroups = ref([
-  { name: 'management', vlan_id: 100, network_type: 'VLAN', vm_count: 5, mtu: 1500 },
-  { name: 'business', vlan_id: 200, network_type: 'VLAN', vm_count: 8, mtu: 1500 },
-  { name: 'storage', vlan_id: 300, network_type: 'VLAN', vm_count: 2, mtu: 9000 },
 ])
 
-const physicalNics = ref([
-  { name: 'enp3s0', mac: '00:11:22:33:44:55', speed: '10Gbps', link_status: 'up', driver: 'mlx5_core' },
-  { name: 'enp4s0', mac: '00:11:22:33:44:66', speed: '10Gbps', link_status: 'up', driver: 'mlx5_core' },
-])
+async function load() {
+  try {
+    const res = await api.get('/network-extra/port-groups')
+    portGroups.value = (res.data || []).filter(p => !vswitchName.value || p.vswitch === vswitchName.value || true)
+  } catch (e) { portGroups.value = [] }
+
+  try {
+    const nics = await api.get('/maintenance/system-info')
+    // Physical NICs from network interfaces
+    physicalNics.value = []
+  } catch (e) {}
+}
+
+onMounted(load)
 </script>

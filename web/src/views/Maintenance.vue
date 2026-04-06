@@ -48,24 +48,40 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import api from '../api'
 import { ElMessage } from 'element-plus'
 
-const sysInfo = reactive({ cpu: 35, memory: 62, disk: 45, load: '0.85 0.72 0.58', uptime: '15天 8小时' })
-const services = ref([
-  { name: '管理控制台 (MC)', status: 'running', pid: '37380', port: '8444', uptime: '15天 8小时', memory: '128MB' },
-  { name: '虚拟化控制台 (Cockpit)', status: 'running', pid: '26056', port: '9091', uptime: '15天 8小时', memory: '64MB' },
-  { name: 'libvirtd', status: 'running', pid: '1234', port: '-', uptime: '15天 8小时', memory: '32MB' },
-  { name: 'GlusterFS', status: 'running', pid: '2345', port: '24007', uptime: '15天 8小时', memory: '256MB' },
-  { name: 'MariaDB/MySQL', status: 'running', pid: '3456', port: '3306', uptime: '15天 8小时', memory: '512MB' },
-])
+const sysInfo = reactive({ cpu: 0, memory: 0, disk: 0, load: '-', uptime: '-' })
+const services = ref([])
 
-function refresh() {
-  sysInfo.cpu = Math.floor(Math.random() * 40 + 20)
-  sysInfo.memory = Math.floor(Math.random() * 30 + 50)
-  ElMessage.success('已刷新')
+async function refresh() {
+  try {
+    const info = await api.get('/maintenance/system-info')
+    Object.assign(sysInfo, info)
+    ElMessage.success('已刷新')
+  } catch (e) {
+    ElMessage.error('获取系统信息失败')
+  }
 }
 
-function doAction(name) { ElMessage.success(`${name} 操作已执行（模拟）`) }
+async function loadServices() {
+  try {
+    services.value = (await api.get('/maintenance/services')).data || []
+  } catch (e) {
+    services.value = []
+  }
+}
 
-onMounted(() => {})
+async function doAction(name) {
+  try {
+    const res = await api.post('/maintenance/action', { action: name })
+    ElMessage.success(res.message || `${name} 已执行`)
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || `${name} 执行失败`)
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([refresh(), loadServices()])
+})
 </script>

@@ -260,8 +260,8 @@ async function loadData() {
     // Storage
     storagePools.value = pools.map(p => ({
       name: p.name, type: p.type,
-      used_gb: Math.round((p.used || 0) / 1024),
-      total_gb: Math.round((p.capacity || 0) / 1024)
+      used_gb: p.used || 0,
+      total_gb: p.total || 0
     }))
 
     await nextTick()
@@ -363,7 +363,7 @@ async function loadLoginHistory() {
     const params = {}
     if (loginFilter.user) params.user = loginFilter.user
     if (loginDateRange.value?.length === 2) { params.start = loginDateRange.value[0]; params.end = loginDateRange.value[1] }
-    loginHistory.value = await api.get('/stats/user-login', { params })
+    loginHistory.value = (await api.get('/stats/user-login', { params })).data || []
   } catch(e) { loginHistory.value = [] }
 }
 
@@ -373,13 +373,13 @@ async function loadAuditLogs() {
     if (auditFilter.user) params.user = auditFilter.user
     if (auditFilter.action) params.action = auditFilter.action
     if (auditDateRange.value?.length === 2) { params.start = auditDateRange.value[0]; params.end = auditDateRange.value[1] }
-    auditLogs.value = await api.get('/stats/audit', { params })
+    auditLogs.value = (await api.get('/stats/audit', { params })).data || []
   } catch(e) { auditLogs.value = [] }
 }
 
 async function loadUsageTime() {
   try {
-    usageTimeList.value = await api.get('/stats/usage-time')
+    usageTimeList.value = (await api.get('/stats/usage-time')).data || []
   } catch(e) { usageTimeList.value = [] }
 }
 

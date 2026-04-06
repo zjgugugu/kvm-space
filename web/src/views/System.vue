@@ -403,8 +403,8 @@ async function deleteBackup(b) {
 
 async function loadPolicies() {
   try {
-    const rows = await api.get('/system/policies')
-    for (const row of (rows || [])) {
+    const rows = (await api.get('/system/policies')).data || []
+    for (const row of rows) {
       if (row.key in policies) {
         const v = row.value
         if (typeof policies[row.key] === 'number') policies[row.key] = Number(v)

@@ -33,6 +33,7 @@ const fileManageRoutes = require('./routes/file-manage');
 const networkExtraRoutes = require('./routes/network-extra');
 const systemExtraRoutes = require('./routes/system-extra');
 const terminalBindingRoutes = require('./routes/terminal-bindings');
+const maintenanceRoutes = require('./routes/maintenance');
 
 const MODE = process.env.KVM_MODE || 'libvirt';
 const PORT = parseInt(process.env.PORT) || 8444;
@@ -130,6 +131,7 @@ async function main() {
   app.use('/api/network-extra', authMiddleware, networkExtraRoutes);
   app.use('/api/system-extra', authMiddleware, systemExtraRoutes);
   app.use('/api/terminal-bindings', authMiddleware, terminalBindingRoutes);
+  app.use('/api/maintenance', authMiddleware, maintenanceRoutes);
 
   // 模式信息（无需认证）
   app.get('/api/info', (req, res) => {
