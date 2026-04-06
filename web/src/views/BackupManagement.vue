@@ -7,15 +7,20 @@
     <el-tabs v-model="tab">
       <el-tab-pane label="备份列表" name="list">
         <el-table :data="backups" v-loading="loading" border stripe size="small">
-          <el-table-column prop="name" label="备份名称" width="200" />
-          <el-table-column prop="vm_name" label="虚拟机" width="140" />
-          <el-table-column prop="type" label="类型" width="80"><template #default="{ row }"><el-tag size="small">{{ row.type || '全量' }}</el-tag></template></el-table-column>
+          <el-table-column prop="user_name" label="用户" width="100" />
+          <el-table-column prop="vm_name" label="桌面" width="140" />
+          <el-table-column prop="group_name" label="组" width="100" />
+          <el-table-column prop="interval_days" label="间隔天数" width="90" />
+          <el-table-column prop="keep_count" label="保留份数" width="90" />
+          <el-table-column prop="location" label="备份位置" width="130" show-overflow-tooltip>
+            <template #default="{ row }">{{ row.location || row.server_name || '-' }}</template>
+          </el-table-column>
+          <el-table-column prop="schedule_time" label="定时时间" width="90" />
+          <el-table-column prop="last_backup_at" label="最后备份时间" width="155" />
           <el-table-column prop="status" label="状态" width="90">
             <template #default="{ row }"><el-tag :type="statusType(row.status)" size="small">{{ statusText(row.status) }}</el-tag></template>
           </el-table-column>
-          <el-table-column prop="size" label="大小" width="100" />
-          <el-table-column prop="server_name" label="备份服务器" width="140" />
-          <el-table-column prop="created_at" label="创建时间" width="160" />
+          <el-table-column prop="note" label="备注" min-width="100" show-overflow-tooltip />
           <el-table-column label="操作" width="160" fixed="right">
             <template #default="{ row }">
               <el-button size="small" type="primary" @click="restore(row)" :disabled="row.status!=='completed'">恢复</el-button>

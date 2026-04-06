@@ -20,18 +20,18 @@
       <el-tab-pane name="events">
         <template #label><el-icon><Document /></el-icon> 事件日志</template>
         <el-table :data="events" v-loading="loading" border stripe size="small" max-height="600">
-          <el-table-column prop="created_at" label="时间" width="160" sortable />
+          <el-table-column prop="level" label="严重性" width="80">
+            <template #default="{ row }"><el-tag :type="row.level === 'error' ? 'danger' : row.level === 'warning' ? 'warning' : 'info'" size="small">{{ levelText(row.level) }}</el-tag></template>
+          </el-table-column>
+          <el-table-column prop="created_at" label="日期" width="160" sortable />
           <el-table-column prop="type" label="类型" width="80">
             <template #default="{ row }">
               <el-tag size="small" :type="typeColor(row.type)">{{ typeText(row.type) }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="level" label="级别" width="75">
-            <template #default="{ row }"><el-tag :type="row.level === 'error' ? 'danger' : row.level === 'warning' ? 'warning' : 'info'" size="small">{{ levelText(row.level) }}</el-tag></template>
-          </el-table-column>
-          <el-table-column prop="message" label="事件描述" width="180" show-overflow-tooltip />
-          <el-table-column prop="resource_name" label="资源" width="130" />
-          <el-table-column prop="detail" label="详情" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="resource_name" label="服务器" width="130" />
+          <el-table-column prop="detail" label="资源" min-width="130" show-overflow-tooltip />
+          <el-table-column prop="message" label="信息" min-width="200" show-overflow-tooltip />
           <el-table-column prop="user" label="操作者" width="90" />
         </el-table>
       </el-tab-pane>

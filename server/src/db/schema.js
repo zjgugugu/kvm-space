@@ -928,6 +928,19 @@ function initSchema(db) {
     { table: 'zombie_servers', column: 'detected_at', def: "DATETIME DEFAULT (datetime('now'))" },
     { table: 'zombie_servers', column: 'resolved', def: "INTEGER DEFAULT 0" },
     { table: 'zombie_servers', column: 'resolved_at', def: "DATETIME" },
+    { table: 'snapshot_policies', column: 'description', def: "TEXT DEFAULT ''" },
+    { table: 'backups', column: 'user_name', def: "TEXT DEFAULT ''" },
+    { table: 'backups', column: 'group_name', def: "TEXT DEFAULT ''" },
+    { table: 'backups', column: 'interval_days', def: "INTEGER DEFAULT 1" },
+    { table: 'backups', column: 'keep_count', def: "INTEGER DEFAULT 3" },
+    { table: 'backups', column: 'location', def: "TEXT DEFAULT ''" },
+    { table: 'backups', column: 'schedule_time', def: "TEXT DEFAULT '02:00'" },
+    { table: 'backups', column: 'last_backup_at', def: "DATETIME" },
+    { table: 'backups', column: 'note', def: "TEXT DEFAULT ''" },
+    { table: 'alert_settings', column: 'name', def: "TEXT DEFAULT ''" },
+    { table: 'alert_settings', column: 'threshold_critical', def: "REAL DEFAULT 0" },
+    { table: 'alert_settings', column: 'threshold_major', def: "REAL DEFAULT 0" },
+    { table: 'alert_settings', column: 'threshold_minor', def: "REAL DEFAULT 0" },
   ];
   for (const { table, column, def } of alterColumns) {
     try {

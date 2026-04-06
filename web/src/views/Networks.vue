@@ -22,10 +22,11 @@
       <el-tab-pane label="虚拟网络" name="networks">
         <el-table :data="filteredNetworks" v-loading="loading" border stripe size="small">
           <el-table-column prop="name" label="名称" width="140" />
+          <el-table-column prop="description" label="描述" min-width="120" show-overflow-tooltip />
+          <el-table-column prop="vlan_id" label="VLAN" width="70" />
           <el-table-column prop="type" label="类型" width="80">
             <template #default="{ row }"><el-tag size="small">{{ row.type }}</el-tag></template>
           </el-table-column>
-          <el-table-column prop="vlan_id" label="VLAN" width="70" />
           <el-table-column prop="subnet" label="子网" width="150" />
           <el-table-column prop="gateway" label="网关" width="130" />
           <el-table-column label="DHCP范围" width="200">
@@ -102,20 +103,13 @@
             <el-option v-for="n in networks" :key="n.id" :label="n.name" :value="n.id" />
           </el-select>
         </div>
-        <el-table :data="subnets" border stripe size="small" v-loading="subnetsLoading">
-          <el-table-column prop="name" label="子网名称" width="140" />
-          <el-table-column prop="network_name" label="所属网络" width="130" />
-          <el-table-column prop="cidr" label="CIDR" width="160" />
+        <el-table :data="subnets" border strip名称" width="140" />
+          <el-table-column prop="description" label="描述" min-width="100" show-overflow-tooltip />
+          <el-table-column prop="cidr" label="子网" width="160" />
+          <el-table-column prop="vlan_id" label="VLAN ID" width="80" />
           <el-table-column prop="gateway" label="网关" width="140" />
-          <el-table-column label="DNS" width="200">
-            <template #default="{ row }">{{ [row.dns1, row.dns2].filter(Boolean).join(' / ') || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="DHCP" width="200">
-            <template #default="{ row }">
-              <template v-if="row.dhcp_enabled">{{ row.dhcp_start }} ~ {{ row.dhcp_end }}</template>
-              <el-tag v-else size="small" type="info">禁用</el-tag>
-            </template>
-          </el-table-column>
+          <el-table-column prop="dns1" label="首选DNS" width="130" />
+          <el-table-column prop="dns2" label="备份DNS" width="13
           <el-table-column prop="vlan_id" label="VLAN" width="70" />
           <el-table-column label="操作" width="140" fixed="right">
             <template #default="{ row }">

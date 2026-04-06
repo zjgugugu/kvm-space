@@ -3,21 +3,20 @@
     <div class="page-header">
       <h2>告警设置</h2>
       <el-button type="primary" @click="showDialog()"><el-icon><Plus /></el-icon>添加告警规则</el-button>
+      <el-button @click="batchSave">保存</el-button>
     </div>
     <el-table :data="settings" v-loading="loading" border stripe size="small">
-      <el-table-column prop="name" label="规则名称" width="160" />
-      <el-table-column prop="type" label="监控类型" width="120">
-        <template #default="{ row }"><el-tag size="small">{{ typeMap[row.type] || row.type }}</el-tag></template>
+      <el-table-column prop="name" label="告警名称" width="200">
+        <template #default="{ row }">{{ row.name || row.metric || '未命名' }}</template>
       </el-table-column>
-      <el-table-column prop="metric" label="指标" width="120" />
-      <el-table-column prop="threshold" label="阈值" width="100">
-        <template #default="{ row }">{{ row.threshold }}{{ row.unit || '%' }}</template>
+      <el-table-column label="紧急阈值(0为禁用)" width="160">
+        <template #default="{ row }"><el-input-number v-model="row.threshold_critical" :min="0" :max="100" size="small" style="width:120px" /></template>
       </el-table-column>
-      <el-table-column prop="level" label="告警级别" width="100">
-        <template #default="{ row }"><el-tag :type="levelType(row.level)" size="small">{{ row.level }}</el-tag></template>
+      <el-table-column label="严重阈值(0为禁用)" width="160">
+        <template #default="{ row }"><el-input-number v-model="row.threshold_major" :min="0" :max="100" size="small" style="width:120px" /></template>
       </el-table-column>
-      <el-table-column prop="duration" label="持续时间" width="100">
-        <template #default="{ row }">{{ row.duration || 5 }}分钟</template>
+      <el-table-column label="一般阈值(0为禁用)" width="160">
+        <template #default="{ row }"><el-input-number v-model="row.threshold_minor" :min="0" :max="100" size="small" style="width:120px" /></template>
       </el-table-column>
       <el-table-column prop="enabled" label="状态" width="80">
         <template #default="{ row }"><el-switch :model-value="row.enabled !== false" size="small" @change="toggleEnabled(row, $event)" /></template>
@@ -100,4 +99,17 @@ async function toggleEnabled(s, val) {
 }
 
 onMounted(load)
+async function batchSave() {
+  try {
+    for (const s of settings.value) {
+      await api.put(`/alerts/settings/${s.id}`, {
+        threshold_critical: s.threshold_critical || 0,
+        threshold_major: s.threshold_major || 0,
+        threshold_minor: s.threshold_minor || 0
+      })
+    }
+    ElMessage.success('告警设置已保存')
+  } catch(e) { ElMessage.error('保存失败: ' + e.message) }
+}
+
 </script>

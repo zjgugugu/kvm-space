@@ -12,22 +12,21 @@
       </div>
     </div>
     <el-table :data="events" v-loading="loading" border stripe size="small" max-height="600">
-      <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="user" label="操作用户" width="100" v-if="showUser" />
-      <el-table-column prop="user_ip" label="IP地址" width="130" v-if="showUser" />
-      <el-table-column prop="action" label="操作" width="120" v-if="isAudit" />
-      <el-table-column prop="resource_type" label="资源类型" width="100" v-if="isAudit" />
-      <el-table-column prop="resource_name" label="资源名称" width="140" v-if="isAudit" />
-      <el-table-column prop="type" label="事件类型" width="100" v-if="!isAudit">
-        <template #default="{ row }"><el-tag size="small">{{ row.type }}</el-tag></template>
-      </el-table-column>
-      <el-table-column prop="level" label="级别" width="80">
+      <el-table-column prop="level" label="严重性" width="80">
         <template #default="{ row }"><el-tag :type="levelType(row.level || row.result)" size="small">{{ row.level || row.result }}</el-tag></template>
       </el-table-column>
-      <el-table-column prop="message" label="详情" min-width="250" show-overflow-tooltip>
+      <el-table-column prop="created_at" label="日期" width="160" />
+      <el-table-column prop="action" label="操作" width="120" v-if="isAudit" />
+      <el-table-column prop="type" label="类型" width="100" v-if="!isAudit">
+        <template #default="{ row }"><el-tag size="small">{{ row.type }}</el-tag></template>
+      </el-table-column>
+      <el-table-column prop="user" label="用户" width="100" v-if="showUser" />
+      <el-table-column prop="resource_name" label="目标" width="140" v-if="isAudit" />
+      <el-table-column prop="resource_type" label="资源类型" width="100" v-if="isAudit" />
+      <el-table-column prop="message" label="信息" min-width="250" show-overflow-tooltip>
         <template #default="{ row }">{{ row.message || row.detail }}</template>
       </el-table-column>
-      <el-table-column prop="created_at" label="时间" width="160" />
+      <el-table-column prop="user_ip" label="IP" width="130" v-if="showUser" />
     </el-table>
     <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
       <span style="color:#909399;font-size:13px;">共 {{ total }} 条记录</span>

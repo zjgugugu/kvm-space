@@ -22,14 +22,14 @@
       <el-tab-pane label="活跃告警" name="active">
         <el-table :data="filteredAlerts" v-loading="loading" border stripe size="small" @selection-change="sel => selectedAlerts = sel">
           <el-table-column type="selection" width="40" />
-          <el-table-column prop="created_at" label="时间" width="155" />
-          <el-table-column prop="level" label="级别" width="70">
+          <el-table-column prop="level" label="告警级别" width="90">
             <template #default="{ row }"><el-tag :type="row.level === 'critical' ? 'danger' : row.level === 'warning' ? 'warning' : 'info'" size="small">{{ levelText(row.level) }}</el-tag></template>
           </el-table-column>
-          <el-table-column prop="type" label="类型" width="90" />
-          <el-table-column prop="message" label="告警信息" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="resource_name" label="资源" width="120" />
-          <el-table-column prop="status" label="状态" width="70">
+          <el-table-column prop="message" label="告警名称" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="resource_name" label="告警对象" width="120" />
+          <el-table-column prop="type" label="对象类型" width="90" />
+          <el-table-column prop="created_at" label="告警时间" width="155" />
+          <el-table-column prop="status" label="详情" width="70">
             <template #default="{ row }"><el-tag :type="row.status === 'active' ? 'danger' : 'success'" size="small">{{ row.status === 'active' ? '活跃' : '已确认' }}</el-tag></template>
           </el-table-column>
           <el-table-column label="操作" width="100" fixed="right">
@@ -53,21 +53,26 @@
         </el-table>
       </el-tab-pane>
       <el-tab-pane label="告警设置" name="settings">
-        <div style="margin-bottom: 10px;"><el-button type="primary" size="small" @click="showSettingDialog()"><el-icon><Plus /></el-icon>添加规则</el-button></div>
+        <div style="margin-bottom: 10px;display:flex;gap:8px;">
+          <el-button type="primary" size="small" @click="showSettingDialog()"><el-icon><Plus /></el-icon>添加规则</el-button>
+          <el-button size="small" @click="batchSave">保存</el-button>
+        </div>
         <el-table :data="settings" border stripe size="small">
-          <el-table-column prop="name" label="监控项" width="150" />
-          <el-table-column prop="type" label="类型" width="90" />
-          <el-table-column prop="threshold" label="阈值" width="70" />
-          <el-table-column prop="level" label="级别" width="70">
-            <template #default="{ row }"><el-tag :type="row.level==='critical'?'danger':row.level==='warning'?'warning':'info'" size="small">{{ levelText(row.level) }}</el-tag></template>
+          <el-table-column prop="name" label="告警名称" width="200">
+            <template #default="{ row }">{{ row.name || row.metric || '未命名' }}</template>
+          </el-table-column>
+          <el-table-column label="紧急阈值(0为禁用)" width="160">
+            <template #default="{ row }"><el-input-number v-model="row.threshold_critical" :min="0" :max="100" size="small" style="width:120px" /></template>
+          </el-table-column>
+          <el-table-column label="严重阈值(0为禁用)" width="160">
+            <template #default="{ row }"><el-input-number v-model="row.threshold_major" :min="0" :max="100" size="small" style="width:120px" /></template>
+          </el-table-column>
+          <el-table-column label="一般阈值(0为禁用)" width="160">
+            <template #default="{ row }"><el-input-number v-model="row.threshold_minor" :min="0" :max="100" size="small" style="width:120px" /></template>
           </el-table-column>
           <el-table-column prop="enabled" label="启用" width="70">
             <template #default="{ row }"><el-switch :model-value="!!row.enabled" @change="v => toggleSetting(row, v)" /></template>
           </el-table-column>
-          <el-table-column prop="notify_method" label="通知方式" width="100">
-            <template #default="{ row }">{{ row.notify_method || '站内' }}</template>
-          </el-table-column>
-          <el-table-column prop="description" label="描述" min-width="180" />
           <el-table-column label="操作" width="120">
             <template #default="{ row }">
               <el-button size="small" @click="showSettingDialog(row)">编辑</el-button>
@@ -180,7 +185,19 @@ function showSettingDialog(s) {
 }
 async function saveSetting() {
   if (editingSetting.value) {
-    await api.put(`/alerts/settings/${editingSetting.value.id}`, settingForm)
+ 
+async function batchSave() {
+  try {
+    for (const s of settings.value) {
+      await api.put(`/alerts/settings/${s.id}`, {
+        threshold_critical: s.threshold_critical || 0,
+        threshold_major: s.threshold_major || 0,
+        threshold_minor: s.threshold_minor || 0
+      })
+    }
+    ElMessage.success('告警设置已保存')
+  } catch(e) { ElMessage.error('保存失败: ' + e.message) }
+}   await api.put(`/alerts/settings/${editingSetting.value.id}`, settingForm)
   } else {
     await api.post('/alerts/settings', settingForm)
   }

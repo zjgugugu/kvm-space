@@ -2,24 +2,25 @@
   <div>
     <div class="page-header">
       <h2>快照策略</h2>
-      <el-button type="primary" @click="showDialog()"><el-icon><Plus /></el-icon>创建策略</el-button>
+      <el-button type="primary" @click="showDialog()"><el-icon><Plus /></el-icon>新建</el-button>
     </div>
     <el-table :data="policies" v-loading="loading" border stripe size="small">
       <el-table-column prop="name" label="策略名称" width="180" />
-      <el-table-column prop="schedule" label="执行计划" width="150">
+      <el-table-column prop="description" label="描述" min-width="120" show-overflow-tooltip />
+      <el-table-column prop="schedule" label="快照时间" width="150">
         <template #default="{ row }">{{ scheduleText(row) }}</template>
       </el-table-column>
-      <el-table-column prop="max_snapshots" label="最大快照数" width="100" />
-      <el-table-column prop="vm_count" label="关联虚拟机" width="100" />
-      <el-table-column prop="enabled" label="状态" width="80">
+      <el-table-column prop="max_snapshots" label="保留个数" width="100" />
+      <el-table-column prop="vm_count" label="发布规则数" width="100" />
+      <el-table-column prop="next_run" label="下次开始时间" width="160" />
+      <el-table-column prop="enabled" label="生效" width="80">
         <template #default="{ row }">
-          <el-tag :type="row.enabled ? 'success' : 'info'" size="small">{{ row.enabled ? '启用' : '禁用' }}</el-tag>
+          <el-tag :type="row.enabled ? 'success' : 'info'" size="small">{{ row.enabled ? '生效' : '失效' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="created_at" label="创建时间" width="160" />
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
-          <el-button size="small" :type="row.enabled ? 'warning' : 'success'" @click="toggle(row)">{{ row.enabled ? '禁用' : '启用' }}</el-button>
+          <el-button size="small" :type="row.enabled ? 'warning' : 'success'" @click="toggle(row)">{{ row.enabled ? '失效' : '生效' }}</el-button>
           <el-button size="small" type="danger" @click="remove(row)">删除</el-button>
         </template>
       </el-table-column>
